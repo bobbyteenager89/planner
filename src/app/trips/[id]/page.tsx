@@ -1,9 +1,11 @@
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { trips, participants } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { InviteForm } from "./invite-form";
 
@@ -44,6 +46,42 @@ export default async function TripDetailPage({
           </p>
         )}
       </div>
+
+      {(trip.status === "draft" || trip.status === "onboarding") && (
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            {trip.status === "draft" ? (
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Ready to start planning your trip?
+                </p>
+                <Link href={`/trips/${id}/onboard`}>
+                  <Button>Start Planning</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Onboarding in progress
+                </p>
+                <Link href={`/trips/${id}/onboard`}>
+                  <Button>Continue Planning</Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {trip.status === "intake" && (
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">
+              Waiting for participants to complete their intake.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
