@@ -30,7 +30,9 @@ src/
 │   ├── login/                   # Magic link auth
 │   └── trips/
 │       ├── [id]/                # Trip detail + invite form
-│       │   └── intake/          # Participant preference intake
+│       │   ├── intake/          # Participant intake questionnaire (Phase 3)
+│       │   └── onboard/        # Owner AI onboarding chat (Phase 2)
+│       ├── intake-demo/        # Dev-only demo page (404 in production)
 │       └── new/                 # Trip creation form
 ├── components/ui/               # shadcn/ui components
 ├── db/
@@ -42,7 +44,14 @@ src/
 └── middleware.ts                # Auth middleware
 ```
 
+## Testing
+```bash
+npx tsx scripts/seed-intake-test.ts    # Seed test user + trip + participant
+npx tsx scripts/test-intake-action.ts  # Run intake server action integration tests
+```
+
 ## Key Architecture Decisions
+- **neon-http driver has NO transaction support** — use sequential idempotent writes, not `db().transaction()`
 - `db()` is a function (not a constant) to avoid build-time DB connection errors
 - NextAuth uses callback-based lazy config `NextAuth(() => config)` for same reason
 - Conversations stored as JSONB on trip/participant records, not separate table
