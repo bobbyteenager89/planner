@@ -1,21 +1,55 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { notFound, redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { db } from "@/db";
+import { participants, trips } from "@/db/schema";
+import { and, eq } from "drizzle-orm";
+import { IntakeQuestionnaire } from "./intake-questionnaire";
 
-export default function IntakePage() {
+export default async function IntakePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
+  const { id } = await params;
+
+  // Bug #10 fix: parallelize DB queries + scope columns
+  const [participantResult, tripResult] = await Promise.all([
+    db()
+      .select({
+        id: participants.id,
+        status: participants.status,
+      })
+      .from(participants)
+      .where(
+        and(
+          eq(participants.tripId, id),
+          eq(participants.userId, session.user.id)
+        )
+      ),
+    db()
+      .select({ title: trips.title })
+      .from(trips)
+      .where(eq(trips.id, id)),
+  ]);
+
+  const participant = participantResult[0];
+  const trip = tripResult[0];
+
+  if (!participant) notFound();
+  if (!trip) notFound();
+
+  if (participant.status === "completed") {
+    redirect(`/trips/${id}`);
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight">
-            Share Your Preferences
-          </h1>
-        </CardHeader>
-        <CardContent className="text-center text-muted-foreground">
-          <p>The AI intake conversation will be built in Phase 3.</p>
-          <p className="mt-2 text-sm">
-            For now, your participation has been recorded.
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+    <IntakeQuestionnaire
+      participantId={participant.id}
+      tripTitle={trip.title}
+      tripId={id}
+    />
   );
 }

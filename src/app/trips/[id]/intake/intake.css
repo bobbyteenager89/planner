@@ -1,0 +1,133 @@
+/* ── Intake questionnaire custom styles ── */
+
+.intake-root {
+  --intake-green: #015e3f;
+  --intake-magenta: #e61359;
+  --intake-orange: #fa6614;
+  font-family: var(--font-outfit), sans-serif;
+}
+
+/* ── Cloud drift animation ── */
+@keyframes cloud-drift {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(12px);
+  }
+}
+
+@keyframes cloud-drift-slow {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-8px);
+  }
+}
+
+.cloud-drift {
+  animation: cloud-drift 20s ease-in-out infinite;
+}
+
+.cloud-drift-slow {
+  animation: cloud-drift-slow 28s ease-in-out infinite;
+}
+
+/* ── Liquid glass panel ── */
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* ── Step transitions ── */
+.step-enter {
+  animation: step-slide-in 0.35s ease-out forwards;
+}
+
+.step-exit {
+  animation: step-slide-out 0.35s ease-out forwards;
+}
+
+@keyframes step-slide-in {
+  from {
+    transform: translateX(60px);
+    opacity: 0;
+    scale: 0.97;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes step-slide-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    transform: translateX(-60px);
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+
+/* ── Option cards ── */
+.option-card {
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+  box-shadow: 4px 6px 0 rgba(0, 0, 0, 0.3);
+}
+
+.option-card:active {
+  transform: translateY(4px) translateX(4px);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.3);
+}
+
+.option-card.selected {
+  background-color: var(--intake-magenta);
+  color: white;
+  transform: translateY(4px) translateX(4px);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.3);
+}
+
+/* ── Next/Finish button ── */
+.intake-btn {
+  box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.3);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.15s ease;
+}
+
+.intake-btn:active:not(:disabled) {
+  transform: translateY(3px) translateX(3px) rotate(-2deg);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.3);
+}
+
+.intake-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .cloud-drift,
+  .cloud-drift-slow {
+    animation: none;
+  }
+
+  .step-enter,
+  .step-exit {
+    animation: none;
+  }
+
+  .option-card,
+  .intake-btn {
+    transition: none;
+  }
+}
