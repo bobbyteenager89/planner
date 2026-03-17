@@ -171,7 +171,7 @@ function ActivityCard({
         </h3>
         {activity.note && (
           <div
-            className="mt-2 px-3 py-1.5 text-xs font-semibold"
+            className="mt-2 px-3 py-1.5 text-sm font-semibold"
             style={{
               backgroundColor: MUSTARD,
               color: RUST,
@@ -194,7 +194,7 @@ function ActivityCard({
             href={activity.link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block mt-2 text-xs underline underline-offset-2 font-medium"
+            className="inline-block mt-2 text-sm underline underline-offset-2 font-medium"
             style={{ color: RUST }}
           >
             {activity.link.label} →
@@ -248,7 +248,7 @@ function CompactVoteCard({
       </p>
       {subtitle && (
         <p
-          className="text-xs font-bold uppercase tracking-wider mt-0.5"
+          className="text-sm font-bold uppercase tracking-wider mt-0.5"
           style={{ color: RUST, opacity: 0.5 }}
         >
           {subtitle}
@@ -264,7 +264,7 @@ function CompactVoteCard({
           href={link}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block mt-1.5 text-xs underline underline-offset-2 font-medium"
+          className="inline-block mt-1.5 text-sm underline underline-offset-2 font-medium"
           style={{ color: RUST }}
         >
           {linkLabel ?? "Website"} →
@@ -344,7 +344,7 @@ export function BigSkyIntake({ tripId }: Props) {
         style={{ backgroundColor: RUST }}
       >
         <p
-          className="text-xs font-bold uppercase tracking-widest mb-3"
+          className="text-sm font-bold uppercase tracking-widest mb-3"
           style={{ color: MUSTARD, opacity: 0.85 }}
         >
           Goble Family
@@ -422,7 +422,7 @@ export function BigSkyIntake({ tripId }: Props) {
                 >
                   Email{" "}
                   <span
-                    className="font-normal normal-case text-xs"
+                    className="font-normal normal-case text-sm"
                     style={{ color: RUST, opacity: 0.6 }}
                   >
                     — optional, in case we need to reach you
@@ -492,7 +492,7 @@ export function BigSkyIntake({ tripId }: Props) {
         {activitiesByCategory.map(({ category, activities }) => (
           <section key={category} className="mb-10">
             <h3
-              className="text-xs font-black uppercase tracking-widest mb-4"
+              className="text-sm font-black uppercase tracking-widest mb-4"
               style={{ color: RUST, opacity: 0.5 }}
             >
               {category}
@@ -515,13 +515,13 @@ export function BigSkyIntake({ tripId }: Props) {
         {/* Honorable mentions — activities */}
         <section className="mb-12">
           <h3
-            className="text-xs font-black uppercase tracking-widest mb-1"
+            className="text-sm font-black uppercase tracking-widest mb-1"
             style={{ color: RUST, opacity: 0.5 }}
           >
             Honorable Mentions — Other Activity Ideas
           </h3>
           <p
-            className="text-xs mb-4 font-medium"
+            className="text-sm mb-4 font-medium"
             style={{ color: RUST, opacity: 0.55 }}
           >
             A few more ideas we came across. Let us know if any of these jump out.
@@ -552,13 +552,13 @@ export function BigSkyIntake({ tripId }: Props) {
         {/* Restaurants */}
         <section className="mb-10">
           <h3
-            className="text-xs font-black uppercase tracking-widest mb-1"
+            className="text-sm font-black uppercase tracking-widest mb-1"
             style={{ color: RUST, opacity: 0.5 }}
           >
             Restaurants Near the House
           </h3>
           <p
-            className="text-xs mb-4 font-medium"
+            className="text-sm mb-4 font-medium"
             style={{ color: RUST, opacity: 0.55 }}
           >
             For nights we eat out. Vote on places that look good — we&apos;ll try to
@@ -585,13 +585,13 @@ export function BigSkyIntake({ tripId }: Props) {
         {/* Dinner honorable mentions */}
         <section className="mb-10">
           <h3
-            className="text-xs font-black uppercase tracking-widest mb-1"
+            className="text-sm font-black uppercase tracking-widest mb-1"
             style={{ color: RUST, opacity: 0.5 }}
           >
             Honorable Mentions — Other Dinner Ideas
           </h3>
           <p
-            className="text-xs mb-4 font-medium"
+            className="text-sm mb-4 font-medium"
             style={{ color: RUST, opacity: 0.55 }}
           >
             A few more spots that came up in our research.
@@ -614,13 +614,13 @@ export function BigSkyIntake({ tripId }: Props) {
         {/* Private chef sub-section */}
         <section className="mb-12">
           <h3
-            className="text-xs font-black uppercase tracking-widest mb-1"
+            className="text-sm font-black uppercase tracking-widest mb-1"
             style={{ color: RUST, opacity: 0.5 }}
           >
             Private Chef at the House
           </h3>
           <p
-            className="text-xs mb-4 font-medium"
+            className="text-sm mb-4 font-medium"
             style={{ color: RUST, opacity: 0.55 }}
           >
             We&apos;re hiring a private chef to cook at the house for a couple nights.
@@ -697,7 +697,7 @@ export function BigSkyIntake({ tripId }: Props) {
             {isSubmitting ? "Saving your votes…" : "Submit My Votes"}
           </button>
           <p
-            className="text-center text-xs mt-3 font-medium"
+            className="text-center text-sm mt-3 font-medium"
             style={{ color: RUST, opacity: 0.5 }}
           >
             You can resubmit with the same name if you change your mind.

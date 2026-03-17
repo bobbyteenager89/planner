@@ -15,7 +15,7 @@ export default function ThanksPage() {
         style={{ backgroundColor: RUST, padding: "1rem 1.5rem", borderRadius: "2px 2px 0 0" }}
       >
         <p
-          className="text-xs font-bold uppercase tracking-widest"
+          className="text-sm font-bold uppercase tracking-widest"
           style={{ color: MUSTARD, opacity: 0.85 }}
         >
           Goble Family
@@ -62,7 +62,7 @@ export default function ThanksPage() {
           schedule. Keep an eye out for the final itinerary!
         </p>
         <div
-          className="mt-6 pt-4 text-xs font-bold uppercase tracking-widest"
+          className="mt-6 pt-4 text-sm font-bold uppercase tracking-widest"
           style={{
             borderTop: `1px solid ${RUST}`,
             color: RUST,
