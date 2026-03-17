@@ -11,7 +11,7 @@ export default function middleware(request: NextRequest) {
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/invite") ||
     pathname.startsWith("/invite") ||
-    pathname.match(/^\/trips\/[^/]+\/intake/) ||
+    (pathname.includes("/intake") && pathname.includes("/trips/")) ||
     pathname.startsWith("/_next") ||
     pathname === "/favicon.ico"
   ) {
