@@ -1,0 +1,116 @@
+<h2>Itinerary Review Screen</h2>
+<p class="subtitle">Light theme — what participants and the owner see during the "reviewing" phase</p>
+
+<div class="mockup">
+  <div class="mockup-header">Trip: Barcelona with the Squad — Mar 20–25</div>
+  <div class="mockup-body" style="background: #fafaf9; color: #1c1917; padding: 0;">
+
+    <!-- Version bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e7e5e4; background: #fff;">
+      <div style="font-size: 13px; color: #78716c;">Version 2 of 2</div>
+      <div style="display: flex; gap: 8px;">
+        <span style="background: #f5f5f4; border: 1px solid #d6d3d1; padding: 4px 12px; border-radius: 6px; font-size: 12px; color: #57534e;">v1</span>
+        <span style="background: #1c1917; color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">v2</span>
+      </div>
+    </div>
+
+    <!-- Day header -->
+    <div style="padding: 16px 20px 8px; border-bottom: 1px solid #f5f5f4;">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #a8a29e; font-weight: 600;">Day 1 — Thursday, Mar 20</div>
+    </div>
+
+    <!-- Block: Activity -->
+    <div style="padding: 16px 20px; border-bottom: 1px solid #f5f5f4;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <span style="font-size: 12px; color: #78716c;">9:00 AM</span>
+            <span style="background: #dbeafe; color: #1e40af; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500;">Activity</span>
+          </div>
+          <div style="font-size: 16px; font-weight: 600; color: #1c1917; margin-bottom: 4px;">Walking Tour of Gothic Quarter</div>
+          <div style="font-size: 14px; color: #57534e; line-height: 1.5;">Explore medieval streets, hidden plazas, and the cathedral. ~2 hours with a local guide.</div>
+          <div style="font-size: 12px; color: #a8a29e; margin-top: 6px;">📍 Plaça del Rei · ~€15/person</div>
+        </div>
+        <!-- Pin button (owner only) -->
+        <button style="background: none; border: 1px solid #d6d3d1; border-radius: 6px; padding: 6px 8px; cursor: pointer; color: #78716c; font-size: 14px;" title="Pin this block">📌</button>
+      </div>
+      <!-- Reaction bar -->
+      <div style="display: flex; gap: 6px; margin-top: 12px;">
+        <button style="background: #f0fdf4; border: 2px solid #22c55e; border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer;">❤️ Love <span style="color:#16a34a; font-weight:600;">3</span></button>
+        <button style="background: #f5f5f4; border: 1px solid #d6d3d1; border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer;">👍 Fine</button>
+        <button style="background: #f5f5f4; border: 1px solid #d6d3d1; border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer;">🤷 Rather Not</button>
+        <button style="background: #f5f5f4; border: 1px solid #d6d3d1; border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer;">🚫 Hard No</button>
+      </div>
+    </div>
+
+    <!-- Block: Meal -->
+    <div style="padding: 16px 20px; border-bottom: 1px solid #f5f5f4;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <span style="font-size: 12px; color: #78716c;">12:30 PM</span>
+            <span style="background: #fef3c7; color: #92400e; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500;">Meal</span>
+          </div>
+          <div style="font-size: 16px; font-weight: 600; color: #1c1917; margin-bottom: 4px;">Lunch at La Boqueria Market</div>
+          <div style="font-size: 14px; color: #57534e; line-height: 1.5;">Grab tapas and fresh juices from the stalls. Works for vegetarians (Sarah) and seafood lovers (Mike).</div>
+          <div style="font-size: 12px; color: #a8a29e; margin-top: 6px;">📍 La Rambla, 91 · ~€20/person</div>
+        </div>
+        <button style="background: none; border: 1px solid #d6d3d1; border-radius: 6px; padding: 6px 8px; cursor: pointer; color: #78716c; font-size: 14px;" title="Pin this block">📌</button>
+      </div>
+      <!-- Pinned indicator -->
+      <div style="display: flex; align-items: center; gap: 6px; margin-top: 10px; padding: 6px 10px; background: #fffbeb; border-radius: 6px; border: 1px solid #fde68a;">
+        <span style="font-size: 13px;">📌</span>
+        <span style="font-size: 12px; color: #92400e; font-weight: 500;">Pinned — won't change on regeneration</span>
+      </div>
+      <div style="display: flex; gap: 6px; margin-top: 8px;">
+        <button style="background: #f0fdf4; border: 2px solid #22c55e; border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer;">❤️ Love <span style="color:#16a34a; font-weight:600;">4</span></button>
+        <button style="background: #f5f5f4; border: 1px solid #d6d3d1; border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer;">👍 Fine</button>
+        <button style="background: #f5f5f4; border: 1px solid #d6d3d1; border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer;">🤷 Rather Not</button>
+        <button style="background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer;">🚫 Hard No <span style="color:#dc2626; font-weight:600;">1</span></button>
+      </div>
+    </div>
+
+    <!-- Block: Transport with hard no highlight -->
+    <div style="padding: 16px 20px; border-bottom: 1px solid #f5f5f4; background: #fef2f2;">
+      <div style="flex: 1;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+          <span style="font-size: 12px; color: #78716c;">3:00 PM</span>
+          <span style="background: #e0e7ff; color: #3730a3; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500;">Transport</span>
+          <span style="background: #fecaca; color: #991b1b; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600;">⚠ 2 Hard Nos</span>
+        </div>
+        <div style="font-size: 16px; font-weight: 600; color: #1c1917; margin-bottom: 4px;">Cable Car to Montjuïc</div>
+        <div style="font-size: 14px; color: #57534e; line-height: 1.5;">Scenic ride over the port. ~15 min.</div>
+        <div style="font-size: 12px; color: #a8a29e; margin-top: 6px;">📍 Port Vell station · ~€13/person</div>
+        <div style="margin-top: 8px; padding: 8px 12px; background: #fff; border-radius: 6px; border: 1px solid #fecaca;">
+          <div style="font-size: 12px; color: #991b1b; font-weight: 500; margin-bottom: 4px;">Notes from group:</div>
+          <div style="font-size: 13px; color: #57534e;">"I'm really afraid of heights" — Sarah</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- General comments -->
+    <div style="padding: 16px 20px; border-top: 2px solid #e7e5e4; background: #fff;">
+      <div style="font-size: 14px; font-weight: 600; color: #1c1917; margin-bottom: 10px;">💬 General Comments</div>
+      <div style="padding: 10px 12px; background: #f5f5f4; border-radius: 8px; margin-bottom: 8px;">
+        <div style="font-size: 12px; color: #78716c; margin-bottom: 2px;">Mike</div>
+        <div style="font-size: 14px; color: #44403c;">Love the food focus! Could we fit in a cooking class somewhere?</div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <input style="flex: 1; padding: 10px 12px; border: 1px solid #d6d3d1; border-radius: 8px; font-size: 14px; outline: none;" placeholder="Add a comment...">
+        <button style="background: #1c1917; color: #fff; border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; cursor: pointer; font-weight: 500;">Send</button>
+      </div>
+    </div>
+
+    <!-- Owner action bar -->
+    <div style="padding: 16px 20px; background: #fafaf9; border-top: 2px solid #e7e5e4; display: flex; justify-content: space-between; align-items: center;">
+      <div style="font-size: 13px; color: #78716c;">4 of 5 participants have reacted</div>
+      <div style="display: flex; gap: 8px;">
+        <button style="background: #fff; border: 1px solid #d6d3d1; border-radius: 8px; padding: 10px 16px; font-size: 14px; cursor: pointer; color: #1c1917;">🔄 Regenerate</button>
+        <button style="background: #16a34a; color: #fff; border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; cursor: pointer; font-weight: 600;">✓ Finalize</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top: 24px;">Key features shown: version switcher, per-block reactions with counts, pin indicator, hard-no highlighting with notes, general comments, owner action bar</p>

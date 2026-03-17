@@ -1,0 +1,4 @@
+{"type":"server-started","port":60080,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:60080","screen_dir":"/Users/andrew/Projects/planner/.superpowers/brainstorm/36306-1773761892"}
+{"type":"screen-added","file":"/Users/andrew/Projects/planner/.superpowers/brainstorm/36306-1773761892/itinerary-review-mockup.html"}
+{"type":"screen-added","file":"/Users/andrew/Projects/planner/.superpowers/brainstorm/36306-1773761892/streaming-generation-mockup.html"}
+{"type":"server-stopped","reason":"idle timeout"}
