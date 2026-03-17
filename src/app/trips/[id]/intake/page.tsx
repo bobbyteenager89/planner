@@ -4,6 +4,8 @@ import { db } from "@/db";
 import { participants, trips } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { IntakeQuestionnaire } from "./intake-questionnaire";
+import { BigSkyIntake } from "./bigsky-intake";
+import { BIGSKY_TRIP_ID } from "./bigsky-config";
 
 export default async function IntakePage({
   params,
@@ -43,6 +45,10 @@ export default async function IntakePage({
 
   if (participant.status === "completed") {
     redirect(`/trips/${id}`);
+  }
+
+  if (id === BIGSKY_TRIP_ID) {
+    return <BigSkyIntake participantId={participant.id} />;
   }
 
   return (
