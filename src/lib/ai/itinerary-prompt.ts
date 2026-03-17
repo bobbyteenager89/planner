@@ -1,19 +1,8 @@
-import {
-  trips,
-  participants,
-  preferences,
-  itineraryBlocks,
-  reactions,
-} from "@/db/schema";
+import { trips, preferences, itineraryBlocks } from "@/db/schema";
 
 type Trip = typeof trips.$inferSelect;
-type Participant = typeof participants.$inferSelect;
 type Preference = typeof preferences.$inferSelect;
 type Block = typeof itineraryBlocks.$inferSelect;
-
-// Silence unused-variable lints for type-only imports
-type _Participant = Participant;
-type _Reaction = typeof reactions.$inferSelect;
 
 interface ReactionAggregate {
   blockId: string;
