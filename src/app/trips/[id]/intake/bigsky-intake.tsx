@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+/* eslint-disable @next/next/no-img-element */
 import { cn } from "@/lib/utils";
 import {
   ACTIVITIES,
@@ -89,18 +89,16 @@ function ActivityCard({
         !vote && "border-stone-100"
       )}
     >
-      <div className="relative aspect-video w-full">
-        <Image
+      <div className="aspect-video w-full overflow-hidden">
+        <img
           src={activity.image}
           alt={activity.title}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 50vw"
-          unoptimized
+          className="w-full h-full object-cover"
+          loading="lazy"
         />
       </div>
       <div className="p-4">
-        <h3 className="font-bold text-stone-900 text-base leading-snug">
+        <h3 className="font-bold text-stone-900 text-lg leading-snug">
           {activity.title}
         </h3>
         {activity.note && (
@@ -190,13 +188,10 @@ export function BigSkyIntake({ tripId }: Props) {
     <div className="min-h-dvh bg-stone-50">
       {/* Hero header */}
       <div className="relative h-72 sm:h-96 w-full overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=1600&h=800&fit=crop"
+        <img
+          src="https://images.unsplash.com/photo-1472396961693-142e6e269027?w=1600&q=80"
           alt="Big Sky Montana mountains"
-          fill
-          className="object-cover"
-          priority
-          unoptimized
+          className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10">
@@ -281,11 +276,23 @@ export function BigSkyIntake({ tripId }: Props) {
         <div className="mb-10">
           <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
             Hey! We&apos;re putting together the plan for Big Sky and want your input.
-            We&apos;ve got <strong>6 full days</strong> to fill — scroll through the options
-            below and vote on what sounds good to you. Hit <strong>&quot;Yes!&quot;</strong> on
-            anything you&apos;d love to do, <strong>&quot;Fine with it&quot;</strong> if
-            you&apos;re happy to tag along, or <strong>&quot;Pass&quot;</strong> to skip it. The
-            more you vote, the better the plan.
+            We&apos;ve got <strong>6 full days</strong> to fill — scroll through the
+            options below and let us know what sounds fun.
+          </p>
+          <div className="mt-4 bg-white rounded-xl border border-stone-100 p-4 space-y-2">
+            <p className="text-stone-700 text-sm leading-relaxed">
+              <strong className="text-emerald-700">✅ Yes!</strong> — I want to do this, put me down
+            </p>
+            <p className="text-stone-700 text-sm leading-relaxed">
+              <strong className="text-blue-700">👍 Fine with it</strong> — I&apos;d happily go along, sounds good
+            </p>
+            <p className="text-stone-700 text-sm leading-relaxed">
+              <strong className="text-stone-500">⏭️ Pass</strong> — Not my thing — I&apos;d rather hang back or do something else during this one
+            </p>
+          </div>
+          <p className="text-stone-500 text-sm mt-3">
+            Don&apos;t overthink it — there are no wrong answers. Vote on as many as you can
+            and it&apos;s totally fine to say &quot;Yes!&quot; to everything.
           </p>
         </div>
 

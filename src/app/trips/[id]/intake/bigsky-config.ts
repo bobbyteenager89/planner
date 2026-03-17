@@ -31,7 +31,7 @@ export const ACTIVITIES: Activity[] = [
     id: "fly-fishing",
     title: "Fly Fishing (Gallatin River)",
     category: "Outdoor Adventures",
-    image: "https://images.unsplash.com/photo-1504309092620-4d0ec726efa4?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1440557653082-e0fe7df29005?w=600&h=400&fit=crop&q=80",
     bullets: [
       "Guided walk-and-wade trips on the Gallatin River",
       "All gear included — rods, reels, waders, lunch",
@@ -46,7 +46,7 @@ export const ACTIVITIES: Activity[] = [
     id: "horseback",
     title: "Horseback Riding",
     category: "Outdoor Adventures",
-    image: "https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1511497584788-876760111969?w=600&h=400&fit=crop&q=80",
     bullets: [
       "1–3 hour guided trail rides through Gallatin National Forest",
       "All abilities welcome — horses matched to experience level",
@@ -61,7 +61,7 @@ export const ACTIVITIES: Activity[] = [
     id: "hiking-ousel",
     title: "Hiking — Ousel Falls",
     category: "Outdoor Adventures",
-    image: "https://images.unsplash.com/photo-1501554728187-ce583db33af7?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&h=400&fit=crop&q=80",
     bullets: [
       "Easy 1.8-mile round trip to a beautiful waterfall",
       "All ages — stroller-friendly for most of the trail",
@@ -74,7 +74,7 @@ export const ACTIVITIES: Activity[] = [
     id: "yellowstone",
     title: "Yellowstone National Park",
     category: "Outdoor Adventures",
-    image: "https://images.unsplash.com/photo-1576958799928-81e2b9cab5ad?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1539622230297-83bfc0bdcb38?w=600&h=400&fit=crop&q=80",
     bullets: [
       "Grand Prismatic Spring, Old Faithful, Mammoth Hot Springs",
       "Wildlife spotting — bison, elk, bears, wolves",
@@ -90,7 +90,7 @@ export const ACTIVITIES: Activity[] = [
     id: "alpaca-farm",
     title: "Alpaca & Llama Farm Tour",
     category: "Animals",
-    image: "https://images.unsplash.com/photo-1583337130417-13104dec14a7?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1560438718-eb6957bdeffa?w=600&h=400&fit=crop&q=80",
     bullets: [
       "1.5-hour hands-on farm tour in Bozeman (~45 min drive)",
       "Feed, halter, brush, and bathe alpacas and llamas",
@@ -105,7 +105,7 @@ export const ACTIVITIES: Activity[] = [
     id: "llama-trek",
     title: "Llama Trekking",
     category: "Animals",
-    image: "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?w=600&h=400&fit=crop&q=80",
     bullets: [
       "Day hikes with llamas carrying your gear and snacks",
       "Guided backcountry trails near Bozeman (~45 min away)",
@@ -118,7 +118,7 @@ export const ACTIVITIES: Activity[] = [
     id: "rodeo",
     title: "Tuesday Night Rodeo — July 21",
     category: "Evening & Social",
-    image: "https://images.unsplash.com/photo-1545157029-da9e2b4aaef3?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1508349937151-22b68b72d5b1?w=600&h=400&fit=crop&q=80",
     bullets: [
       "Lone Mountain Ranch — Big Sky's signature summer event",
       "Barrel racing, bronc riding, team roping, live music",
@@ -133,7 +133,7 @@ export const ACTIVITIES: Activity[] = [
     id: "farmers-market",
     title: "Wednesday Farmers Market — July 22",
     category: "Evening & Social",
-    image: "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=600&h=400&fit=crop&q=80",
     bullets: [
       "Every Wednesday 5–8 PM at Big Sky Town Center",
       "90+ vendors — crafts, produce, prepared food, art",
@@ -147,7 +147,7 @@ export const ACTIVITIES: Activity[] = [
     id: "golf-bigsky",
     title: "Golf — Big Sky Resort",
     category: "Golf",
-    image: "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=600&h=400&fit=crop&q=80",
     bullets: [
       "Arnold Palmer-designed 18-hole championship course",
       "Stunning Lone Peak views from every hole",
@@ -161,7 +161,7 @@ export const ACTIVITIES: Activity[] = [
     id: "golf-headwaters",
     title: "Golf — Headwaters (Value Option)",
     category: "Golf",
-    image: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=600&h=400&fit=crop&q=80",
     bullets: [
       "9 holes, ~$35/person — best value around",
       "In Three Forks (~45 min from house)",
@@ -174,7 +174,7 @@ export const ACTIVITIES: Activity[] = [
     id: "gondola",
     title: "Scenic Gondola Ride",
     category: "Resort Activities",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&h=400&fit=crop&q=80",
     bullets: [
       "Ride to the top of the mountain at Big Sky Resort",
       "Panoramic views of Lone Peak and the Spanish Peaks",
@@ -188,7 +188,7 @@ export const ACTIVITIES: Activity[] = [
     id: "zipline",
     title: "Zip Line",
     category: "Resort Activities",
-    image: "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600&h=400&fit=crop&q=80",
     bullets: [
       "Adventure zip line course through the trees",
       "At Big Sky Resort — multiple lines and platforms",
@@ -201,7 +201,7 @@ export const ACTIVITIES: Activity[] = [
     id: "mini-golf",
     title: "Mini Golf",
     category: "Resort Activities",
-    image: "https://images.unsplash.com/photo-1596727362302-b8d891c42ab8?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1596727362302-b8d891c42ab8?w=600&h=400&fit=crop&q=80",
     bullets: [
       "18-hole course at Big Sky Resort",
       "Perfect for an easy afternoon with kids",
