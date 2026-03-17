@@ -31,7 +31,7 @@ export const ACTIVITIES: Activity[] = [
     id: "fly-fishing",
     title: "Fly Fishing (Gallatin River)",
     category: "Outdoor Adventures",
-    image: "https://images.unsplash.com/photo-1621252179027-94459d278660?w=600&h=400&fit=crop&q=80",
+    image: "https://lirp.cdn-website.com/aae9903b/dms3rep/multi/opt/gallatin-river-guides-guided-fishing-trips-montana-4-1920w.jpg",
     bullets: [
       "Guided walk-and-wade trips on the Gallatin River",
       "All gear included — rods, reels, waders, lunch",
@@ -46,7 +46,7 @@ export const ACTIVITIES: Activity[] = [
     id: "horseback",
     title: "Horseback Riding",
     category: "Outdoor Adventures",
-    image: "https://images.unsplash.com/photo-1511497584788-876760111969?w=600&h=400&fit=crop&q=80",
+    image: "https://static.wixstatic.com/media/6ac825_acc2599b119b4b32a27eb303dd383311~mv2.jpg/v1/fill/w_600,h_400,al_c,q_80/6ac825_acc2599b119b4b32a27eb303dd383311~mv2.jpg",
     bullets: [
       "1–3 hour guided trail rides through Gallatin National Forest",
       "All abilities welcome — horses matched to experience level",
@@ -74,7 +74,7 @@ export const ACTIVITIES: Activity[] = [
     id: "yellowstone",
     title: "Yellowstone National Park",
     category: "Outdoor Adventures",
-    image: "https://images.unsplash.com/photo-1585409677983-0f6c41ca9c3b?w=600&h=400&fit=crop&q=80",
+    image: "https://www.nps.gov/common/uploads/banner_image/imr/homepage/C0B398B8-B507-4BBC-CA7FF67430274C33.jpg",
     bullets: [
       "Grand Prismatic Spring, Old Faithful, Mammoth Hot Springs",
       "Wildlife spotting — bison, elk, bears, wolves",
@@ -90,7 +90,7 @@ export const ACTIVITIES: Activity[] = [
     id: "alpaca-farm",
     title: "Alpaca & Llama Farm Tour",
     category: "Animals",
-    image: "https://images.unsplash.com/photo-1477764250597-dffe9f601ae8?w=600&h=400&fit=crop&q=80",
+    image: "https://alpacasofmontana.com/cdn/shop/files/5_a5c3a170-4d7b-4ede-8d4f-6d526b12a93b.png?v=1761772517",
     bullets: [
       "1.5-hour hands-on farm tour in Bozeman (~45 min drive)",
       "Feed, halter, brush, and bathe alpacas and llamas",
@@ -105,7 +105,7 @@ export const ACTIVITIES: Activity[] = [
     id: "llama-trek",
     title: "Llama Trekking",
     category: "Animals",
-    image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&h=400&fit=crop&q=80",
+    image: "https://yellowstonellamas.com/wp-content/uploads/2026/01/yankeeLlama600.jpg",
     bullets: [
       "Day hikes with llamas carrying your gear and snacks",
       "Guided backcountry trails near Bozeman (~45 min away)",
@@ -118,7 +118,7 @@ export const ACTIVITIES: Activity[] = [
     id: "rodeo",
     title: "Tuesday Night Rodeo — July 21",
     category: "Evening & Social",
-    image: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&h=400&fit=crop&q=80",
+    image: "https://lonemountainranch.com/wp-content/uploads/2024/03/LoneMountainRodeo_OrangePhotographie-1064.jpg",
     bullets: [
       "Lone Mountain Ranch — Big Sky's signature summer event",
       "Barrel racing, bronc riding, team roping, live music",
@@ -147,7 +147,7 @@ export const ACTIVITIES: Activity[] = [
     id: "golf-bigsky",
     title: "Golf — Big Sky Resort",
     category: "Golf",
-    image: "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=600&h=400&fit=crop&q=80",
+    image: "https://cdn.sanity.io/images/8ts88bij/big-sky/fccb092981141e48961fdc63a313edcfd5a17315-2100x1180.jpg?w=600&h=400&fit=crop",
     bullets: [
       "Arnold Palmer-designed 18-hole championship course",
       "Stunning Lone Peak views from every hole",
@@ -174,7 +174,7 @@ export const ACTIVITIES: Activity[] = [
     id: "gondola",
     title: "Scenic Gondola Ride",
     category: "Resort Activities",
-    image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&h=400&fit=crop&q=80",
+    image: "https://cdn.sanity.io/images/8ts88bij/big-sky/a00014380611489e6d4fe3166a057ce251f8a5e6-2100x1401.jpg?w=600&h=400&fit=crop",
     bullets: [
       "Ride to the top of the mountain at Big Sky Resort",
       "Panoramic views of Lone Peak and the Spanish Peaks",
@@ -188,7 +188,7 @@ export const ACTIVITIES: Activity[] = [
     id: "zipline",
     title: "Zip Line",
     category: "Resort Activities",
-    image: "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600&h=400&fit=crop&q=80",
+    image: "https://cdn.sanity.io/images/8ts88bij/big-sky/162e4a07a876de74c82b941d16280890a2105d92-2100x1397.jpg?w=600&h=400&fit=crop",
     bullets: [
       "Adventure zip line course through the trees",
       "At Big Sky Resort — multiple lines and platforms",
