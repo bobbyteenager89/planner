@@ -31,7 +31,7 @@ export const ACTIVITIES: Activity[] = [
     id: "fly-fishing",
     title: "Fly Fishing (Gallatin River)",
     category: "Outdoor Adventures",
-    image: "https://images.unsplash.com/photo-1440557653082-e0fe7df29005?w=600&h=400&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1621252179027-94459d278660?w=600&h=400&fit=crop&q=80",
     bullets: [
       "Guided walk-and-wade trips on the Gallatin River",
       "All gear included — rods, reels, waders, lunch",
@@ -74,7 +74,7 @@ export const ACTIVITIES: Activity[] = [
     id: "yellowstone",
     title: "Yellowstone National Park",
     category: "Outdoor Adventures",
-    image: "https://images.unsplash.com/photo-1539622230297-83bfc0bdcb38?w=600&h=400&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1585409677983-0f6c41ca9c3b?w=600&h=400&fit=crop&q=80",
     bullets: [
       "Grand Prismatic Spring, Old Faithful, Mammoth Hot Springs",
       "Wildlife spotting — bison, elk, bears, wolves",
@@ -90,7 +90,7 @@ export const ACTIVITIES: Activity[] = [
     id: "alpaca-farm",
     title: "Alpaca & Llama Farm Tour",
     category: "Animals",
-    image: "https://images.unsplash.com/photo-1560438718-eb6957bdeffa?w=600&h=400&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1477764250597-dffe9f601ae8?w=600&h=400&fit=crop&q=80",
     bullets: [
       "1.5-hour hands-on farm tour in Bozeman (~45 min drive)",
       "Feed, halter, brush, and bathe alpacas and llamas",
@@ -105,7 +105,7 @@ export const ACTIVITIES: Activity[] = [
     id: "llama-trek",
     title: "Llama Trekking",
     category: "Animals",
-    image: "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?w=600&h=400&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&h=400&fit=crop&q=80",
     bullets: [
       "Day hikes with llamas carrying your gear and snacks",
       "Guided backcountry trails near Bozeman (~45 min away)",
@@ -118,7 +118,7 @@ export const ACTIVITIES: Activity[] = [
     id: "rodeo",
     title: "Tuesday Night Rodeo — July 21",
     category: "Evening & Social",
-    image: "https://images.unsplash.com/photo-1508349937151-22b68b72d5b1?w=600&h=400&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&h=400&fit=crop&q=80",
     bullets: [
       "Lone Mountain Ranch — Big Sky's signature summer event",
       "Barrel racing, bronc riding, team roping, live music",
