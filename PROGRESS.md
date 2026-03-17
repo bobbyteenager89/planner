@@ -84,6 +84,60 @@
 - `src/proxy.ts` middleware is a dead file (wrong filename for Next.js) — no middleware auth enforcement runs
 
 ### Next Steps
-- [ ] Fix proxy.ts → middleware.ts (rename + proper session validation)
-- [ ] Phase 4: Itinerary Generation + Reactions
+- [x] Fix proxy.ts → middleware.ts (rename + proper session validation) — Done (S4)
+- [x] Phase 4: Itinerary Generation + Reactions — Done (S4)
+- [ ] Phase 5: Research Feed + Polish
+
+---
+
+## 2026-03-17 — Session 4: Phase 4 + Big Sky Survey + Retro Design
+
+### Accomplished
+- **Middleware fix:** Renamed `proxy.ts` → `middleware.ts`, added `/api/invite` to public routes
+- **Phase 4 — Itinerary Generation:** Full spec, plan, and implementation
+  - Streaming NDJSON generation via Claude Sonnet 4.6 (`POST /generate`)
+  - Per-block reactions (love/fine/rather not/hard no) + general comments
+  - `GET /itinerary` with reaction aggregates, version switcher
+  - `POST /reactions` with upsert, `POST /comments`
+  - Owner pinning, regeneration with post-hoc merge of pinned blocks
+  - Email notifications via Resend (itinerary ready + new version)
+  - GenerateView (streaming UI with progress bar) + ItineraryView (review with reactions)
+  - Trip detail page rewrite handling all status states (owner + participant views)
+  - Schema: added `comments` JSONB to itineraries table
+- **Big Sky Family Trip:** First real trip created and survey built
+  - Seeded trip (July 18-25, 20 Moose Ridge Road)
+  - Custom intake survey with 13 activities, 6 restaurants, 4 chef options, 7 honorable mention activities, 4 honorable mention dinners
+  - Real images from activity provider websites (montanaflyfishing.com, jakeshorses.com, lonemountainranch.com, bigskyresort.com, alpacasofmontana.com, yellowstonellamas.com, nps.gov)
+  - Public access — no auth required, name + optional email
+  - Retro travel agency design (cream/rust/mustard palette, Arial Black headers, pill buttons, box-shadow submit)
+  - All votes save to preferences.rawData as structured JSON
+  - Thank you page with matching retro style
+- **App renamed** to "Big Sky Trip Planner"
+- **20+ commits** across middleware, Phase 4 APIs, UI components, Big Sky survey, design iterations
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `src/app/api/trips/[id]/generate/route.ts` | Streaming itinerary generation |
+| `src/app/api/trips/[id]/itinerary/route.ts` | GET itinerary + blocks + reactions |
+| `src/app/api/trips/[id]/reactions/route.ts` | POST reaction with upsert |
+| `src/app/api/trips/[id]/comments/route.ts` | POST general comment |
+| `src/lib/ai/itinerary-prompt.ts` | buildItineraryPrompt function |
+| `src/lib/email/itinerary-ready.ts` | Resend email notifications |
+| `src/app/trips/[id]/generate-view.tsx` | Streaming generation UI |
+| `src/app/trips/[id]/itinerary-view.tsx` | Review view with reactions |
+| `src/app/trips/[id]/trip-content.tsx` | Client component for all trip states |
+| `src/app/trips/[id]/intake/bigsky-config.ts` | Big Sky activities, restaurants, chef data |
+| `src/app/trips/[id]/intake/bigsky-intake.tsx` | Retro-styled survey component |
+| `src/app/trips/[id]/intake/bigsky-actions.ts` | Server action for public survey |
+| `src/app/trips/[id]/intake/thanks/page.tsx` | Thank you page |
+| `scripts/seed-bigsky-trip.ts` | Seed script for Big Sky trip |
+| `docs/superpowers/specs/2026-03-17-phase4-itinerary-generation-design.md` | Phase 4 spec |
+| `docs/superpowers/plans/2026-03-17-phase4-itinerary-generation.md` | Phase 4 implementation plan |
+
+### Next Steps
+- [ ] Build leader dashboard — see votes coming in, AI-processed preferences, tiebreak tools
+- [ ] Improve voting system for itinerary generation (ranking, must-do vs nice-to-have)
+- [ ] Leader can start draft itinerary from early answers (iterative refinement)
+- [ ] Three-phase flow: leader research → group survey → finalize plan
 - [ ] Phase 5: Research Feed + Polish

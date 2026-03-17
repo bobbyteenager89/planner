@@ -61,6 +61,11 @@ npx tsx scripts/test-intake-action.ts  # Run intake server action integration te
 ## Environment Variables
 See `.env.local.example` for required vars.
 
+## Big Sky Trip
+- **Trip ID:** `83fdfdb7-eb88-4a81-9712-0c8306854b42`
+- **Survey URL:** https://planner-sooty-theta.vercel.app/trips/83fdfdb7-eb88-4a81-9712-0c8306854b42/intake
+- **Public** — no auth required, creates participant on submit
+
 ## URLs
 - **GitHub:** https://github.com/bobbyteenager89/planner
 - **Vercel:** https://planner-sooty-theta.vercel.app
