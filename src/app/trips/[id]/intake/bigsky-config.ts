@@ -201,7 +201,7 @@ export const ACTIVITIES: Activity[] = [
     id: "mini-golf",
     title: "Mini Golf",
     category: "Resort Activities",
-    image: "https://images.unsplash.com/photo-1596727362302-b8d891c42ab8?w=600&h=400&fit=crop&q=80",
+    image: "https://plus.unsplash.com/premium_photo-1661897744682-39f3fc0f204b?w=600&h=400&fit=crop&q=80",
     bullets: [
       "18-hole course at Big Sky Resort",
       "Perfect for an easy afternoon with kids",

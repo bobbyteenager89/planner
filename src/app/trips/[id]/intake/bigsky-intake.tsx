@@ -515,14 +515,14 @@ export function BigSkyIntake({ tripId }: Props) {
         {/* Honorable mentions — activities */}
         <section className="mb-12">
           <h3
-            className="text-sm font-black uppercase tracking-widest mb-1"
-            style={{ color: RUST, opacity: 0.5 }}
+            className="text-lg font-black uppercase tracking-wide mb-1"
+            style={{ color: RUST, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}
           >
             Honorable Mentions — Other Activity Ideas
           </h3>
           <p
-            className="text-sm mb-4 font-medium"
-            style={{ color: RUST, opacity: 0.55 }}
+            className="text-base mb-4 font-medium"
+            style={{ color: RUST, opacity: 0.6 }}
           >
             A few more ideas we came across. Let us know if any of these jump out.
           </p>
@@ -585,14 +585,14 @@ export function BigSkyIntake({ tripId }: Props) {
         {/* Dinner honorable mentions */}
         <section className="mb-10">
           <h3
-            className="text-sm font-black uppercase tracking-widest mb-1"
-            style={{ color: RUST, opacity: 0.5 }}
+            className="text-lg font-black uppercase tracking-wide mb-1"
+            style={{ color: RUST, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}
           >
             Honorable Mentions — Other Dinner Ideas
           </h3>
           <p
-            className="text-sm mb-4 font-medium"
-            style={{ color: RUST, opacity: 0.55 }}
+            className="text-base mb-4 font-medium"
+            style={{ color: RUST, opacity: 0.6 }}
           >
             A few more spots that came up in our research.
           </p>
