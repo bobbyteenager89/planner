@@ -1,13 +1,14 @@
 "use server";
 
-import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { participants, preferences } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import { BIGSKY_TRIP_ID } from "./bigsky-config";
 
 export interface BigSkyAnswers {
   name: string;
+  email: string;
   partySize: number;
   activityVotes: Record<string, "yes" | "fine" | "pass">;
   chefNights: 1 | 2;
@@ -20,27 +21,44 @@ export interface BigSkyAnswers {
 }
 
 export async function saveBigSkyAnswers(
-  participantId: string,
+  tripId: string,
   answers: BigSkyAnswers
 ) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  // Only allow for the Big Sky trip
+  if (tripId !== BIGSKY_TRIP_ID) throw new Error("Invalid trip");
+
+  if (!answers.name?.trim()) throw new Error("Name is required");
+  if (!answers.email?.trim()) throw new Error("Email is required");
 
   const database = db();
+  const email = answers.email.trim().toLowerCase();
+  const name = answers.name.trim();
 
-  // Verify participant belongs to this user
-  const [participant] = await database
+  // Find or create participant by email
+  let [participant] = await database
     .select()
     .from(participants)
     .where(
       and(
-        eq(participants.id, participantId),
-        eq(participants.userId, session.user.id)
+        eq(participants.tripId, tripId),
+        eq(participants.email, email)
       )
     )
     .limit(1);
 
-  if (!participant) throw new Error("Not authorized");
+  if (!participant) {
+    // Create new participant (no userId — anonymous)
+    [participant] = await database
+      .insert(participants)
+      .values({
+        tripId,
+        email,
+        name,
+        role: "participant",
+        status: "in_progress",
+      })
+      .returning();
+  }
 
   // Build activity preferences from votes
   const activityPrefs = Object.entries(answers.activityVotes)
@@ -55,7 +73,7 @@ export async function saveBigSkyAnswers(
   await database
     .insert(preferences)
     .values({
-      participantId,
+      participantId: participant.id,
       activityPreferences: activityPrefs,
       hardNos,
       additionalNotes: answers.openText || null,
@@ -85,9 +103,9 @@ export async function saveBigSkyAnswers(
     .update(participants)
     .set({
       status: "completed",
-      name: answers.name,
+      name,
     })
-    .where(eq(participants.id, participantId));
+    .where(eq(participants.id, participant.id));
 
-  redirect(`/trips/${participant.tripId}`);
+  redirect(`/trips/${tripId}/intake/thanks`);
 }

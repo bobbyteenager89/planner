@@ -14,7 +14,7 @@ import { saveBigSkyAnswers, type BigSkyAnswers } from "./bigsky-actions";
 type VoteValue = "yes" | "fine" | "pass";
 
 interface Props {
-  participantId: string;
+  tripId: string;
 }
 
 const VOTE_OPTIONS: { value: VoteValue; label: string; emoji: string }[] = [
@@ -113,7 +113,7 @@ function ActivityCard({
   );
 }
 
-export function BigSkyIntake({ participantId }: Props) {
+export function BigSkyIntake({ tripId }: Props) {
   const [activityVotes, setActivityVotes] = useState<
     Record<string, VoteValue>
   >({});
@@ -125,6 +125,7 @@ export function BigSkyIntake({ participantId }: Props) {
   const [departureTime, setDepartureTime] = useState("");
   const [openText, setOpenText] = useState("");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [partySize, setPartySize] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -134,12 +135,17 @@ export function BigSkyIntake({ participantId }: Props) {
       setError("Please enter your name before submitting.");
       return;
     }
+    if (!email.trim() || !email.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
 
     const answers: BigSkyAnswers = {
       name: name.trim(),
+      email: email.trim(),
       partySize,
       activityVotes,
       chefNights,
@@ -152,7 +158,7 @@ export function BigSkyIntake({ participantId }: Props) {
     };
 
     try {
-      await saveBigSkyAnswers(participantId, answers);
+      await saveBigSkyAnswers(tripId, answers);
     } catch (err) {
       setIsSubmitting(false);
       setError(
@@ -393,29 +399,45 @@ export function BigSkyIntake({ participantId }: Props) {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="First name is fine"
+                  placeholder="First and last name"
                   className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-400"
                 />
               </div>
               <div>
                 <label
-                  htmlFor="party-size"
+                  htmlFor="your-email"
                   className="text-sm font-medium text-stone-700 block mb-1.5"
                 >
-                  How many in your party?
+                  Your email <span className="text-red-400">*</span>
                 </label>
                 <input
-                  id="party-size"
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={partySize}
-                  onChange={(e) =>
-                    setPartySize(Math.max(1, parseInt(e.target.value) || 1))
-                  }
-                  className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  id="your-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-400"
                 />
               </div>
+            </div>
+            <div className="mt-5">
+              <label
+                htmlFor="party-size"
+                className="text-sm font-medium text-stone-700 block mb-1.5"
+              >
+                How many in your party? (including kids)
+              </label>
+              <input
+                id="party-size"
+                type="number"
+                min={1}
+                max={20}
+                value={partySize}
+                onChange={(e) =>
+                  setPartySize(Math.max(1, parseInt(e.target.value) || 1))
+                }
+                className="w-32 rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400"
+              />
             </div>
           </div>
         </section>

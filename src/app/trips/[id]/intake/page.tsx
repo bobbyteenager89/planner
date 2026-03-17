@@ -12,10 +12,23 @@ export default async function IntakePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
+
+  // Big Sky trip: no auth required — public survey
+  if (id === BIGSKY_TRIP_ID) {
+    const [trip] = await db()
+      .select({ title: trips.title })
+      .from(trips)
+      .where(eq(trips.id, id));
+
+    if (!trip) notFound();
+
+    return <BigSkyIntake tripId={id} />;
+  }
+
+  // All other trips: require auth
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
-
-  const { id } = await params;
 
   // Bug #10 fix: parallelize DB queries + scope columns
   const [participantResult, tripResult] = await Promise.all([
@@ -45,10 +58,6 @@ export default async function IntakePage({
 
   if (participant.status === "completed") {
     redirect(`/trips/${id}`);
-  }
-
-  if (id === BIGSKY_TRIP_ID) {
-    return <BigSkyIntake participantId={participant.id} />;
   }
 
   return (
