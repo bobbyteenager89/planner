@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import {
   ACTIVITIES,
   CHEF_OPTIONS,
+  DINNER_SPOTS,
   ACTIVITY_CATEGORIES,
   type Activity,
 } from "./bigsky-config";
@@ -18,8 +19,8 @@ interface Props {
 }
 
 const VOTE_OPTIONS: { value: VoteValue; label: string; emoji: string }[] = [
-  { value: "yes", label: "Yes", emoji: "✅" },
-  { value: "fine", label: "Fine", emoji: "👍" },
+  { value: "yes", label: "Yes!", emoji: "✅" },
+  { value: "fine", label: "Fine with it", emoji: "👍" },
   { value: "pass", label: "Pass", emoji: "⏭️" },
 ];
 
@@ -28,6 +29,14 @@ const VOTE_SELECTED_CLASSES: Record<VoteValue, string> = {
   fine: "bg-blue-100 border-blue-500 text-blue-800 font-semibold",
   pass: "bg-stone-200 border-stone-400 text-stone-600 font-semibold",
 };
+
+const INTEREST_QUESTIONS = [
+  { id: "spa-day", label: "Spa Day", description: "Massages, hot tubs, relaxation at a local spa" },
+  { id: "whitewater-rafting", label: "Whitewater Rafting", description: "Half-day trip on the Gallatin River — Class II-IV rapids" },
+  { id: "mountain-biking", label: "Mountain Biking", description: "Trail rides at Big Sky Resort — rentals available" },
+  { id: "cooking-class", label: "Cooking Class", description: "Montana-themed group cooking experience" },
+  { id: "stargazing", label: "Stargazing Night", description: "Big Sky has some of the darkest skies in the lower 48" },
+];
 
 function VoteButtons({
   value,
@@ -107,6 +116,16 @@ function ActivityCard({
             </li>
           ))}
         </ul>
+        {activity.link && (
+          <a
+            href={activity.link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-2 text-xs text-blue-600 hover:text-blue-800 underline underline-offset-2"
+          >
+            {activity.link.label} →
+          </a>
+        )}
         <VoteButtons value={vote} onChange={onVote} />
       </div>
     </div>
@@ -114,15 +133,11 @@ function ActivityCard({
 }
 
 export function BigSkyIntake({ tripId }: Props) {
-  const [activityVotes, setActivityVotes] = useState<
-    Record<string, VoteValue>
-  >({});
+  const [activityVotes, setActivityVotes] = useState<Record<string, VoteValue>>({});
   const [chefNights, setChefNights] = useState<1 | 2>(1);
   const [chefVotes, setChefVotes] = useState<Record<string, VoteValue>>({});
-  const [arrivalDate, setArrivalDate] = useState("");
-  const [arrivalTime, setArrivalTime] = useState("");
-  const [departureDate, setDepartureDate] = useState("");
-  const [departureTime, setDepartureTime] = useState("");
+  const [dinnerVotes, setDinnerVotes] = useState<Record<string, VoteValue>>({});
+  const [interestVotes, setInterestVotes] = useState<Record<string, VoteValue>>({});
   const [openText, setOpenText] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -133,10 +148,12 @@ export function BigSkyIntake({ tripId }: Props) {
   const handleSubmit = async () => {
     if (!name.trim()) {
       setError("Please enter your name before submitting.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
     if (!email.trim() || !email.includes("@")) {
       setError("Please enter a valid email address.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
@@ -147,13 +164,10 @@ export function BigSkyIntake({ tripId }: Props) {
       name: name.trim(),
       email: email.trim(),
       partySize,
-      activityVotes,
+      activityVotes: { ...activityVotes, ...interestVotes },
       chefNights,
       chefVotes,
-      arrivalDate: arrivalDate || undefined,
-      arrivalTime: arrivalTime || undefined,
-      departureDate: departureDate || undefined,
-      departureTime: departureTime || undefined,
+      dinnerVotes,
       openText: openText.trim() || undefined,
     };
 
@@ -172,9 +186,6 @@ export function BigSkyIntake({ tripId }: Props) {
     activities: ACTIVITIES.filter((a) => a.category === cat),
   }));
 
-  const totalVoted = Object.keys(activityVotes).length + Object.keys(chefVotes).length;
-  const total = ACTIVITIES.length + CHEF_OPTIONS.length;
-
   return (
     <div className="min-h-dvh bg-stone-50">
       {/* Hero header */}
@@ -189,33 +200,93 @@ export function BigSkyIntake({ tripId }: Props) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10">
-          <p className="text-white/70 text-sm font-medium uppercase tracking-widest mb-1">
-            Family Trip Survey
-          </p>
-          <h1 className="text-white text-3xl sm:text-4xl font-extrabold leading-tight">
+          <h1 className="text-white text-3xl sm:text-5xl font-extrabold leading-tight">
             Big Sky, Montana
           </h1>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-white/80 text-sm">
-            <span>July 18–25, 2026</span>
-            <span className="hidden sm:inline text-white/40">·</span>
-            <span>20 Moose Ridge Road</span>
-          </div>
+          <p className="text-white text-lg sm:text-2xl font-semibold mt-1">
+            July 18 – 25, 2026
+          </p>
+          <p className="text-white/70 text-sm sm:text-base mt-1">
+            20 Moose Ridge Road, Big Sky, MT
+          </p>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-8 sm:px-6">
-        {/* Intro note */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 mb-8">
-          <p className="text-stone-600 text-sm leading-relaxed">
-            We have <strong className="text-stone-900">6 full days</strong> to fill. Vote on
-            what sounds fun — we&apos;ll build the schedule based on everyone&apos;s picks. No
-            pressure to vote on everything, but the more you share the better the plan.
+        {/* Your info — at the top */}
+        <section className="mb-8">
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
+            {error && (
+              <p className="text-red-500 text-sm mb-4 font-medium" role="alert">
+                {error}
+              </p>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label
+                  htmlFor="your-name"
+                  className="text-sm font-medium text-stone-700 block mb-1.5"
+                >
+                  Your name <span className="text-red-400">*</span>
+                </label>
+                <input
+                  id="your-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="First and last"
+                  className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="your-email"
+                  className="text-sm font-medium text-stone-700 block mb-1.5"
+                >
+                  Email <span className="text-red-400">*</span>
+                </label>
+                <input
+                  id="your-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="party-size"
+                  className="text-sm font-medium text-stone-700 block mb-1.5"
+                >
+                  People in your group
+                </label>
+                <input
+                  id="party-size"
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={partySize}
+                  onChange={(e) =>
+                    setPartySize(Math.max(1, parseInt(e.target.value) || 1))
+                  }
+                  className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Intro */}
+        <div className="mb-10">
+          <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
+            Hey! We&apos;re putting together the plan for Big Sky and want your input.
+            We&apos;ve got <strong>6 full days</strong> to fill — scroll through the options
+            below and vote on what sounds good to you. Hit <strong>&quot;Yes!&quot;</strong> on
+            anything you&apos;d love to do, <strong>&quot;Fine with it&quot;</strong> if
+            you&apos;re happy to tag along, or <strong>&quot;Pass&quot;</strong> to skip it. The
+            more you vote, the better the plan.
           </p>
-          {totalVoted > 0 && (
-            <p className="text-xs text-stone-400 mt-2">
-              {totalVoted} of {total} items voted on
-            </p>
-          )}
         </div>
 
         {/* Activity voting by category */}
@@ -239,14 +310,115 @@ export function BigSkyIntake({ tripId }: Props) {
           </section>
         ))}
 
+        {/* Interest check questions */}
+        <section className="mb-10">
+          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">
+            Would You Be Into...
+          </h2>
+          <p className="text-stone-500 text-sm mb-4">
+            A few other ideas we&apos;re considering. Let us know if any of these sound fun.
+          </p>
+          <div className="space-y-3">
+            {INTEREST_QUESTIONS.map((q) => {
+              const vote = interestVotes[q.id];
+              return (
+                <div
+                  key={q.id}
+                  className={cn(
+                    "bg-white rounded-xl border p-4 transition-all",
+                    vote === "yes" && "border-emerald-300 ring-1 ring-emerald-200",
+                    vote === "fine" && "border-blue-200",
+                    vote === "pass" && "border-stone-200 opacity-60",
+                    !vote && "border-stone-100"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-bold text-stone-900 text-sm">{q.label}</p>
+                      <p className="text-xs text-stone-500 mt-0.5">{q.description}</p>
+                    </div>
+                  </div>
+                  <VoteButtons
+                    value={vote}
+                    onChange={(v) =>
+                      setInterestVotes((prev) => ({ ...prev, [q.id]: v }))
+                    }
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Dinner section */}
+        <section className="mb-10">
+          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">
+            Dinner Out
+          </h2>
+          <p className="text-stone-500 text-sm mb-4">
+            Some restaurants near the house for nights we&apos;re not cooking or doing a chef dinner.
+            Vote &quot;Yes!&quot; on any that look good.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {DINNER_SPOTS.map((spot) => {
+              const vote = dinnerVotes[spot.id];
+              return (
+                <div
+                  key={spot.id}
+                  className={cn(
+                    "bg-white rounded-xl border p-4 transition-all",
+                    vote === "yes" && "border-emerald-300 ring-1 ring-emerald-200",
+                    vote === "fine" && "border-blue-200",
+                    vote === "pass" && "border-stone-200 opacity-60",
+                    !vote && "border-stone-100"
+                  )}
+                >
+                  <p className="font-bold text-stone-900 text-sm">{spot.name}</p>
+                  <p className="text-xs text-stone-400 font-medium uppercase tracking-wide mt-0.5">
+                    {spot.vibe}
+                  </p>
+                  <ul className="mt-2 space-y-0.5">
+                    {spot.bullets.map((b) => (
+                      <li key={b} className="flex gap-2 text-xs text-stone-500">
+                        <span className="text-stone-300 shrink-0">•</span>
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {spot.link && (
+                    <a
+                      href={spot.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-1.5 text-xs text-blue-600 hover:text-blue-800 underline underline-offset-2"
+                    >
+                      Website →
+                    </a>
+                  )}
+                  <VoteButtons
+                    value={vote}
+                    onChange={(v) =>
+                      setDinnerVotes((prev) => ({ ...prev, [spot.id]: v }))
+                    }
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         {/* Private chef section */}
         <section className="mb-10">
-          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">
-            Private Chef Dinners
+          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">
+            Private Chef at the House
           </h2>
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 mb-4">
+          <p className="text-stone-500 text-sm mb-4">
+            We&apos;re going to hire a private chef to cook at the house for 1–2 nights.
+            Vote &quot;Yes!&quot; on any chef style that sounds good to you.
+          </p>
+          <div className="bg-white rounded-xl border border-stone-100 shadow-sm p-4 mb-4">
             <p className="text-stone-700 text-sm font-medium mb-3">
-              How many chef nights would you want?
+              How many chef nights?
             </p>
             <div className="flex gap-3">
               {([1, 2] as const).map((n) => (
@@ -266,31 +438,37 @@ export function BigSkyIntake({ tripId }: Props) {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {CHEF_OPTIONS.map((chef) => {
               const vote = chefVotes[chef.id];
               return (
                 <div
                   key={chef.id}
                   className={cn(
-                    "bg-white rounded-2xl border shadow-sm p-4 transition-all",
+                    "bg-white rounded-xl border p-4 transition-all",
                     vote === "yes" && "border-emerald-300 ring-1 ring-emerald-200",
                     vote === "fine" && "border-blue-200",
                     vote === "pass" && "border-stone-200 opacity-60",
                     !vote && "border-stone-100"
                   )}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="font-bold text-stone-900 text-sm">{chef.name}</p>
-                      <p className="text-xs text-stone-400 font-medium uppercase tracking-wide mt-0.5">
-                        {chef.style}
-                      </p>
-                    </div>
-                  </div>
+                  <p className="font-bold text-stone-900 text-sm">{chef.name}</p>
+                  <p className="text-xs text-stone-400 font-medium uppercase tracking-wide mt-0.5">
+                    {chef.style}
+                  </p>
                   <p className="text-sm text-stone-500 mt-2 leading-snug">
                     {chef.description}
                   </p>
+                  {chef.link && (
+                    <a
+                      href={chef.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-1.5 text-xs text-blue-600 hover:text-blue-800 underline underline-offset-2"
+                    >
+                      Website →
+                    </a>
+                  )}
                   <VoteButtons
                     value={vote}
                     onChange={(v) =>
@@ -303,162 +481,42 @@ export function BigSkyIntake({ tripId }: Props) {
           </div>
         </section>
 
-        {/* Flight info */}
+        {/* Open recommendations */}
         <section className="mb-10">
-          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">
-            Your Travel Dates (Optional)
-          </h2>
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <p className="text-sm font-medium text-stone-700 mb-2">
-                  Arriving
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    type="date"
-                    value={arrivalDate}
-                    onChange={(e) => setArrivalDate(e.target.value)}
-                    className="flex-1 rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400"
-                    min="2026-07-18"
-                    max="2026-07-25"
-                  />
-                  <input
-                    type="time"
-                    value={arrivalTime}
-                    onChange={(e) => setArrivalTime(e.target.value)}
-                    className="w-28 rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400"
-                  />
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-stone-700 mb-2">
-                  Departing
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    type="date"
-                    value={departureDate}
-                    onChange={(e) => setDepartureDate(e.target.value)}
-                    className="flex-1 rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400"
-                    min="2026-07-18"
-                    max="2026-07-26"
-                  />
-                  <input
-                    type="time"
-                    value={departureTime}
-                    onChange={(e) => setDepartureTime(e.target.value)}
-                    className="w-28 rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Open text */}
-        <section className="mb-10">
-          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">
-            Anything Else?
+          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">
+            Your Recommendations & Ideas
           </h2>
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
             <label
               htmlFor="open-text"
-              className="text-sm font-medium text-stone-700 block mb-2"
+              className="text-sm text-stone-600 block mb-2 leading-relaxed"
             >
-              Other things you want to do, dietary needs, mobility notes, or anything else
-              we should know
+              Anything else you want to do? Restaurants you&apos;ve heard of? Activities not
+              listed? Dietary needs we should know about? Drop it here.
             </label>
             <textarea
               id="open-text"
               value={openText}
               onChange={(e) => setOpenText(e.target.value)}
               rows={4}
-              placeholder="e.g. would love a white water rafting day, one person is gluten-free..."
+              placeholder="e.g. I heard there's a great pizza place in town, would love to try river tubing, one person is gluten-free..."
               className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
             />
           </div>
         </section>
 
-        {/* Your info */}
-        <section className="mb-10">
-          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">
-            Your Info
-          </h2>
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label
-                  htmlFor="your-name"
-                  className="text-sm font-medium text-stone-700 block mb-1.5"
-                >
-                  Your name <span className="text-red-400">*</span>
-                </label>
-                <input
-                  id="your-name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="First and last name"
-                  className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-400"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="your-email"
-                  className="text-sm font-medium text-stone-700 block mb-1.5"
-                >
-                  Your email <span className="text-red-400">*</span>
-                </label>
-                <input
-                  id="your-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-400"
-                />
-              </div>
-            </div>
-            <div className="mt-5">
-              <label
-                htmlFor="party-size"
-                className="text-sm font-medium text-stone-700 block mb-1.5"
-              >
-                How many in your party? (including kids)
-              </label>
-              <input
-                id="party-size"
-                type="number"
-                min={1}
-                max={20}
-                value={partySize}
-                onChange={(e) =>
-                  setPartySize(Math.max(1, parseInt(e.target.value) || 1))
-                }
-                className="w-32 rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400"
-              />
-            </div>
-          </div>
-        </section>
-
         {/* Submit */}
         <div className="pb-12">
-          {error && (
-            <p className="text-red-500 text-sm text-center mb-4" role="alert">
-              {error}
-            </p>
-          )}
           <button
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
             className="w-full rounded-2xl bg-stone-900 text-white font-bold text-base py-4 hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
-            {isSubmitting ? "Saving your votes\u2026" : "Submit my votes"}
+            {isSubmitting ? "Saving your votes…" : "Submit my votes"}
           </button>
           <p className="text-center text-xs text-stone-400 mt-3">
-            You can only submit once, but Andrew can adjust things based on your notes.
+            You can resubmit with the same email if you change your mind.
           </p>
         </div>
       </div>

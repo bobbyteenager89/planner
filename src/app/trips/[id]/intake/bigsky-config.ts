@@ -6,6 +6,7 @@ export interface Activity {
   category: string;
   image: string;
   bullets: string[];
+  link?: { url: string; label: string };
   note?: string;
 }
 
@@ -14,6 +15,15 @@ export interface ChefOption {
   name: string;
   style: string;
   description: string;
+  link?: string;
+}
+
+export interface DinnerSpot {
+  id: string;
+  name: string;
+  vibe: string;
+  bullets: string[];
+  link?: string;
 }
 
 export const ACTIVITIES: Activity[] = [
@@ -21,150 +31,184 @@ export const ACTIVITIES: Activity[] = [
     id: "fly-fishing",
     title: "Fly Fishing (Gallatin River)",
     category: "Outdoor Adventures",
-    image:
-      "https://images.unsplash.com/photo-1532015421812-5e7e8c839abb?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1504309092620-4d0ec726efa4?w=600&h=400&fit=crop",
     bullets: [
-      "Guided walk-and-wade trips, all gear included",
+      "Guided walk-and-wade trips on the Gallatin River",
+      "All gear included — rods, reels, waders, lunch",
       "2-hour pond intro option for kids under 11",
-      "Fishing licenses required for ages 12+",
+      "Fishing licenses required for ages 12+ (~$30–40/day)",
+      "Half-day and full-day options available",
+      "Some of the best trout fishing in the country",
     ],
+    link: { url: "https://www.montanaflyfishing.com", label: "montanaflyfishing.com" },
   },
   {
     id: "horseback",
     title: "Horseback Riding",
     category: "Outdoor Adventures",
-    image:
-      "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=600&h=400&fit=crop",
     bullets: [
-      "1-3 hour guided trail rides through Gallatin National Forest",
-      "All abilities welcome",
+      "1–3 hour guided trail rides through Gallatin National Forest",
+      "All abilities welcome — horses matched to experience level",
       "Minimum age 7 for trails, younger kids may do arena rides",
-      "Cowboy cookout combo available",
+      "Cowboy cookout combo available (ride + dinner)",
+      "Beautiful mountain and meadow scenery",
+      "Multiple outfitters to choose from",
     ],
+    link: { url: "http://jakeshorses.com", label: "jakeshorses.com" },
   },
   {
     id: "hiking-ousel",
     title: "Hiking — Ousel Falls",
     category: "Outdoor Adventures",
-    image:
-      "https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1501554728187-ce583db33af7?w=600&h=400&fit=crop",
     bullets: [
-      "Easy 1.8-mile round trip to a waterfall",
-      "All ages, no booking needed",
-      "Near Big Sky Town Center",
+      "Easy 1.8-mile round trip to a beautiful waterfall",
+      "All ages — stroller-friendly for most of the trail",
+      "No booking needed, free to access",
+      "Near Big Sky Town Center — easy to combine with lunch",
+      "Shaded forest trail, great on a warm day",
     ],
   },
   {
     id: "yellowstone",
     title: "Yellowstone National Park",
     category: "Outdoor Adventures",
-    image:
-      "https://images.unsplash.com/photo-1565017228079-498b05df3c09?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1576958799928-81e2b9cab5ad?w=600&h=400&fit=crop",
     bullets: [
-      "Hot springs, Old Faithful, wildlife spotting",
-      "Junior Ranger booklets free at visitor centers",
-      "$35/vehicle entrance fee",
+      "Grand Prismatic Spring, Old Faithful, Mammoth Hot Springs",
+      "Wildlife spotting — bison, elk, bears, wolves",
+      "Free Junior Ranger booklets for kids at any visitor center",
+      "$35/vehicle entrance fee — good for 7 days",
+      "Pack snacks and lunch — limited food options in the park",
+      "Best to leave by 7 AM to beat the crowds",
     ],
-    note: "Full day — ~1 hour drive each way, leave by 7 AM",
+    link: { url: "https://www.nps.gov/yell", label: "nps.gov/yell" },
+    note: "Full day commitment — ~1 hour drive each way",
   },
   {
     id: "alpaca-farm",
     title: "Alpaca & Llama Farm Tour",
     category: "Animals",
-    image:
-      "https://images.unsplash.com/photo-1583337130417-13104dec14a7?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1583337130417-13104dec14a7?w=600&h=400&fit=crop",
     bullets: [
-      "1.5-hour hands-on tour in Bozeman (~45 min away)",
-      "Feed, halter, and bathe alpacas and llamas",
-      "Kids 5 and under free",
-      "Baby alpacas likely in July!",
+      "1.5-hour hands-on farm tour in Bozeman (~45 min drive)",
+      "Feed, halter, brush, and bathe alpacas and llamas",
+      "Baby alpacas likely in July — very cute",
+      "Kids 5 and under are free",
+      "Gift shop with alpaca fiber products",
+      "One of the most-reviewed activities in the area",
     ],
+    link: { url: "https://alpacasofmontana.com/products/alpaca-and-llama-farm-tours-schedule", label: "alpacasofmontana.com" },
   },
   {
     id: "llama-trek",
     title: "Llama Trekking",
     category: "Animals",
-    image:
-      "https://images.unsplash.com/photo-1594022078019-1f71d4d76805?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=600&h=400&fit=crop",
     bullets: [
-      "Day hikes with llamas carrying your gear",
-      "Bozeman area (~45 min away)",
-      "Better for older kids and adults",
+      "Day hikes with llamas carrying your gear and snacks",
+      "Guided backcountry trails near Bozeman (~45 min away)",
+      "Better suited for older kids and adults",
+      "Llamas are gentle and fun to walk with",
+      "Half-day and full-day options",
     ],
   },
   {
     id: "rodeo",
     title: "Tuesday Night Rodeo — July 21",
     category: "Evening & Social",
-    image:
-      "https://images.unsplash.com/photo-1580281658223-9b93f18ae9ae?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1545157029-da9e2b4aaef3?w=600&h=400&fit=crop",
     bullets: [
       "Lone Mountain Ranch — Big Sky's signature summer event",
-      "Barrel racing, bronc rides, roping, live music",
-      "Ticket includes cook-out dinner + drinks",
+      "Barrel racing, bronc riding, team roping, live music",
+      "Ticket includes cookout dinner + beer, wine, and soft drinks",
+      "Great for all ages — real Montana experience",
+      "Book early — these sell out",
     ],
+    link: { url: "https://lonemountainranch.com/rodeo/", label: "lonemountainranch.com/rodeo" },
     note: "One night only — Tuesday July 21",
   },
   {
     id: "farmers-market",
     title: "Wednesday Farmers Market — July 22",
     category: "Evening & Social",
-    image:
-      "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=600&h=400&fit=crop",
     bullets: [
-      "5-8 PM at Big Sky Town Center",
-      "90+ vendors, live music",
-      "Huckleberry snow cones",
-      "Free, no tickets needed",
+      "Every Wednesday 5–8 PM at Big Sky Town Center",
+      "90+ vendors — crafts, produce, prepared food, art",
+      "Live music and lawn games",
+      "Huckleberry everything — snow cones, jam, pie",
+      "Free, no tickets needed — just show up",
+      "Great casual evening for the whole group",
     ],
   },
   {
     id: "golf-bigsky",
     title: "Golf — Big Sky Resort",
     category: "Golf",
-    image:
-      "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=600&h=400&fit=crop",
     bullets: [
-      "Arnold Palmer-designed, 18 holes",
-      "Lone Peak views, wildlife on course",
-      "Club rentals available",
+      "Arnold Palmer-designed 18-hole championship course",
+      "Stunning Lone Peak views from every hole",
+      "Wildlife on course — elk, deer, eagles",
+      "Club rentals and lessons available",
+      "Tee times fill up fast in July",
     ],
+    link: { url: "https://www.bigskyresort.com/summer-activities/golf", label: "bigskyresort.com/golf" },
   },
   {
     id: "golf-headwaters",
     title: "Golf — Headwaters (Value Option)",
     category: "Golf",
-    image:
-      "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=600&h=400&fit=crop",
-    bullets: ["9 holes, ~$35/person", "Three Forks (~45 min away)", "Best value option"],
+    image: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=600&h=400&fit=crop",
+    bullets: [
+      "9 holes, ~$35/person — best value around",
+      "In Three Forks (~45 min from house)",
+      "Relaxed pace, less crowded than Big Sky Resort",
+      "Good for a chill half-day outing",
+    ],
+    link: { url: "https://www.headwatersgolfcourse.org", label: "headwatersgolfcourse.org" },
   },
   {
     id: "gondola",
     title: "Scenic Gondola Ride",
     category: "Resort Activities",
-    image:
-      "https://images.unsplash.com/photo-1483728642387-6b3b4528e414?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
     bullets: [
-      "Ride up the mountain at Big Sky Resort",
-      "Panoramic views of Lone Peak",
-      "Easy activity for all ages",
+      "Ride to the top of the mountain at Big Sky Resort",
+      "Panoramic views of Lone Peak and the Spanish Peaks",
+      "Easy activity for all ages — no hiking required",
+      "Restaurant and viewing deck at the summit",
+      "Can combine with hiking trails at the top",
     ],
+    link: { url: "https://www.bigskyresort.com/summer-activities", label: "bigskyresort.com" },
   },
   {
     id: "zipline",
     title: "Zip Line",
     category: "Resort Activities",
-    image:
-      "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600&h=400&fit=crop",
-    bullets: ["Adventure zip through the trees", "At Big Sky Resort"],
+    image: "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600&h=400&fit=crop",
+    bullets: [
+      "Adventure zip line course through the trees",
+      "At Big Sky Resort — multiple lines and platforms",
+      "Height and weight requirements apply",
+      "Thrilling views of the mountains below",
+    ],
+    link: { url: "https://www.bigskyresort.com/summer-activities", label: "bigskyresort.com" },
   },
   {
     id: "mini-golf",
     title: "Mini Golf",
     category: "Resort Activities",
-    image:
-      "https://images.unsplash.com/photo-1622992899683-ae1a3a100856?w=600&h=400&fit=crop",
-    bullets: ["Easy afternoon option", "At Big Sky Resort", "Great for all ages"],
+    image: "https://images.unsplash.com/photo-1596727362302-b8d891c42ab8?w=600&h=400&fit=crop",
+    bullets: [
+      "18-hole course at Big Sky Resort",
+      "Perfect for an easy afternoon with kids",
+      "Great for all ages — no experience needed",
+      "Combine with gondola or other resort activities",
+    ],
+    link: { url: "https://www.bigskyresort.com/summer-activities", label: "bigskyresort.com" },
   },
 ];
 
@@ -173,25 +217,96 @@ export const CHEF_OPTIONS: ChefOption[] = [
     id: "wild-chef",
     name: "Wild Chef",
     style: "Fine Dining",
-    description: "Michelin-level backgrounds, multi-course tasting menu",
+    description: "Michelin-trained chefs, multi-course tasting menus with wine pairings. High-end, special-occasion feel.",
+    link: "https://www.eatwildchef.com",
   },
   {
     id: "food-for-thought",
     name: "Food For Thought",
     style: "Montana Flavors",
-    description: "Bison, huckleberry, family-style. Min 10 guests.",
+    description: "Bison, huckleberry, local trout — family-style Montana cuisine. Min 10 guests. Great for our group size.",
+    link: "https://www.foodforthoughtmt.com/catering-services/in-home/",
   },
   {
     id: "montana-chef",
     name: "Montana Chef",
     style: "Kid-Friendly & Flexible",
-    description: "Menus for all ages, casual or formal",
+    description: "Customizable menus for all ages. Can go casual or upscale. Good if we want something the kids will eat too.",
+    link: "https://montanachef.com",
   },
   {
     id: "out-of-bounds",
     name: "Out of Bounds Catering",
     style: "Buffet + Grocery Stocking",
-    description: "Buffet or plated dinners, plus they stock the fridge for the week",
+    description: "Buffet or plated dinners at the house, plus they can stock the fridge and pantry for the whole week.",
+    link: "https://outofboundscatering.com",
+  },
+];
+
+export const DINNER_SPOTS: DinnerSpot[] = [
+  {
+    id: "horn-cantle",
+    name: "Horn & Cantle",
+    vibe: "Upscale Montana ranch house",
+    bullets: [
+      "Lone Mountain Ranch — beautiful setting",
+      "Elk, bison, fresh trout, craft cocktails",
+      "Reservations recommended",
+    ],
+    link: "https://lonemountainranch.com/dining/horn-and-cantle/",
+  },
+  {
+    id: "olive-bs",
+    name: "Olive B's Big Sky Bistro",
+    vibe: "Casual fine dining",
+    bullets: [
+      "Farm-to-table seasonal menu",
+      "Local favorite — consistently great reviews",
+      "Good wine list, cozy atmosphere",
+    ],
+    link: "https://www.olivebsbigsky.com",
+  },
+  {
+    id: "corral",
+    name: "The Corral Bar & Steakhouse",
+    vibe: "Classic Montana roadhouse",
+    bullets: [
+      "Famous burgers and steaks since 1946",
+      "Cash only, very casual",
+      "Exactly what you'd hope a Montana bar looks like",
+    ],
+    link: "https://www.montanacorralbar.com",
+  },
+  {
+    id: "beehive-basin",
+    name: "Beehive Basin Brewery",
+    vibe: "Craft brewery & pizza",
+    bullets: [
+      "Wood-fired pizza and local brews",
+      "Outdoor patio with mountain views",
+      "Super kid-friendly — lawn games, relaxed vibe",
+    ],
+  },
+  {
+    id: "hungry-moose",
+    name: "Hungry Moose Market & Deli",
+    vibe: "Deli & takeout",
+    bullets: [
+      "Great sandwiches, salads, and grab-and-go meals",
+      "Perfect for picnic supplies or a quick lunch",
+      "Right in Town Center",
+    ],
+  },
+  {
+    id: "lone-peak-brewery",
+    name: "Lone Peak Brewery & Taphouse",
+    vibe: "Brewery & pub food",
+    bullets: [
+      "Big menu — burgers, wings, salads, pasta",
+      "Kid-friendly with a family section",
+      "Lively atmosphere, good for a big group",
+    ],
+    link: "https://www.lonepeakbrewery.com",
   },
 ];
 

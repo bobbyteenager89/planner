@@ -13,10 +13,7 @@ export interface BigSkyAnswers {
   activityVotes: Record<string, "yes" | "fine" | "pass">;
   chefNights: 1 | 2;
   chefVotes: Record<string, "yes" | "fine" | "pass">;
-  arrivalDate?: string;
-  arrivalTime?: string;
-  departureDate?: string;
-  departureTime?: string;
+  dinnerVotes?: Record<string, "yes" | "fine" | "pass">;
   openText?: string;
 }
 
