@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Planner — AI Group Trip Planning",
+  title: "Big Sky Trip Planner",
   description:
     "Plan group trips that make everyone happy. AI collects private preferences and builds itineraries the whole group will love.",
 };
