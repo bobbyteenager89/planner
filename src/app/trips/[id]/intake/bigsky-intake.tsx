@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
 /* eslint-disable @next/next/no-img-element */
+
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   ACTIVITIES,
@@ -36,7 +37,25 @@ const INTEREST_QUESTIONS = [
   { id: "mountain-biking", label: "Mountain Biking", description: "Trail rides at Big Sky Resort — rentals available" },
   { id: "cooking-class", label: "Cooking Class", description: "Montana-themed group cooking experience" },
   { id: "stargazing", label: "Stargazing Night", description: "Big Sky has some of the darkest skies in the lower 48" },
+  { id: "river-tubing", label: "River Tubing", description: "Lazy float down the Gallatin — tubes available for rent" },
+  { id: "scenic-drive", label: "Beartooth Highway Drive", description: "One of the most scenic drives in America — mountain passes and alpine lakes" },
 ];
+
+const HONORABLE_DINNERS = [
+  { id: "buck-t4", label: "Buck's T-4 Lodge", description: "Upscale Montana lodge dining — game meats, local fish, great cocktails" },
+  { id: "rainbow-ranch", label: "Rainbow Ranch Lodge", description: "Riverside fine dining on the Gallatin — stunning patio, prix fixe available" },
+  { id: "gallatin-riverhouse", label: "Gallatin Riverhouse Grill", description: "Casual burgers and BBQ right on the river — big outdoor deck" },
+  { id: "ousel-falls", label: "Ousel & Spur Pizza", description: "Wood-fired pizza and salads in Town Center — great for kids" },
+];
+
+function SectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div className="mb-5">
+      <h2 className="text-xl sm:text-2xl font-extrabold text-stone-900">{title}</h2>
+      <p className="text-stone-500 text-sm mt-1">{subtitle}</p>
+    </div>
+  );
+}
 
 function VoteButtons({
   value,
@@ -136,10 +155,10 @@ export function BigSkyIntake({ tripId }: Props) {
   const [chefVotes, setChefVotes] = useState<Record<string, VoteValue>>({});
   const [dinnerVotes, setDinnerVotes] = useState<Record<string, VoteValue>>({});
   const [interestVotes, setInterestVotes] = useState<Record<string, VoteValue>>({});
+  const [honorableDinnerVotes, setHonorableDinnerVotes] = useState<Record<string, VoteValue>>({});
   const [openText, setOpenText] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [partySize, setPartySize] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -161,11 +180,11 @@ export function BigSkyIntake({ tripId }: Props) {
     const answers: BigSkyAnswers = {
       name: name.trim(),
       email: email.trim(),
-      partySize,
+      partySize: 1,
       activityVotes: { ...activityVotes, ...interestVotes },
       chefNights,
       chefVotes,
-      dinnerVotes,
+      dinnerVotes: { ...dinnerVotes, ...honorableDinnerVotes },
       openText: openText.trim() || undefined,
     };
 
@@ -209,19 +228,16 @@ export function BigSkyIntake({ tripId }: Props) {
 
       <div className="max-w-3xl mx-auto px-4 py-8 sm:px-6">
         {/* Your info — at the top */}
-        <section className="mb-8">
+        <section className="mb-6">
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
             {error && (
               <p className="text-red-500 text-sm mb-4 font-medium" role="alert">
                 {error}
               </p>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label
-                  htmlFor="your-name"
-                  className="text-sm font-medium text-stone-700 block mb-1.5"
-                >
+                <label htmlFor="your-name" className="text-sm font-medium text-stone-700 block mb-1.5">
                   Your name <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -234,10 +250,7 @@ export function BigSkyIntake({ tripId }: Props) {
                 />
               </div>
               <div>
-                <label
-                  htmlFor="your-email"
-                  className="text-sm font-medium text-stone-700 block mb-1.5"
-                >
+                <label htmlFor="your-email" className="text-sm font-medium text-stone-700 block mb-1.5">
                   Email <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -249,25 +262,6 @@ export function BigSkyIntake({ tripId }: Props) {
                   className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-400"
                 />
               </div>
-              <div>
-                <label
-                  htmlFor="party-size"
-                  className="text-sm font-medium text-stone-700 block mb-1.5"
-                >
-                  People in your group
-                </label>
-                <input
-                  id="party-size"
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={partySize}
-                  onChange={(e) =>
-                    setPartySize(Math.max(1, parseInt(e.target.value) || 1))
-                  }
-                  className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400"
-                />
-              </div>
             </div>
           </div>
         </section>
@@ -275,33 +269,44 @@ export function BigSkyIntake({ tripId }: Props) {
         {/* Intro */}
         <div className="mb-10">
           <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
-            Hey! We&apos;re putting together the plan for Big Sky and want your input.
-            We&apos;ve got <strong>6 full days</strong> to fill — scroll through the
-            options below and let us know what sounds fun.
+            Hey! Mom and Andrew have been researching activities and food for the trip.
+            We&apos;ve got <strong>6 full days</strong> to fill and want everyone&apos;s
+            input before we put the schedule together. Scroll through and vote on what
+            sounds good to you!
           </p>
           <div className="mt-4 bg-white rounded-xl border border-stone-100 p-4 space-y-2">
             <p className="text-stone-700 text-sm leading-relaxed">
-              <strong className="text-emerald-700">✅ Yes!</strong> — I want to do this, put me down
+              <strong className="text-emerald-700">✅ Yes!</strong> — I want to do this, count me in
             </p>
             <p className="text-stone-700 text-sm leading-relaxed">
-              <strong className="text-blue-700">👍 Fine with it</strong> — I&apos;d happily go along, sounds good
+              <strong className="text-blue-700">👍 Fine with it</strong> — I&apos;d happily go along if others want to
             </p>
             <p className="text-stone-700 text-sm leading-relaxed">
               <strong className="text-stone-500">⏭️ Pass</strong> — Not my thing — I&apos;d rather hang back or do something else during this one
             </p>
           </div>
           <p className="text-stone-500 text-sm mt-3">
-            Don&apos;t overthink it — there are no wrong answers. Vote on as many as you can
-            and it&apos;s totally fine to say &quot;Yes!&quot; to everything.
+            There are no wrong answers and it&apos;s totally fine to say &quot;Yes!&quot; to
+            everything. The more you vote, the better we can plan.
           </p>
+        </div>
+
+        {/* ═══════════════════════════════════════════════ */}
+        {/* PART 1: ACTIVITIES                              */}
+        {/* ═══════════════════════════════════════════════ */}
+        <div className="border-t-2 border-stone-200 pt-8 mb-6">
+          <SectionHeader
+            title="🏔️ Activities"
+            subtitle="Here's what we've found so far. Vote on anything that sounds fun."
+          />
         </div>
 
         {/* Activity voting by category */}
         {activitiesByCategory.map(({ category, activities }) => (
           <section key={category} className="mb-10">
-            <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">
+            <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">
               {category}
-            </h2>
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {activities.map((activity) => (
                 <ActivityCard
@@ -317,13 +322,13 @@ export function BigSkyIntake({ tripId }: Props) {
           </section>
         ))}
 
-        {/* Interest check questions */}
+        {/* Activity honorable mentions */}
         <section className="mb-10">
-          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">
-            Would You Be Into...
-          </h2>
-          <p className="text-stone-500 text-sm mb-4">
-            A few other ideas we&apos;re considering. Let us know if any of these sound fun.
+          <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">
+            Honorable Mentions — Other Activity Ideas
+          </h3>
+          <p className="text-stone-500 text-xs mb-4">
+            A few more ideas we came across. Let us know if any of these jump out.
           </p>
           <div className="space-y-3">
             {INTEREST_QUESTIONS.map((q) => {
@@ -339,12 +344,8 @@ export function BigSkyIntake({ tripId }: Props) {
                     !vote && "border-stone-100"
                   )}
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="font-bold text-stone-900 text-sm">{q.label}</p>
-                      <p className="text-xs text-stone-500 mt-0.5">{q.description}</p>
-                    </div>
-                  </div>
+                  <p className="font-bold text-stone-900 text-sm">{q.label}</p>
+                  <p className="text-xs text-stone-500 mt-0.5">{q.description}</p>
                   <VoteButtons
                     value={vote}
                     onChange={(v) =>
@@ -357,14 +358,23 @@ export function BigSkyIntake({ tripId }: Props) {
           </div>
         </section>
 
-        {/* Dinner section */}
+        {/* ═══════════════════════════════════════════════ */}
+        {/* PART 2: FOOD                                    */}
+        {/* ═══════════════════════════════════════════════ */}
+        <div className="border-t-2 border-stone-200 pt-8 mb-6">
+          <SectionHeader
+            title="🍽️ Food & Dining"
+            subtitle="We'll be cooking at the house most nights, but here are some dinner-out options and private chef ideas."
+          />
+        </div>
+
+        {/* Restaurants */}
         <section className="mb-10">
-          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">
-            Dinner Out
-          </h2>
-          <p className="text-stone-500 text-sm mb-4">
-            Some restaurants near the house for nights we&apos;re not cooking or doing a chef dinner.
-            Vote &quot;Yes!&quot; on any that look good.
+          <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">
+            Restaurants Near the House
+          </h3>
+          <p className="text-stone-500 text-xs mb-4">
+            For nights we eat out. Vote on places that look good — we&apos;ll try to hit the favorites.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {DINNER_SPOTS.map((spot) => {
@@ -414,18 +424,54 @@ export function BigSkyIntake({ tripId }: Props) {
           </div>
         </section>
 
-        {/* Private chef section */}
+        {/* Dinner honorable mentions */}
         <section className="mb-10">
-          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">
+          <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">
+            Honorable Mentions — Other Dinner Ideas
+          </h3>
+          <p className="text-stone-500 text-xs mb-4">
+            A few more spots that came up in our research.
+          </p>
+          <div className="space-y-3">
+            {HONORABLE_DINNERS.map((d) => {
+              const vote = honorableDinnerVotes[d.id];
+              return (
+                <div
+                  key={d.id}
+                  className={cn(
+                    "bg-white rounded-xl border p-4 transition-all",
+                    vote === "yes" && "border-emerald-300 ring-1 ring-emerald-200",
+                    vote === "fine" && "border-blue-200",
+                    vote === "pass" && "border-stone-200 opacity-60",
+                    !vote && "border-stone-100"
+                  )}
+                >
+                  <p className="font-bold text-stone-900 text-sm">{d.label}</p>
+                  <p className="text-xs text-stone-500 mt-0.5">{d.description}</p>
+                  <VoteButtons
+                    value={vote}
+                    onChange={(v) =>
+                      setHonorableDinnerVotes((prev) => ({ ...prev, [d.id]: v }))
+                    }
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Private chef sub-section */}
+        <section className="mb-10">
+          <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">
             Private Chef at the House
-          </h2>
-          <p className="text-stone-500 text-sm mb-4">
+          </h3>
+          <p className="text-stone-500 text-xs mb-4">
             We&apos;re going to hire a private chef to cook at the house for 1–2 nights.
-            Vote &quot;Yes!&quot; on any chef style that sounds good to you.
+            Vote on which style sounds best.
           </p>
           <div className="bg-white rounded-xl border border-stone-100 shadow-sm p-4 mb-4">
             <p className="text-stone-700 text-sm font-medium mb-3">
-              How many chef nights?
+              How many chef nights would you want?
             </p>
             <div className="flex gap-3">
               {([1, 2] as const).map((n) => (
@@ -488,19 +534,18 @@ export function BigSkyIntake({ tripId }: Props) {
           </div>
         </section>
 
-        {/* Open recommendations */}
+        {/* ═══════════════════════════════════════════════ */}
+        {/* PART 3: YOUR INPUT                              */}
+        {/* ═══════════════════════════════════════════════ */}
+        <div className="border-t-2 border-stone-200 pt-8 mb-6">
+          <SectionHeader
+            title="💬 Your Ideas"
+            subtitle="Anything else on your mind? Restaurants, activities, or things you've heard about — drop it here."
+          />
+        </div>
+
         <section className="mb-10">
-          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">
-            Your Recommendations & Ideas
-          </h2>
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
-            <label
-              htmlFor="open-text"
-              className="text-sm text-stone-600 block mb-2 leading-relaxed"
-            >
-              Anything else you want to do? Restaurants you&apos;ve heard of? Activities not
-              listed? Dietary needs we should know about? Drop it here.
-            </label>
             <textarea
               id="open-text"
               value={openText}
