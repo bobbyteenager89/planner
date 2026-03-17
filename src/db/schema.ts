@@ -255,6 +255,9 @@ export const itineraries = pgTable(
     status: itineraryStatusEnum("status").notNull().default("skeleton"),
     feedbackDeadline: timestamp("feedback_deadline", { mode: "date" }),
     aiReasoning: text("ai_reasoning"),
+    comments: jsonb("comments")
+      .$type<Array<{ participantId: string; text: string; createdAt: string }>>()
+      .default([]),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
