@@ -8,10 +8,9 @@ import { BIGSKY_TRIP_ID } from "./bigsky-config";
 
 export interface BigSkyAnswers {
   name: string;
-  email: string;
+  email?: string;
   partySize: number;
   activityVotes: Record<string, "yes" | "fine" | "pass">;
-  chefNights: 1 | 2;
   chefVotes: Record<string, "yes" | "fine" | "pass">;
   dinnerVotes?: Record<string, "yes" | "fine" | "pass">;
   openText?: string;
@@ -25,11 +24,13 @@ export async function saveBigSkyAnswers(
   if (tripId !== BIGSKY_TRIP_ID) throw new Error("Invalid trip");
 
   if (!answers.name?.trim()) throw new Error("Name is required");
-  if (!answers.email?.trim()) throw new Error("Email is required");
 
   const database = db();
-  const email = answers.email.trim().toLowerCase();
   const name = answers.name.trim();
+  // If no email provided, generate a placeholder so the unique constraint is satisfied
+  const email = answers.email?.trim()
+    ? answers.email.trim().toLowerCase()
+    : `anonymous-${Date.now()}@survey.local`;
 
   // Find or create participant by email
   let [participant] = await database
