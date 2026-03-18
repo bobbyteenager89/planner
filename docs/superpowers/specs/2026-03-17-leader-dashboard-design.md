@@ -51,12 +51,13 @@ A standalone dashboard at `/trips/[id]/dashboard` where the trip owner can view 
 Same Big Sky retro header as the intake page:
 - Rust (#D14F36) background
 - "BIG SKY" title with mustard text shadow
-- Trip dates and address
+- Trip dates and destination
 - Subtitle: "TRIP LEADER DASHBOARD" in mustard
 
 ### Section 1: Participant Tracker
 - Compact row of participant pills/badges
 - Each shows: name + status icon (completed/in-progress/invited)
+- Status comes from `participants.status` field (not rawData)
 - Summary count: "7 of 10 completed"
 - Cream card with rust border, matching intake card style
 
@@ -64,7 +65,7 @@ Same Big Sky retro header as the intake page:
 Three subsections, each with a retro `SectionHeader` divider:
 
 **Activities:**
-- One horizontal bar row per activity (from ACTIVITIES + INTEREST_QUESTIONS in bigsky-config)
+- One horizontal bar row per activity (all activity IDs found in rawData.activityVotes, labels from ACTIVITIES in bigsky-config)
 - Bar segments: rust = "Yes!", mustard = "Fine with it", muted cream = "Pass"
 - Vote counts shown inline to the right of each bar
 - Sorted by enthusiasm score (yes + fine*0.5) descending
@@ -72,7 +73,7 @@ Three subsections, each with a retro `SectionHeader` divider:
 
 **Restaurants:**
 - Same bar format
-- Includes main DINNER_SPOTS + HONORABLE_DINNERS from bigsky-config
+- All restaurant IDs found in rawData.dinnerVotes, labels from DINNER_SPOTS in bigsky-config
 
 **Chefs:**
 - Same bar format
@@ -82,7 +83,7 @@ Three subsections, each with a retro `SectionHeader` divider:
 - "Generate Summary" button → streams Claude Haiku narrative
 - Summary rendered in cream card with rust border when generated
 - "Suggestions from the Group" — raw open-text quotes with participant names
-- "Generate Itinerary" button (relocated from trip detail page)
+- "Generate Itinerary" button — calls existing `POST /api/trips/[id]/generate` endpoint
 
 ### Mobile
 - Single column, sections stack naturally
@@ -122,9 +123,10 @@ interface AggregatedVotes {
 **Rules:**
 - Items sorted by enthusiasm score descending
 - Participants who didn't vote on an item are not counted (not treated as "pass")
-- Activity votes include main activities + honorable mentions (merged in rawData.activityVotes)
-- Dinner votes include main restaurants + honorable mentions (merged in rawData.dinnerVotes)
-- Labels resolved from bigsky-config constants (ACTIVITIES, DINNER_SPOTS, HONORABLE_DINNERS, CHEF_OPTIONS)
+- If `dinnerVotes` is absent from a rawData record, skip that participant's restaurant contribution entirely
+- Activity votes include main activities + honorable mentions (merged in rawData.activityVotes at save time)
+- Dinner votes include main restaurants + honorable mentions (merged in rawData.dinnerVotes at save time)
+- Labels resolved by matching IDs against bigsky-config constants (ACTIVITIES, DINNER_SPOTS, CHEF_OPTIONS). For IDs not found in config (e.g. honorable mention activities defined only in the intake component), use a humanized fallback: replace hyphens with spaces, title-case
 
 ## AI Summary
 
@@ -181,7 +183,7 @@ interface AggregatedVotes {
 
 ## rawData Shape Reference
 
-From `BigSkyAnswers` (saved to `preferences.rawData`):
+From `BigSkyAnswers` interface (in bigsky-actions.ts):
 ```ts
 {
   name: string;
@@ -189,9 +191,10 @@ From `BigSkyAnswers` (saved to `preferences.rawData`):
   partySize: number;
   activityVotes: Record<string, "yes" | "fine" | "pass">;  // main + honorable mention activities
   chefVotes: Record<string, "yes" | "fine" | "pass">;
-  dinnerVotes: Record<string, "yes" | "fine" | "pass">;    // main + honorable mention restaurants
+  dinnerVotes?: Record<string, "yes" | "fine" | "pass">;   // OPTIONAL — main + honorable mention restaurants
   openText?: string;
-  completedAt: string;  // ISO timestamp
-  surveyType: "bigsky";
 }
+```
+
+**Note:** `completedAt` (ISO timestamp) and `surveyType: "bigsky"` are injected at save time in `saveBigSkyAnswers()` — they are NOT part of the `BigSkyAnswers` interface but will be present in stored rawData. `partySize` is available in rawData and can be included in the AI summary prompt for group composition context.
 ```
