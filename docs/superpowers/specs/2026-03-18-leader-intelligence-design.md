@@ -33,10 +33,10 @@ conflictPairs: { yesVoter: string; passVoter: string }[];
 
 ### Logic
 
-In `tallyVotes()`, after building the tally for each item:
-- Check if `yes > 0 && pass > 0`
-- If so, set `conflicted: true`
-- Build `conflictPairs` by pairing each "yes" voter with each "pass" voter from the `voters` array
+Conflict computation happens in the final `.map()` call of `tallyVotes()` (after all participants have been tallied), not mid-loop:
+- In the existing `.map((t) => ({ ...t, enthusiasm: ... }))` step, also compute:
+- `conflicted`: `t.yes > 0 && t.pass > 0`
+- `conflictPairs`: filter `t.voters` for "yes" voters and "pass" voters, pair each yes with each pass
 
 ### Display
 
@@ -62,25 +62,34 @@ In `tallyVotes()`, after building the tally for each item:
 2. Build prompt with full vote data per item
 3. Claude Haiku returns JSON array of insights
 
-**Prompt strategy:** Send the vote tallies per item and instruct Haiku to return a JSON array:
+**Prompt strategy:** Send the vote tallies per item, including both `id` and `label` for each item, and instruct Haiku to return a JSON array using the `id` values (so the client can match insights to tallies):
 ```
-For each item, return: { "itemId": "fly-fishing", "category": "activity", "insight": "Strong consensus — book early", "signal": "consensus" }
+Here are the vote results. For each item I'm giving you the id and label.
+
+Activities:
+- id: "fly-fishing", label: "Fly Fishing (Gallatin River)": 5 yes, 2 fine, 1 pass
+...
+
+For each item, return: { "itemId": "<the id value>", "insight": "...", "signal": "consensus|split|low_interest|conflict" }
+```
 
 Signal must be one of: "consensus" (most people agree), "split" (polarized votes), "low_interest" (mostly pass/fine), "conflict" (yes vs pass tension)
-```
 
-**Response:** Single JSON blob (not streaming — small payload). Parsed client-side.
+**Empty state:** If `completedCount === 0`, return a 200 with an empty JSON array `[]` without calling Haiku.
+
+**Response:** Single JSON blob (not streaming — small payload). Parsed client-side. Match insights to tallies by `itemId` only (ignore `category` field if present — simpler and more tolerant of Haiku output variations).
 
 ### Response Shape
 
 ```ts
 interface ItemInsight {
   itemId: string;
-  category: "activity" | "restaurant" | "chef";
   insight: string;
   signal: "consensus" | "split" | "low_interest" | "conflict";
 }
 ```
+
+**Note:** No `category` field — match insights to tallies by `itemId` alone. This is more tolerant of Haiku output variations. If Haiku returns extra fields, ignore them.
 
 ### Display
 
@@ -104,14 +113,17 @@ Below each vote bar, when insights are loaded:
 **Auth:** Owner-only.
 
 **Flow:**
-1. Load votes + trip dates (startDate, endDate)
-2. Calculate number of available days
-3. Claude Haiku generates rough day-by-day framework
+1. Load trip (need `startDate`, `endDate`)
+2. **Guard:** If either `startDate` or `endDate` is null, return 400 with message "Trip dates must be set before generating a schedule preview"
+3. Load votes via `aggregateBigSkyVotes()`
+4. **Guard:** If `completedCount === 0`, return 400 with message "No completed responses yet"
+5. Calculate number of available days from dates
+6. Claude Haiku generates rough day-by-day framework
 
 **Prompt strategy:** Provide:
 - Vote data sorted by enthusiasm
-- Number of days available
-- Fixed-date events (Rodeo = Tuesday July 21, Farmers Market = Wednesday July 22 — from activity metadata)
+- Number of days available, with actual dates
+- Fixed-date events hardcoded in the prompt (not parsed from config): "Rodeo at Lone Mountain Ranch is only on Tuesday July 21. Farmers Market is only on Wednesday July 22 (5-8 PM)." These are known constraints for the Big Sky trip.
 - Instruct: "Assign top-voted activities to days. Mark split items as optional. Include free time. Respect fixed dates. Output JSON."
 
 **Response shape:**
@@ -164,11 +176,12 @@ Nullable, no default. Run `npm run db:push` to apply.
 **Body:** `{ participantId: string }`
 
 **Flow:**
-1. Load participant, verify they belong to this trip
-2. Check `lastRemindedAt` — if within 24 hours, return 429
-3. Send nudge email via Resend with survey link
-4. Update `lastRemindedAt` to now
-5. Return 200
+1. Load participant by querying with BOTH `id = participantId` AND `tripId = id` (from route param) — prevents cross-trip manipulation
+2. If not found, return 404
+3. Check `lastRemindedAt` — if within 24 hours, return 429 with message "Reminder already sent recently"
+4. Send nudge email via Resend with survey link: `${BASE_URL}/trips/${tripId}/intake` (public URL, no token needed for Big Sky)
+5. Update `lastRemindedAt` to now
+6. Return 200
 
 ### Email Template
 
@@ -180,14 +193,31 @@ Simple nudge email:
 
 Uses same Resend pattern as `src/lib/email/itinerary-ready.ts`.
 
+**Survey URL:** `${process.env.NEXTAUTH_URL || 'https://planner-sooty-theta.vercel.app'}/trips/${tripId}/intake` — public URL, no token needed for Big Sky's anonymous intake.
+
 ### Display Changes
+
+**Participant interface change:** The `Participant` interface in `dashboard-content.tsx` must be extended:
+```ts
+interface Participant {
+  id: string;
+  name: string;
+  status: string;
+  createdAt: string;            // ISO string for relative time display
+  lastRemindedAt: string | null; // ISO string, for 24h rate-limit check client-side
+}
+```
+
+The server page (`page.tsx`) must be updated to select and pass `createdAt` and `lastRemindedAt` from the participants query.
+
+**Copy Link URL:** The intake URL for Big Sky is `${window.location.origin}/trips/${tripId}/intake` (public, no token). No `inviteToken` needed for this trip format.
 
 In the participant tracker section of `dashboard-content.tsx`:
 
 - Non-completed participants get:
-  - "Remind" button (sends email) — shows "Sent!" for 3 seconds on success, disabled if reminded within 24h
+  - "Remind" button (sends POST to `/api/trips/[id]/remind`) — shows "Sent!" for 3 seconds on success, disabled if `lastRemindedAt` is within 24h
   - "Copy Link" button (copies intake URL to clipboard) — shows "Copied!" briefly
-- Show relative time: "Invited 3 days ago" for non-responders
+- Show relative time: "Invited 3 days ago" computed from `createdAt`
 - Completed participants unchanged (just name + checkmark)
 
 ### Files
@@ -210,6 +240,8 @@ Order of sections on `/trips/[id]/dashboard`:
    - "Analyze Votes" → populates inline insights on vote bars above
    - "Preview Schedule" → renders schedule preview below
    - "Generate Summary" → streams narrative summary below (existing behavior relocated)
+
+   **Refactor note:** The existing `AISummarySection` component manages its own streaming state internally. When relocating it into the AI Tools section, keep it as a self-contained component — don't lift its state. The AI Tools section is just a layout wrapper that groups the three buttons visually. Each button's state (loading, result) remains in its own component.
 7. **Schedule Preview** (appears after button click, retro card)
 8. **AI Summary** (appears after button click, existing behavior)
 9. **Suggestions** (existing — open text entries)
@@ -226,12 +258,13 @@ Order of sections on `/trips/[id]/dashboard`:
 | `src/app/api/trips/[id]/remind/route.ts` | API Route | Send reminder email |
 | `src/lib/email/survey-reminder.ts` | Email template | Reminder nudge email |
 
-### Modified Files (3)
+### Modified Files (4)
 
 | File | Change |
 |------|--------|
 | `src/lib/bigsky-dashboard.ts` | Add `conflicted`, `conflictPairs` to VoteTally, compute in `tallyVotes()` |
-| `src/app/trips/[id]/dashboard/dashboard-content.tsx` | Conflict badges, AI insights display, AI tools section, schedule preview, reminder buttons, copy link, relative time |
+| `src/app/trips/[id]/dashboard/page.tsx` | Pass `createdAt` and `lastRemindedAt` in participant data to client component |
+| `src/app/trips/[id]/dashboard/dashboard-content.tsx` | Extend Participant interface, conflict badges, AI insights display, AI tools section, schedule preview, reminder buttons, copy link, relative time |
 | `src/db/schema.ts` | Add `lastRemindedAt` timestamp to participants table |
 
 ### Schema Change
