@@ -67,13 +67,20 @@ export function TripContent({
                     : `${completedCount} participant${completedCount > 1 ? "s" : ""} completed intake.`}
                 </p>
               </div>
-              {completedCount > 0 && (
-                <GenerateView
-                  tripId={tripId}
-                  tripDays={tripDays}
-                  onComplete={handleGenerateComplete}
-                />
-              )}
+              <div className="flex items-center gap-2">
+                {completedCount > 0 && (
+                  <Link href={`/trips/${tripId}/dashboard`}>
+                    <Button variant="outline">View Responses</Button>
+                  </Link>
+                )}
+                {completedCount > 0 && (
+                  <GenerateView
+                    tripId={tripId}
+                    tripDays={tripDays}
+                    onComplete={handleGenerateComplete}
+                  />
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -128,11 +135,27 @@ export function TripContent({
   // Reviewing
   if (status === "reviewing") {
     return (
-      <ItineraryView
-        tripId={tripId}
-        isOwner={isOwner}
-        onRegenerate={handleRegenerate}
-      />
+      <div>
+        <Card className="mb-4">
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Reviewing itinerary
+              </p>
+              {isOwner && (
+                <Link href={`/trips/${tripId}/dashboard`}>
+                  <Button variant="outline" size="sm">View Responses</Button>
+                </Link>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        <ItineraryView
+          tripId={tripId}
+          isOwner={isOwner}
+          onRegenerate={handleRegenerate}
+        />
+      </div>
     );
   }
 
