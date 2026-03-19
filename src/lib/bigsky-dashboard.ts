@@ -15,6 +15,8 @@ export interface VoteTally {
   total: number;
   enthusiasm: number;
   voters: { name: string; vote: "yes" | "fine" | "pass" }[];
+  conflicted: boolean;
+  conflictPairs: { yesVoter: string; passVoter: string }[];
 }
 
 export interface AggregatedVotes {
@@ -73,6 +75,8 @@ function tallyVotes(
           total: 0,
           enthusiasm: 0,
           voters: [],
+          conflicted: false,
+          conflictPairs: [],
         };
       }
       tallies[itemId][vote]++;
@@ -81,9 +85,27 @@ function tallyVotes(
     }
   }
 
-  // Calculate enthusiasm and sort
+  // Calculate enthusiasm, detect conflicts, and sort
   return Object.values(tallies)
-    .map((t) => ({ ...t, enthusiasm: t.yes + t.fine * 0.5 }))
+    .map((t) => {
+      const yesVoters = t.voters.filter((v) => v.vote === "yes").map((v) => v.name);
+      const passVoters = t.voters.filter((v) => v.vote === "pass").map((v) => v.name);
+      const conflicted = yesVoters.length > 0 && passVoters.length > 0;
+      const conflictPairs: { yesVoter: string; passVoter: string }[] = [];
+      if (conflicted) {
+        for (const y of yesVoters) {
+          for (const p of passVoters) {
+            conflictPairs.push({ yesVoter: y, passVoter: p });
+          }
+        }
+      }
+      return {
+        ...t,
+        enthusiasm: t.yes + t.fine * 0.5,
+        conflicted,
+        conflictPairs,
+      };
+    })
     .sort((a, b) => b.enthusiasm - a.enthusiasm);
 }
 
