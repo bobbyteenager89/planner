@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
@@ -5,6 +6,20 @@ import { trips, participants, preferences, itineraries } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { aggregateBigSkyVotes } from "@/lib/bigsky-dashboard";
 import { DashboardContent } from "./dashboard-content";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const database = db();
+  const [trip] = await database.select().from(trips).where(eq(trips.id, id));
+
+  return {
+    title: trip ? `Dashboard — ${trip.destination || trip.title}` : "Dashboard",
+  };
+}
 
 export default async function LeaderDashboardPage({
   params,

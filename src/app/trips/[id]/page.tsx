@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
@@ -7,6 +8,31 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { InviteForm } from "./invite-form";
 import { TripContent } from "./trip-content";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const database = db();
+  const [trip] = await database.select().from(trips).where(eq(trips.id, id));
+
+  if (!trip) return { title: "Trip Not Found" };
+
+  const title = trip.destination
+    ? `${trip.title} — ${trip.destination}`
+    : trip.title;
+
+  return {
+    title,
+    description: `Plan your trip to ${trip.destination || "an amazing destination"} with your group.`,
+    openGraph: {
+      title,
+      description: `Plan your trip to ${trip.destination || "an amazing destination"} with your group.`,
+    },
+  };
+}
 
 export default async function TripDetailPage({
   params,
