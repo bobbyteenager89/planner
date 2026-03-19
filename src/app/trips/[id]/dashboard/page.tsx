@@ -42,6 +42,8 @@ export default async function LeaderDashboardPage({
         name: p.name || p.email,
         status: p.status,
         rawData: pref?.rawData ?? null,
+        createdAt: p.createdAt.toISOString(),
+        lastRemindedAt: p.lastRemindedAt?.toISOString() ?? null,
       };
     })
   );
@@ -66,6 +68,8 @@ export default async function LeaderDashboardPage({
         id: p.participantId,
         name: p.name,
         status: p.status,
+        createdAt: p.createdAt,
+        lastRemindedAt: p.lastRemindedAt,
       }))}
       votes={votes}
     />
