@@ -136,8 +136,68 @@
 | `docs/superpowers/plans/2026-03-17-phase4-itinerary-generation.md` | Phase 4 implementation plan |
 
 ### Next Steps
-- [ ] Build leader dashboard — see votes coming in, AI-processed preferences, tiebreak tools
-- [ ] Improve voting system for itinerary generation (ranking, must-do vs nice-to-have)
-- [ ] Leader can start draft itinerary from early answers (iterative refinement)
-- [ ] Three-phase flow: leader research → group survey → finalize plan
+- [x] Build leader dashboard — Done (S5)
+- [x] AI-processed preferences, tiebreak tools — Done (S5)
+- [x] Leader can start draft itinerary from early answers (iterative refinement) — Done (S5)
 - [ ] Phase 5: Research Feed + Polish
+- [ ] Social Layer — comments, reactions, group discussion
+- [ ] Agentic Trip Agent — collaborative travel agent assistant
+
+---
+
+## 2026-03-19 — Session 5: Leader Dashboard + Intelligence + Iterative Generation + Polish
+
+### Accomplished
+- **Leader Dashboard** — new standalone page at `/trips/[id]/dashboard`
+  - Retro Big Sky theme (cream/rust/mustard palette, Arial Black headings)
+  - Horizontal vote bars for all 13 activities, 10 restaurants, 4 chefs
+  - Participant completion tracker with status pills
+  - Streaming AI narrative summary via Claude Haiku
+  - Open-text suggestions display
+  - "View Responses" link added to trip detail page (intake + reviewing states)
+- **Leader Intelligence** — 4 new features on the dashboard
+  - Conflict detection: "Split" badges on items with yes+pass votes, expandable to show who
+  - Per-item AI insights: "Analyze Votes" button generates one-liner per item with signal colors
+  - Schedule preview: "Preview Schedule" generates day-by-day framework respecting fixed-date events
+  - Participant engagement: "Remind" button sends nudge emails (24h rate limit), "Copy Link" for survey URL
+  - AI Tools section grouping all three AI buttons
+- **Iterative Generation** — generate from partial responses, regenerate as votes arrive
+  - Version indicator shows current itinerary version + generation timestamp
+  - "New responses" badge shows count of responses since last generation
+  - Button label changes to "Regenerate Itinerary" when version exists
+- **Product Polish**
+  - Global error boundary (`error.tsx`)
+  - Custom 404 page (`not-found.tsx`)
+  - Loading skeletons for trip detail + dashboard pages
+  - Dynamic metadata (generateMetadata) for trip + dashboard pages with OpenGraph
+- **Schema change**: Added `lastRemindedAt` timestamp to participants table
+- **22 commits**, 12 new files, 6 modified files
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `src/lib/bigsky-dashboard.ts` | Vote aggregation utility with conflict detection |
+| `src/app/trips/[id]/dashboard/page.tsx` | Dashboard server component (auth + data) |
+| `src/app/trips/[id]/dashboard/dashboard-content.tsx` | Dashboard client component (retro theme, all features) |
+| `src/app/trips/[id]/dashboard/loading.tsx` | Dashboard skeleton loader |
+| `src/app/api/trips/[id]/summary/route.ts` | Streaming AI narrative summary |
+| `src/app/api/trips/[id]/insights/route.ts` | Batch per-item AI insights |
+| `src/app/api/trips/[id]/schedule-preview/route.ts` | Day-by-day schedule preview |
+| `src/app/api/trips/[id]/remind/route.ts` | Reminder email with 24h rate limiting |
+| `src/lib/email/survey-reminder.ts` | Reminder email template |
+| `src/app/error.tsx` | Global error boundary |
+| `src/app/not-found.tsx` | Custom 404 page |
+| `src/app/trips/[id]/loading.tsx` | Trip detail skeleton loader |
+
+### Files Modified
+| File | Changes |
+|------|---------|
+| `src/db/schema.ts` | Added `lastRemindedAt` to participants |
+| `src/app/trips/[id]/trip-content.tsx` | Added "View Responses" link for owner |
+| `src/app/trips/[id]/page.tsx` | Added generateMetadata |
+| `src/lib/bigsky-dashboard.ts` | Added conflict detection (conflicted, conflictPairs) |
+
+### Next Steps
+- [ ] Research Feed — curated items with group voting and AI scoring (Phase 5)
+- [ ] Social Layer — comments on activities, reactions, group discussion
+- [ ] Agentic Trip Agent — collaborative travel agent (reorder days, ask questions, delegate)
