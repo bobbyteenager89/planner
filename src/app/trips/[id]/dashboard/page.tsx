@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { trips, participants, preferences } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { trips, participants, preferences, itineraries } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { aggregateBigSkyVotes } from "@/lib/bigsky-dashboard";
 import { DashboardContent } from "./dashboard-content";
 
@@ -57,6 +57,29 @@ export default async function LeaderDashboardPage({
 
   const votes = aggregateBigSkyVotes(prefsForAggregation);
 
+  // Load latest itinerary for version info
+  const [latestItinerary] = await database
+    .select()
+    .from(itineraries)
+    .where(eq(itineraries.tripId, id))
+    .orderBy(desc(itineraries.version))
+    .limit(1);
+
+  const itineraryInfo = latestItinerary
+    ? {
+        version: latestItinerary.version,
+        generatedAt: latestItinerary.createdAt.toISOString(),
+        // Count preferences updated AFTER the itinerary was generated
+        newResponsesSince: participantPrefs.filter((p) => {
+          if (!p.rawData) return false;
+          const rawData = p.rawData as Record<string, unknown>;
+          const completedAt = rawData.completedAt as string | undefined;
+          if (!completedAt) return false;
+          return new Date(completedAt) > latestItinerary.createdAt;
+        }).length,
+      }
+    : null;
+
   return (
     <DashboardContent
       tripId={id}
@@ -72,6 +95,7 @@ export default async function LeaderDashboardPage({
         lastRemindedAt: p.lastRemindedAt,
       }))}
       votes={votes}
+      itineraryInfo={itineraryInfo}
     />
   );
 }

@@ -52,6 +52,11 @@ interface Props {
   tripStatus: string;
   participants: Participant[];
   votes: AggregatedVotes;
+  itineraryInfo: {
+    version: number;
+    generatedAt: string;
+    newResponsesSince: number;
+  } | null;
 }
 
 // ── Retro Header ────────────────────────────────────────────
@@ -456,10 +461,12 @@ function GenerateItineraryButton({
   tripId,
   tripStatus,
   completedCount,
+  hasExistingItinerary,
 }: {
   tripId: string;
   tripStatus: string;
   completedCount: number;
+  hasExistingItinerary: boolean;
 }) {
   const router = useRouter();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -491,7 +498,11 @@ function GenerateItineraryButton({
         boxShadow: `0 4px 0 ${RUST}`,
       }}
     >
-      {isGenerating ? "Heading to generator\u2026" : "Generate Itinerary"}
+      {isGenerating
+        ? "Heading to generator\u2026"
+        : hasExistingItinerary
+          ? "Regenerate Itinerary"
+          : "Generate Itinerary"}
     </button>
   );
 }
@@ -506,6 +517,7 @@ export function DashboardContent({
   tripStatus,
   participants,
   votes,
+  itineraryInfo,
 }: Props) {
   const [insights, setInsights] = useState<ItemInsight[]>([]);
   const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
@@ -718,10 +730,44 @@ export function DashboardContent({
 
         {/* Generate Itinerary */}
         <section className="pb-16">
+          {itineraryInfo && (
+            <div
+              className="mb-4 p-4"
+              style={{
+                backgroundColor: CARD_BG,
+                border: `1.5px solid ${RUST}`,
+                borderRadius: "2px",
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold" style={{ color: RUST }}>
+                    Itinerary v{itineraryInfo.version}
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: RUST, opacity: 0.5 }}>
+                    Generated {new Date(itineraryInfo.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                  </p>
+                </div>
+                {itineraryInfo.newResponsesSince > 0 && (
+                  <span
+                    className="px-3 py-1 text-xs font-bold uppercase"
+                    style={{
+                      backgroundColor: MUSTARD,
+                      color: RUST,
+                      borderRadius: "2px",
+                    }}
+                  >
+                    {itineraryInfo.newResponsesSince} new response{itineraryInfo.newResponsesSince > 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
           <GenerateItineraryButton
             tripId={tripId}
             tripStatus={tripStatus}
             completedCount={votes.completedCount}
+            hasExistingItinerary={itineraryInfo !== null}
           />
         </section>
       </div>
