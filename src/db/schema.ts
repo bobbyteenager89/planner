@@ -186,6 +186,7 @@ export const participants = pgTable(
       .$type<{ role: string; content: string }[]>()
       .default([]),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    lastRemindedAt: timestamp("last_reminded_at", { mode: "date" }),
   },
   (table) => [
     index("participants_trip_id_idx").on(table.tripId),
