@@ -14,6 +14,7 @@ export default function middleware(request: NextRequest) {
     (pathname.includes("/intake") && pathname.includes("/trips/")) ||
     (pathname.includes("/share") && pathname.includes("/trips/")) ||
     (pathname.startsWith("/api/trips/") && pathname.includes("/share")) ||
+    (pathname.startsWith("/api/trips/") && pathname.includes("/og")) ||
     pathname.startsWith("/_next") ||
     pathname === "/favicon.ico"
   ) {
