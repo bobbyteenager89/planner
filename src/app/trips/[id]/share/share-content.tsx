@@ -69,7 +69,7 @@ function SectionDivider({ title }: { title: string }) {
     <div className="mb-4">
       <div className="border-t-2 mb-3" style={{ borderColor: RUST }} />
       <h2
-        className="text-xl sm:text-2xl font-black uppercase tracking-tight"
+        className="text-2xl sm:text-3xl font-black uppercase tracking-tight"
         style={{
           color: RUST,
           fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif",
@@ -158,7 +158,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
       {/* ═══════════════════════════════════════════════ */}
       <div className="px-5 py-6 sm:px-10 sm:py-8" style={{ backgroundColor: RUST }}>
         <p
-          className="text-base font-bold uppercase tracking-widest mb-3"
+          className="text-lg font-bold uppercase tracking-widest mb-3"
           style={{ color: MUSTARD, opacity: 0.85 }}
         >
           Goble Family
@@ -177,7 +177,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
         <p className="text-lg sm:text-2xl font-bold mt-2" style={{ color: CREAM, opacity: 0.9 }}>
           July 18 — 25, 2026
         </p>
-        <p className="text-base mt-1 font-medium" style={{ color: CREAM, opacity: 0.6 }}>
+        <p className="text-lg mt-1 font-medium" style={{ color: CREAM, opacity: 0.6 }}>
           20 Moose Ridge Road, Big Sky, MT
         </p>
       </div>
@@ -196,16 +196,16 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
               borderRadius: "2px",
             }}
           >
-            <p className="text-base leading-relaxed font-medium" style={{ color: RUST }}>
+            <p className="text-lg leading-relaxed font-medium" style={{ color: RUST }}>
               Everyone filled out the survey — <strong>{names.join(", ")}</strong>.
               We fed all {names.length} sets of preferences into an AI planner that
               optimized for one thing: <strong>make everybody happy</strong>.
             </p>
-            <p className="text-base leading-relaxed font-medium" style={{ color: RUST, opacity: 0.8 }}>
+            <p className="text-lg leading-relaxed font-medium" style={{ color: RUST, opacity: 0.8 }}>
               Here&apos;s the logic:
             </p>
             <ul className="space-y-3">
-              <li className="flex gap-3 text-base font-medium" style={{ color: RUST }}>
+              <li className="flex gap-3 text-lg font-medium" style={{ color: RUST }}>
                 <span className="shrink-0 mt-0.5" style={{ opacity: 0.4 }}>•</span>
                 <span>
                   <strong>Universal wins go first.</strong> If 5+ people said yes to
@@ -213,7 +213,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                   main schedule.
                 </span>
               </li>
-              <li className="flex gap-3 text-base font-medium" style={{ color: RUST }}>
+              <li className="flex gap-3 text-lg font-medium" style={{ color: RUST }}>
                 <span className="shrink-0 mt-0.5" style={{ opacity: 0.4 }}>•</span>
                 <span>
                   <strong>Polarizing activities get split tracks.</strong> If some people
@@ -222,7 +222,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                   forced, nobody misses out.
                 </span>
               </li>
-              <li className="flex gap-3 text-base font-medium" style={{ color: RUST }}>
+              <li className="flex gap-3 text-lg font-medium" style={{ color: RUST }}>
                 <span className="shrink-0 mt-0.5" style={{ opacity: 0.4 }}>•</span>
                 <span>
                   <strong>Hard no&apos;s are respected.</strong> Mountain biking was a
@@ -230,14 +230,14 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                   to, they always have an alternative.
                 </span>
               </li>
-              <li className="flex gap-3 text-base font-medium" style={{ color: RUST }}>
+              <li className="flex gap-3 text-lg font-medium" style={{ color: RUST }}>
                 <span className="shrink-0 mt-0.5" style={{ opacity: 0.4 }}>•</span>
                 <span>
                   <strong>Built-in rest days.</strong> 8 days with ages 4–69 means we need
                   breathing room. Days 6 and 7 start with free mornings.
                 </span>
               </li>
-              <li className="flex gap-3 text-base font-medium" style={{ color: RUST }}>
+              <li className="flex gap-3 text-lg font-medium" style={{ color: RUST }}>
                 <span className="shrink-0 mt-0.5" style={{ opacity: 0.4 }}>•</span>
                 <span>
                   <strong>Tap any item</strong> to see the full description and why
@@ -266,7 +266,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
               >
                 <p className="text-xl mb-0.5">{stat.icon}</p>
                 <p
-                  className="text-2xl font-black"
+                  className="text-3xl font-black"
                   style={{
                     color: RUST,
                     fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif",
@@ -274,7 +274,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                 >
                   {stat.value}
                 </p>
-                <p className="text-sm font-bold uppercase tracking-wider" style={{ color: RUST, opacity: 0.5 }}>
+                <p className="text-base font-bold uppercase tracking-wider" style={{ color: RUST, opacity: 0.5 }}>
                   {stat.label}
                 </p>
               </div>
@@ -310,7 +310,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                     </span>
                     {dayDate && (
                       <span
-                        className="text-base font-bold uppercase tracking-wider"
+                        className="text-lg font-bold uppercase tracking-wider"
                         style={{ color: RUST, opacity: 0.4 }}
                       >
                         {dayDate}
@@ -340,7 +340,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                             border: `1.5px solid ${isAlt ? MUSTARD : RUST}`,
                             borderRadius: "2px",
                             borderStyle: isAlt ? "dashed" : "solid",
-                            padding: "1rem 1.25rem",
+                            padding: "1.25rem 1.5rem",
                             marginLeft: isAlt ? "1.5rem" : 0,
                             opacity: isAlt && !isExpanded ? 0.75 : 1,
                           }}
@@ -349,7 +349,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                           <div className="flex items-center gap-2 flex-wrap mb-1.5">
                             {block.startTime && (
                               <span
-                                className="text-sm font-mono font-bold"
+                                className="text-base font-mono font-bold"
                                 style={{ color: RUST, opacity: 0.5 }}
                               >
                                 {block.startTime}
@@ -357,7 +357,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                               </span>
                             )}
                             <span
-                              className="text-xs px-2 py-0.5 font-bold uppercase tracking-wider"
+                              className="text-sm px-2.5 py-1 font-bold uppercase tracking-wider"
                               style={{
                                 backgroundColor: config.bg,
                                 color: RUST,
@@ -369,7 +369,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                             </span>
                             {isAlt && (
                               <span
-                                className="text-xs px-2 py-0.5 font-bold uppercase tracking-wider"
+                                className="text-sm px-2.5 py-1 font-bold uppercase tracking-wider"
                                 style={{
                                   backgroundColor: CREAM,
                                   color: RUST,
@@ -383,7 +383,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                             {block.estimatedCost &&
                               parseFloat(block.estimatedCost) > 0 && (
                                 <span
-                                  className="text-sm font-bold ml-auto"
+                                  className="text-base font-bold ml-auto"
                                   style={{ color: RUST, opacity: 0.4 }}
                                 >
                                   ~${block.estimatedCost}
@@ -393,7 +393,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
 
                           {/* Title */}
                           <p
-                            className="font-black uppercase text-lg leading-tight"
+                            className="font-black uppercase text-xl leading-tight"
                             style={{
                               color: RUST,
                               fontFamily:
@@ -407,7 +407,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                           {/* Location */}
                           {block.location && (
                             <p
-                              className="text-sm mt-1 font-medium"
+                              className="text-base mt-1 font-medium"
                               style={{ color: RUST, opacity: 0.5 }}
                             >
                               {block.location}
@@ -419,7 +419,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                             <div className="mt-3 space-y-2.5">
                               {block.description && (
                                 <p
-                                  className="text-base leading-relaxed font-medium"
+                                  className="text-lg leading-relaxed font-medium"
                                   style={{ color: RUST, opacity: 0.8 }}
                                 >
                                   {block.description}
@@ -434,13 +434,13 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                                   }}
                                 >
                                   <p
-                                    className="text-sm font-black uppercase tracking-wider mb-1"
+                                    className="text-base font-black uppercase tracking-wider mb-1"
                                     style={{ color: RUST, opacity: 0.6 }}
                                   >
                                     Why this made the cut
                                   </p>
                                   <p
-                                    className="text-base leading-relaxed font-semibold"
+                                    className="text-lg leading-relaxed font-semibold"
                                     style={{ color: RUST }}
                                   >
                                     {block.aiReasoning}
@@ -471,12 +471,12 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
             <div className="flex justify-between items-center">
               <div>
                 <p
-                  className="text-base font-black uppercase tracking-wider"
+                  className="text-lg font-black uppercase tracking-wider"
                   style={{ color: MUSTARD }}
                 >
                   Trip Total
                 </p>
-                <p className="text-sm mt-0.5 font-medium" style={{ color: CREAM, opacity: 0.6 }}>
+                <p className="text-base mt-0.5 font-medium" style={{ color: CREAM, opacity: 0.6 }}>
                   {blocks.length} items across {Object.keys(dayGroups).length} days
                 </p>
               </div>
@@ -490,7 +490,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                 >
                   ~${totalCost.toLocaleString()}
                 </p>
-                <p className="text-sm font-medium" style={{ color: CREAM, opacity: 0.5 }}>
+                <p className="text-base font-medium" style={{ color: CREAM, opacity: 0.5 }}>
                   estimated for group
                 </p>
               </div>
