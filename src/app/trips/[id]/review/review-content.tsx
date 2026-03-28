@@ -14,6 +14,7 @@ interface Block {
   location: string | null;
   estimatedCost: string | null;
   aiReasoning: string | null;
+  imageUrl: string | null;
 }
 
 interface ShareData {
@@ -107,6 +108,13 @@ function mapsDirectionsUrl(locations: string[]) {
   return url;
 }
 
+function formatTime(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return m === 0 ? `${hour12} ${period}` : `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
+}
+
 function getDayDate(startDate: string | null, dayNumber: number) {
   if (!startDate) return null;
   const date = new Date(startDate);
@@ -151,10 +159,10 @@ function TravelCard({ fromLocation, toLocation }: { fromLocation: string; toLoca
         <span className="text-lg">🚗</span>
         <div className="w-0.5 h-3" style={{ backgroundColor: RUST, opacity: 0.3 }} />
       </div>
-      <span className="text-lg font-bold" style={{ color: INK, opacity: 0.5 }}>
+      <span className="text-xl font-bold" style={{ color: INK, opacity: 0.6 }}>
         ~{minutes} min drive
       </span>
-      <span className="text-base underline underline-offset-2" style={{ color: RUST }}>
+      <span className="text-lg underline underline-offset-2" style={{ color: RUST }}>
         Directions →
       </span>
     </a>
@@ -345,7 +353,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                 <p className="text-4xl font-black" style={{ color: RUST, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}>
                   {stat.value}
                 </p>
-                <p className="text-base font-bold uppercase tracking-wider mt-1" style={{ color: INK, opacity: 0.5 }}>
+                <p className="text-lg font-bold uppercase tracking-wider mt-1" style={{ color: INK, opacity: 0.55 }}>
                   {stat.label}
                 </p>
               </div>
@@ -394,11 +402,11 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                     }}
                   >
                     <div className="flex items-baseline gap-2 mb-1">
-                      <span className="text-base font-bold" style={{ color: INK, opacity: 0.4 }}>
+                      <span className="text-lg font-bold" style={{ color: INK, opacity: 0.5 }}>
                         Day {block.dayNumber}
                       </span>
                       {isAlt && (
-                        <span className="text-base font-bold" style={{ color: MUSTARD }}>
+                        <span className="text-lg font-bold" style={{ color: MUSTARD }}>
                           ALT
                         </span>
                       )}
@@ -444,7 +452,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                           Day {day}
                         </span>
                         {dayDate && (
-                          <span className="text-xl font-bold uppercase tracking-wider" style={{ color: INK, opacity: 0.4 }}>
+                          <span className="text-xl font-bold uppercase tracking-wider" style={{ color: INK, opacity: 0.55 }}>
                             {dayDate}
                           </span>
                         )}
@@ -453,7 +461,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                       {/* Day drive total + map toggle */}
                       <div className="flex items-center gap-4 mt-2 flex-wrap">
                         {dayDriveTotal > 0 && (
-                          <span className="text-lg font-bold" style={{ color: INK, opacity: 0.5 }}>
+                          <span className="text-xl font-bold" style={{ color: INK, opacity: 0.6 }}>
                             🚗 ~{dayDriveTotal} min total driving
                           </span>
                         )}
@@ -463,7 +471,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                               href={mapsDirectionsUrl(dayLocs)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-lg font-bold underline underline-offset-4"
+                              className="text-xl font-bold underline underline-offset-4"
                               style={{ color: RUST }}
                             >
                               Open full route →
@@ -539,31 +547,43 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                                 padding: "1.5rem 1.75rem",
                                 marginLeft: isAlt ? "1.5rem" : 0,
                                 opacity: isAlt && !isExpanded ? 0.8 : 1,
+                                overflow: "hidden",
                               }}
                             >
+                              {/* Photo banner */}
+                              {block.imageUrl && (
+                                <div
+                                  className="w-full h-40 sm:h-48 bg-cover bg-center -mt-6 -mx-7 mb-4"
+                                  style={{
+                                    backgroundImage: `url(${block.imageUrl})`,
+                                    width: "calc(100% + 3.5rem)",
+                                    borderRadius: "2px 2px 0 0",
+                                  }}
+                                />
+                              )}
                               {/* Top row */}
                               <div className="flex items-center gap-2.5 flex-wrap mb-2">
                                 {block.startTime && (
-                                  <span className="text-lg font-mono font-bold" style={{ color: INK, opacity: 0.6 }}>
-                                    {block.startTime}{block.endTime && `–${block.endTime}`}
+                                  <span className="text-xl font-mono font-bold" style={{ color: INK, opacity: 0.65 }}>
+                                    {formatTime(block.startTime)}{block.endTime && `–${formatTime(block.endTime)}`}
                                   </span>
                                 )}
                                 <span
-                                  className="text-base px-3 py-1 font-bold uppercase tracking-wider"
+                                  className="text-lg px-3 py-1 font-bold uppercase tracking-wider"
                                   style={{ backgroundColor: config.bg, color: INK, border: `1.5px solid ${RUST}`, borderRadius: "2px" }}
                                 >
                                   {config.icon} {config.label}
                                 </span>
                                 {isAlt && (
                                   <span
-                                    className="text-base px-3 py-1 font-bold uppercase tracking-wider"
+                                    className="text-lg px-3 py-1 font-bold uppercase tracking-wider"
                                     style={{ backgroundColor: CREAM, color: INK, border: `1.5px solid ${MUSTARD}`, borderRadius: "2px" }}
                                   >
                                     ↔️ Alternative
                                   </span>
                                 )}
                                 {block.estimatedCost && parseFloat(block.estimatedCost) > 0 && (
-                                  <span className="text-lg font-bold ml-auto" style={{ color: INK, opacity: 0.45 }}>
+                                  <span className="text-xl font-bold ml-auto" style={{ color: INK, opacity: 0.55 }}>
                                     ~${block.estimatedCost}
                                   </span>
                                 )}
@@ -584,8 +604,8 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   onClick={(e) => e.stopPropagation()}
-                                  className="inline-block text-lg mt-1.5 font-semibold underline underline-offset-4 decoration-1"
-                                  style={{ color: INK, opacity: 0.7 }}
+                                  className="inline-block text-xl mt-1.5 font-semibold underline underline-offset-4 decoration-1"
+                                  style={{ color: INK, opacity: 0.75 }}
                                 >
                                   📍 {block.location} →
                                 </a>
@@ -601,7 +621,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                                   )}
                                   {block.aiReasoning && (
                                     <div className="px-5 py-4" style={{ backgroundColor: MUSTARD, borderRadius: "2px" }}>
-                                      <p className="text-base font-black uppercase tracking-wider mb-1.5" style={{ color: INK, opacity: 0.5 }}>
+                                      <p className="text-lg font-black uppercase tracking-wider mb-1.5" style={{ color: INK, opacity: 0.55 }}>
                                         Why this made the cut
                                       </p>
                                       <p className="text-xl leading-relaxed font-semibold" style={{ color: INK }}>
@@ -630,7 +650,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                 <p className="text-xl font-black uppercase tracking-wider" style={{ color: MUSTARD }}>
                   Trip Total
                 </p>
-                <p className="text-lg mt-1 font-medium" style={{ color: CREAM, opacity: 0.7 }}>
+                <p className="text-xl mt-1 font-medium" style={{ color: CREAM, opacity: 0.8 }}>
                   {blocks.length} items across {Object.keys(dayGroups).length} days
                 </p>
               </div>
@@ -638,7 +658,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                 <p className="text-4xl font-black" style={{ color: CREAM, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}>
                   ~${totalCost.toLocaleString()}
                 </p>
-                <p className="text-lg font-medium" style={{ color: CREAM, opacity: 0.6 }}>
+                <p className="text-xl font-medium" style={{ color: CREAM, opacity: 0.7 }}>
                   estimated for group
                 </p>
               </div>
