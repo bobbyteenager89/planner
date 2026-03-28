@@ -126,6 +126,17 @@ function getWeekdayShort(startDate: string | null, dayNumber: number) {
 }
 
 // Day vibe — first block title, abbreviated
+function weatherEmoji(code: number): string {
+  if (code === 0) return "☀️";
+  if (code <= 3) return "⛅";
+  if (code <= 48) return "🌫️";
+  if (code <= 67) return "🌧️";
+  if (code <= 77) return "🌨️";
+  if (code <= 82) return "🌧️";
+  if (code <= 86) return "🌨️";
+  return "⛈️";
+}
+
 function getDayVibe(dayBlocks: Block[]): string {
   const first = [...dayBlocks].sort((a, b) => a.sortOrder - b.sortOrder)[0];
   if (!first) return "";
@@ -189,6 +200,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
   const [error, setError] = useState(false);
   const [activeDay, setActiveDay] = useState(1);
   const [expandedBlock, setExpandedBlock] = useState<string | null>(null);
+  const [weather, setWeather] = useState<Record<number, { high: number; low: number; code: number }>>({});
 
   useEffect(() => {
     fetch(`/api/trips/${tripId}/share`)
@@ -199,6 +211,29 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
       .then((json) => { setData(json); setLoading(false); })
       .catch(() => { setError(true); setLoading(false); });
   }, [tripId]);
+
+  useEffect(() => {
+    if (!data?.trip.startDate) return;
+    const start = data.trip.startDate.split("T")[0];
+    const end = data.trip.endDate?.split("T")[0] || start;
+    fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=45.28&longitude=-111.40&daily=temperature_2m_max,temperature_2m_min,weather_code&temperature_unit=fahrenheit&start_date=${start}&end_date=${end}&timezone=America/Denver`
+    )
+      .then((r) => r.ok ? r.json() : null)
+      .then((json) => {
+        if (!json?.daily) return;
+        const map: Record<number, { high: number; low: number; code: number }> = {};
+        json.daily.time.forEach((date: string, i: number) => {
+          map[i + 1] = {
+            high: Math.round(json.daily.temperature_2m_max[i]),
+            low: Math.round(json.daily.temperature_2m_min[i]),
+            code: json.daily.weather_code[i],
+          };
+        });
+        setWeather(map);
+      })
+      .catch(() => {});
+  }, [data]);
 
   if (loading) {
     return (
@@ -285,6 +320,57 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
         </a>
       </div>
 
+      {/* ═══ COUNTDOWN + TRAVEL INFO ═══ */}
+      <div className="max-w-3xl mx-auto px-5 pt-8 sm:px-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Countdown */}
+          <div className="p-4 text-center" style={{ backgroundColor: CARD_BG, border: `2px solid ${RUST}`, borderRadius: "2px" }}>
+            <p className="text-4xl font-black" style={{ color: RUST, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}>
+              {(() => {
+                const tripDate = new Date("2026-07-18");
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const diff = Math.ceil((tripDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                return diff > 0 ? diff : 0;
+              })()}
+            </p>
+            <p className="text-lg font-bold uppercase tracking-wider" style={{ color: INK, opacity: 0.55 }}>
+              days to go
+            </p>
+          </div>
+
+          {/* Airport → House */}
+          <div className="p-4 text-center" style={{ backgroundColor: CARD_BG, border: `2px solid ${RUST}`, borderRadius: "2px" }}>
+            <p className="text-xl font-black" style={{ color: INK }}>✈️ BZN → 🏠</p>
+            <p className="text-lg font-bold mt-1" style={{ color: INK, opacity: 0.55 }}>55 min drive</p>
+            <a
+              href={mapsDirectionsUrl(["Bozeman Yellowstone International Airport", "20 Moose Ridge Road, Big Sky, MT"])}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-lg font-bold underline underline-offset-4 mt-1 inline-block"
+              style={{ color: RUST }}
+            >
+              Directions →
+            </a>
+          </div>
+
+          {/* Nearest Grocery */}
+          <div className="p-4 text-center" style={{ backgroundColor: CARD_BG, border: `2px solid ${RUST}`, borderRadius: "2px" }}>
+            <p className="text-xl font-black" style={{ color: INK }}>🛒 Nearest Grocery</p>
+            <p className="text-lg font-bold mt-1" style={{ color: INK, opacity: 0.55 }}>Hungry Moose Market</p>
+            <a
+              href={mapsUrl("Hungry Moose Market & Deli, Big Sky, MT")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-lg font-bold underline underline-offset-4 mt-1 inline-block"
+              style={{ color: RUST }}
+            >
+              5 min drive →
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* ═══ WARM INTRO ═══ */}
       <div className="max-w-3xl mx-auto px-5 pt-8 pb-4 sm:px-8">
         <p className="text-2xl leading-relaxed font-medium" style={{ color: INK }}>
@@ -309,6 +395,11 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
           {dayDate && (
             <p className="text-xl font-bold uppercase tracking-wider mt-1" style={{ color: INK, opacity: 0.55 }}>
               {formatDayDate(dayDate)}
+              {weather[activeDay] && (
+                <span className="ml-3 normal-case tracking-normal">
+                  {weatherEmoji(weather[activeDay].code)} {weather[activeDay].high}°/{weather[activeDay].low}°F
+                </span>
+              )}
             </p>
           )}
 
