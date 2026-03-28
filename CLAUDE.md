@@ -31,7 +31,9 @@ src/
 │   └── trips/
 │       ├── [id]/                # Trip detail + invite form
 │       │   ├── intake/          # Participant intake questionnaire (Phase 3)
-│       │   └── onboard/        # Owner AI onboarding chat (Phase 2)
+│       │   ├── onboard/        # Owner AI onboarding chat (Phase 2)
+│       │   ├── review/         # Host itinerary review (auth-gated, full reasoning)
+│       │   └── share/          # Guest itinerary view (public, clean day-by-day)
 │       ├── intake-demo/        # Dev-only demo page (404 in production)
 │       └── new/                 # Trip creation form
 ├── components/ui/               # shadcn/ui components
@@ -64,7 +66,9 @@ See `.env.local.example` for required vars.
 ## Big Sky Trip
 - **Trip ID:** `83fdfdb7-eb88-4a81-9712-0c8306854b42`
 - **Survey URL:** https://planner-sooty-theta.vercel.app/trips/83fdfdb7-eb88-4a81-9712-0c8306854b42/intake
-- **Public** — no auth required, creates participant on submit
+- **Guest Itinerary:** https://planner-sooty-theta.vercel.app/trips/83fdfdb7-eb88-4a81-9712-0c8306854b42/share
+- **Host Review:** https://planner-sooty-theta.vercel.app/trips/83fdfdb7-eb88-4a81-9712-0c8306854b42/review
+- **Public** — survey and share pages require no auth; review page is auth-gated
 
 ## URLs
 - **GitHub:** https://github.com/bobbyteenager89/planner

@@ -198,6 +198,71 @@
 | `src/lib/bigsky-dashboard.ts` | Added conflict detection (conflicted, conflictPairs) |
 
 ### Next Steps
+- [x] Generate itinerary from real survey data — Done (S6)
+- [x] Public share page for family — Done (S6)
 - [ ] Research Feed — curated items with group voting and AI scoring (Phase 5)
 - [ ] Social Layer — comments on activities, reactions, group discussion
 - [ ] Agentic Trip Agent — collaborative travel agent (reorder days, ask questions, delegate)
+
+---
+
+## 2026-03-27 — Session 6: Itinerary Generation + Host/Guest Split
+
+### Accomplished
+- **Generated real itinerary** from 6 family members' survey data
+  - 38 blocks across 8 days, ~$7,775 estimated total
+  - Ran via direct script (bypassing auth) against live Neon DB
+  - Yellowstone anchor day, split tracks for polarizing activities (horseback, rafting, golf)
+  - Mountain biking excluded (universal hard no), rest days built in
+  - Trip status moved from `intake` → `reviewing`
+- **Public share page** (`/trips/[id]/share`) — no auth required
+  - Big Sky retro design (rust/mustard/cream palette matching intake board)
+  - "How We Built This" methodology section explaining preference logic
+  - Google Maps links on every location, travel cards with drive time estimates
+  - Estimated drive times for Big Sky area (Yellowstone ~90min, in-town ~10min, etc.)
+  - Interactive map route links per day with total driving time
+- **CEO product review** — identified core problem: single page serving two audiences
+  - Host needs a workbench, guests need a gift
+  - Recommended split into host review + guest itinerary (items 1-3 from priority list)
+- **Host/guest split** — two distinct experiences
+  - Guest view (`/share`): clean day-by-day with sticky horizontal day picker, warm intro, no AI reasoning
+  - Host view (`/review`): full reasoning, stats, schedule/reasoning toggle, "Preview as Guest" button
+  - Day picker auto-scrolls to active tab, shows vibe subtitle per day
+  - Prev/Next day navigation with scroll-to-top
+- **4 parallel review agents** (code, security, performance, CEO) — found and fixed:
+  - Security: stripped aiReasoning from public API (was leaking to guests via DevTools)
+  - Security: fixed middleware operator precedence (fragile `&&`/`||` chain)
+  - Performance: parallelized blocks + participants DB queries (Promise.all)
+  - Performance: added Cache-Control s-maxage=60 on public API
+  - Code: fixed .json() crash on 404 (API returned plain text, client called .json())
+  - Code: added error states instead of silent "no itinerary" on failures
+  - Code: removed broken Google Maps embed iframe (no API key)
+  - Code: fixed sort() array mutation, reset expandedBlock on day switch
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `src/app/trips/[id]/share/guest-itinerary.tsx` | Guest-facing clean itinerary with day picker |
+| `src/app/trips/[id]/share/day-picker.tsx` | Sticky horizontal day tab navigation |
+| `src/app/trips/[id]/review/page.tsx` | Host review page (auth-gated) |
+| `src/app/trips/[id]/review/review-content.tsx` | Host view with full reasoning + analytics |
+| `src/app/trips/[id]/review/layout.tsx` | Outfit font loading for review |
+| `src/app/api/trips/[id]/share/route.ts` | Public API for itinerary data |
+| `docs/superpowers/specs/2026-03-27-host-guest-split-design.md` | Host/guest split spec |
+
+### Files Modified
+| File | Changes |
+|------|---------|
+| `src/app/trips/[id]/share/page.tsx` | Switched from ShareItinerary to GuestItinerary |
+| `src/app/trips/[id]/share/layout.tsx` | Added Outfit font loading |
+| `src/middleware.ts` | Added /share and /api/*/share to public allowlist, fixed parens |
+
+### Next Steps
+- [ ] DRY refactor — extract ~300 lines of shared code (palette, types, drive estimates, travel card)
+- [ ] Accessibility on expandable cards (role="button", tabIndex, keyboard handler)
+- [ ] Activity photos on cards (imageUrl field + host upload during curation)
+- [ ] Guest RSVP on split tracks ("I'll do this one" with host headcount)
+- [ ] Custom OG image for share link previews in iMessage/WhatsApp
+- [ ] Host drag-to-reorder + swap activities
+- [ ] Research Feed (Phase 5)
+- [ ] Social Layer — comments, reactions, group discussion
