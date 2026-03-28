@@ -35,23 +35,28 @@ interface ShareData {
   participants: Array<{ name: string | null; role: string }>;
 }
 
-// ── Big Sky palette (matches intake board) ──
-const RUST = "#D14F36";
+// ── Big Sky palette — HIGH CONTRAST ──
+const INK = "#3B1A0F"; // near-black brown for body text
+const RUST = "#D14F36"; // accent for headers, borders
 const MUSTARD = "#EBB644";
 const CREAM = "#F3EBE0";
 const CARD_BG = "#EBE1D3";
 
 const TYPE_CONFIG: Record<
   string,
-  { icon: string; label: string; bg: string; border: string }
+  { icon: string; label: string; bg: string }
 > = {
-  activity: { icon: "🏔", label: "Activity", bg: MUSTARD, border: RUST },
-  meal: { icon: "🍽", label: "Meal", bg: "#E8D5B8", border: RUST },
-  transport: { icon: "🚗", label: "Transport", bg: CARD_BG, border: RUST },
-  lodging: { icon: "🏠", label: "Lodging", bg: CARD_BG, border: RUST },
-  free_time: { icon: "☀️", label: "Free Time", bg: "#E5DDD0", border: RUST },
-  note: { icon: "📝", label: "Note", bg: CARD_BG, border: RUST },
+  activity: { icon: "🏔", label: "Activity", bg: MUSTARD },
+  meal: { icon: "🍽", label: "Meal", bg: "#E8D5B8" },
+  transport: { icon: "🚗", label: "Transport", bg: CARD_BG },
+  lodging: { icon: "🏠", label: "Lodging", bg: CARD_BG },
+  free_time: { icon: "☀️", label: "Free Time", bg: "#E5DDD0" },
+  note: { icon: "📝", label: "Note", bg: CARD_BG },
 };
+
+function mapsUrl(location: string) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+}
 
 function getDayDate(startDate: string | null, dayNumber: number) {
   if (!startDate) return null;
@@ -66,10 +71,10 @@ function getDayDate(startDate: string | null, dayNumber: number) {
 
 function SectionDivider({ title }: { title: string }) {
   return (
-    <div className="mb-4">
-      <div className="border-t-2 mb-3" style={{ borderColor: RUST }} />
+    <div className="mb-5">
+      <div className="border-t-[3px] mb-4" style={{ borderColor: RUST }} />
       <h2
-        className="text-2xl sm:text-3xl font-black uppercase tracking-tight"
+        className="text-3xl sm:text-4xl font-black uppercase tracking-tight"
         style={{
           color: RUST,
           fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif",
@@ -102,7 +107,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
         className="min-h-screen flex items-center justify-center"
         style={{ backgroundColor: CREAM }}
       >
-        <p className="text-base font-medium" style={{ color: RUST, opacity: 0.6 }}>
+        <p className="text-xl font-semibold" style={{ color: INK }}>
           Loading itinerary...
         </p>
       </div>
@@ -116,10 +121,10 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
         style={{ backgroundColor: CREAM }}
       >
         <div className="text-center">
-          <p className="text-lg font-bold" style={{ color: RUST }}>
+          <p className="text-2xl font-bold" style={{ color: INK }}>
             No itinerary yet
           </p>
-          <p className="text-base mt-1 font-medium" style={{ color: RUST, opacity: 0.5 }}>
+          <p className="text-lg mt-2 font-medium" style={{ color: INK, opacity: 0.6 }}>
             Check back soon!
           </p>
         </div>
@@ -129,20 +134,17 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
 
   const { trip, blocks, participants } = data;
 
-  // Group blocks by day
   const dayGroups = blocks.reduce<Record<number, Block[]>>((acc, block) => {
     if (!acc[block.dayNumber]) acc[block.dayNumber] = [];
     acc[block.dayNumber].push(block);
     return acc;
   }, {});
 
-  // Cost totals
   const totalCost = blocks.reduce(
     (sum, b) => sum + (b.estimatedCost ? parseFloat(b.estimatedCost) : 0),
     0
   );
 
-  // Stats for the "how we built this" section
   const activityBlocks = blocks.filter((b) => b.type === "activity");
   const mealBlocks = blocks.filter((b) => b.type === "meal");
   const altBlocks = blocks.filter((b) => b.title.includes("(Alt)"));
@@ -153,18 +155,16 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
 
   return (
     <div style={{ minHeight: "100dvh", backgroundColor: CREAM }}>
-      {/* ═══════════════════════════════════════════════ */}
-      {/* HEADER                                          */}
-      {/* ═══════════════════════════════════════════════ */}
-      <div className="px-5 py-6 sm:px-10 sm:py-8" style={{ backgroundColor: RUST }}>
+      {/* ═══ HEADER ═══ */}
+      <div className="px-5 py-8 sm:px-10 sm:py-10" style={{ backgroundColor: RUST }}>
         <p
           className="text-lg font-bold uppercase tracking-widest mb-3"
-          style={{ color: MUSTARD, opacity: 0.85 }}
+          style={{ color: MUSTARD }}
         >
           Goble Family
         </p>
         <h1
-          className="text-5xl sm:text-7xl font-black uppercase leading-none"
+          className="text-6xl sm:text-8xl font-black uppercase leading-none"
           style={{
             color: CREAM,
             fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif",
@@ -174,81 +174,80 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
         >
           BIG SKY
         </h1>
-        <p className="text-lg sm:text-2xl font-bold mt-2" style={{ color: CREAM, opacity: 0.9 }}>
+        <p
+          className="text-xl sm:text-3xl font-bold mt-3"
+          style={{ color: CREAM }}
+        >
           July 18 — 25, 2026
         </p>
-        <p className="text-lg mt-1 font-medium" style={{ color: CREAM, opacity: 0.6 }}>
-          20 Moose Ridge Road, Big Sky, MT
-        </p>
+        <a
+          href={mapsUrl("20 Moose Ridge Road, Big Sky, MT")}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block text-lg mt-2 font-medium underline underline-offset-4 decoration-1"
+          style={{ color: CREAM, opacity: 0.8 }}
+        >
+          20 Moose Ridge Road, Big Sky, MT →
+        </a>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-8 sm:px-6">
-        {/* ═══════════════════════════════════════════════ */}
-        {/* HOW WE BUILT THIS                               */}
-        {/* ═══════════════════════════════════════════════ */}
-        <section className="mb-10">
+      <div className="max-w-3xl mx-auto px-5 py-10 sm:px-8">
+        {/* ═══ HOW WE BUILT THIS ═══ */}
+        <section className="mb-12">
           <SectionDivider title="How We Built This" />
           <div
-            className="p-5 space-y-4"
+            className="p-6 sm:p-8 space-y-5"
             style={{
               backgroundColor: CARD_BG,
-              border: `1.5px solid ${RUST}`,
+              border: `2px solid ${RUST}`,
               borderRadius: "2px",
             }}
           >
-            <p className="text-lg leading-relaxed font-medium" style={{ color: RUST }}>
+            <p className="text-xl leading-relaxed font-semibold" style={{ color: INK }}>
               Everyone filled out the survey — <strong>{names.join(", ")}</strong>.
               We fed all {names.length} sets of preferences into an AI planner that
               optimized for one thing: <strong>make everybody happy</strong>.
             </p>
-            <p className="text-lg leading-relaxed font-medium" style={{ color: RUST, opacity: 0.8 }}>
+            <p className="text-xl leading-relaxed font-semibold" style={{ color: INK, opacity: 0.7 }}>
               Here&apos;s the logic:
             </p>
-            <ul className="space-y-3">
-              <li className="flex gap-3 text-lg font-medium" style={{ color: RUST }}>
-                <span className="shrink-0 mt-0.5" style={{ opacity: 0.4 }}>•</span>
-                <span>
+            <ul className="space-y-4">
+              {[
+                <>
                   <strong>Universal wins go first.</strong> If 5+ people said yes to
                   something (Yellowstone, Farmers Market, Ousel Falls), it&apos;s on the
                   main schedule.
-                </span>
-              </li>
-              <li className="flex gap-3 text-lg font-medium" style={{ color: RUST }}>
-                <span className="shrink-0 mt-0.5" style={{ opacity: 0.4 }}>•</span>
-                <span>
+                </>,
+                <>
                   <strong>Polarizing activities get split tracks.</strong> If some people
                   love it and others said hard no (horseback, rafting, golf), it&apos;s
                   scheduled as an opt-in with an alternative at the same time. Nobody is
                   forced, nobody misses out.
-                </span>
-              </li>
-              <li className="flex gap-3 text-lg font-medium" style={{ color: RUST }}>
-                <span className="shrink-0 mt-0.5" style={{ opacity: 0.4 }}>•</span>
-                <span>
+                </>,
+                <>
                   <strong>Hard no&apos;s are respected.</strong> Mountain biking was a
                   universal no — it&apos;s not on here. Anything someone said &quot;pass&quot;
                   to, they always have an alternative.
-                </span>
-              </li>
-              <li className="flex gap-3 text-lg font-medium" style={{ color: RUST }}>
-                <span className="shrink-0 mt-0.5" style={{ opacity: 0.4 }}>•</span>
-                <span>
+                </>,
+                <>
                   <strong>Built-in rest days.</strong> 8 days with ages 4–69 means we need
                   breathing room. Days 6 and 7 start with free mornings.
-                </span>
-              </li>
-              <li className="flex gap-3 text-lg font-medium" style={{ color: RUST }}>
-                <span className="shrink-0 mt-0.5" style={{ opacity: 0.4 }}>•</span>
-                <span>
+                </>,
+                <>
                   <strong>Tap any item</strong> to see the full description and why
                   it was chosen.
-                </span>
-              </li>
+                </>,
+              ].map((content, i) => (
+                <li key={i} className="flex gap-3 text-xl font-medium leading-relaxed" style={{ color: INK }}>
+                  <span className="shrink-0 mt-1 text-2xl" style={{ color: RUST }}>•</span>
+                  <span>{content}</span>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Quick stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
             {[
               { label: "Activities", value: activityBlocks.length, icon: "🏔" },
               { label: "Meals", value: mealBlocks.length, icon: "🍽" },
@@ -257,16 +256,16 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="p-3 text-center"
+                className="p-4 text-center"
                 style={{
                   backgroundColor: CARD_BG,
-                  border: `1.5px solid ${RUST}`,
+                  border: `2px solid ${RUST}`,
                   borderRadius: "2px",
                 }}
               >
-                <p className="text-xl mb-0.5">{stat.icon}</p>
+                <p className="text-2xl mb-1">{stat.icon}</p>
                 <p
-                  className="text-3xl font-black"
+                  className="text-4xl font-black"
                   style={{
                     color: RUST,
                     fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif",
@@ -274,7 +273,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                 >
                   {stat.value}
                 </p>
-                <p className="text-base font-bold uppercase tracking-wider" style={{ color: RUST, opacity: 0.5 }}>
+                <p className="text-base font-bold uppercase tracking-wider mt-1" style={{ color: INK, opacity: 0.5 }}>
                   {stat.label}
                 </p>
               </div>
@@ -282,9 +281,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
           </div>
         </section>
 
-        {/* ═══════════════════════════════════════════════ */}
-        {/* THE ITINERARY                                   */}
-        {/* ═══════════════════════════════════════════════ */}
+        {/* ═══ THE ITINERARY ═══ */}
         <SectionDivider title="The Itinerary" />
 
         {Object.entries(dayGroups)
@@ -292,15 +289,15 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
           .map(([day, dayBlocks]) => {
             const dayDate = getDayDate(trip.startDate, Number(day));
             return (
-              <div key={day} className="mb-10">
+              <div key={day} className="mb-12">
                 {/* Day header */}
                 <div
-                  className="sticky top-0 z-10 pb-3 pt-2"
+                  className="sticky top-0 z-10 pb-4 pt-3"
                   style={{ backgroundColor: CREAM }}
                 >
-                  <div className="flex items-baseline gap-3">
+                  <div className="flex items-baseline gap-3 flex-wrap">
                     <span
-                      className="text-4xl font-black uppercase"
+                      className="text-5xl font-black uppercase"
                       style={{
                         color: RUST,
                         fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif",
@@ -310,8 +307,8 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                     </span>
                     {dayDate && (
                       <span
-                        className="text-lg font-bold uppercase tracking-wider"
-                        style={{ color: RUST, opacity: 0.4 }}
+                        className="text-xl font-bold uppercase tracking-wider"
+                        style={{ color: INK, opacity: 0.4 }}
                       >
                         {dayDate}
                       </span>
@@ -320,7 +317,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                 </div>
 
                 {/* Blocks */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {dayBlocks
                     .sort((a, b) => a.sortOrder - b.sortOrder)
                     .map((block) => {
@@ -337,31 +334,31 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                           className="cursor-pointer transition-opacity"
                           style={{
                             backgroundColor: CARD_BG,
-                            border: `1.5px solid ${isAlt ? MUSTARD : RUST}`,
+                            border: `2px solid ${isAlt ? MUSTARD : RUST}`,
                             borderRadius: "2px",
                             borderStyle: isAlt ? "dashed" : "solid",
-                            padding: "1.25rem 1.5rem",
+                            padding: "1.5rem 1.75rem",
                             marginLeft: isAlt ? "1.5rem" : 0,
-                            opacity: isAlt && !isExpanded ? 0.75 : 1,
+                            opacity: isAlt && !isExpanded ? 0.8 : 1,
                           }}
                         >
                           {/* Top row: time + badge + cost */}
-                          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                          <div className="flex items-center gap-2.5 flex-wrap mb-2">
                             {block.startTime && (
                               <span
-                                className="text-base font-mono font-bold"
-                                style={{ color: RUST, opacity: 0.5 }}
+                                className="text-lg font-mono font-bold"
+                                style={{ color: INK, opacity: 0.6 }}
                               >
                                 {block.startTime}
                                 {block.endTime && `–${block.endTime}`}
                               </span>
                             )}
                             <span
-                              className="text-sm px-2.5 py-1 font-bold uppercase tracking-wider"
+                              className="text-base px-3 py-1 font-bold uppercase tracking-wider"
                               style={{
                                 backgroundColor: config.bg,
-                                color: RUST,
-                                border: `1px solid ${config.border}`,
+                                color: INK,
+                                border: `1.5px solid ${RUST}`,
                                 borderRadius: "2px",
                               }}
                             >
@@ -369,11 +366,11 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                             </span>
                             {isAlt && (
                               <span
-                                className="text-sm px-2.5 py-1 font-bold uppercase tracking-wider"
+                                className="text-base px-3 py-1 font-bold uppercase tracking-wider"
                                 style={{
                                   backgroundColor: CREAM,
-                                  color: RUST,
-                                  border: `1px solid ${MUSTARD}`,
+                                  color: INK,
+                                  border: `1.5px solid ${MUSTARD}`,
                                   borderRadius: "2px",
                                 }}
                               >
@@ -383,8 +380,8 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                             {block.estimatedCost &&
                               parseFloat(block.estimatedCost) > 0 && (
                                 <span
-                                  className="text-base font-bold ml-auto"
-                                  style={{ color: RUST, opacity: 0.4 }}
+                                  className="text-lg font-bold ml-auto"
+                                  style={{ color: INK, opacity: 0.45 }}
                                 >
                                   ~${block.estimatedCost}
                                 </span>
@@ -393,7 +390,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
 
                           {/* Title */}
                           <p
-                            className="font-black uppercase text-xl leading-tight"
+                            className="font-black uppercase text-2xl leading-tight"
                             style={{
                               color: RUST,
                               fontFamily:
@@ -404,44 +401,48 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                             {block.title}
                           </p>
 
-                          {/* Location */}
+                          {/* Location — always visible, clickable Google Maps link */}
                           {block.location && (
-                            <p
-                              className="text-base mt-1 font-medium"
-                              style={{ color: RUST, opacity: 0.5 }}
+                            <a
+                              href={mapsUrl(block.location)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-block text-lg mt-1.5 font-semibold underline underline-offset-4 decoration-1"
+                              style={{ color: INK, opacity: 0.7 }}
                             >
-                              {block.location}
-                            </p>
+                              📍 {block.location} →
+                            </a>
                           )}
 
                           {/* Expanded details */}
                           {isExpanded && (
-                            <div className="mt-3 space-y-2.5">
+                            <div className="mt-4 space-y-3">
                               {block.description && (
                                 <p
-                                  className="text-lg leading-relaxed font-medium"
-                                  style={{ color: RUST, opacity: 0.8 }}
+                                  className="text-xl leading-relaxed font-medium"
+                                  style={{ color: INK }}
                                 >
                                   {block.description}
                                 </p>
                               )}
                               {block.aiReasoning && (
                                 <div
-                                  className="px-3 py-2.5"
+                                  className="px-5 py-4"
                                   style={{
                                     backgroundColor: MUSTARD,
                                     borderRadius: "2px",
                                   }}
                                 >
                                   <p
-                                    className="text-base font-black uppercase tracking-wider mb-1"
-                                    style={{ color: RUST, opacity: 0.6 }}
+                                    className="text-base font-black uppercase tracking-wider mb-1.5"
+                                    style={{ color: INK, opacity: 0.5 }}
                                   >
                                     Why this made the cut
                                   </p>
                                   <p
-                                    className="text-lg leading-relaxed font-semibold"
-                                    style={{ color: RUST }}
+                                    className="text-xl leading-relaxed font-semibold"
+                                    style={{ color: INK }}
                                   >
                                     {block.aiReasoning}
                                   </p>
@@ -457,12 +458,10 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
             );
           })}
 
-        {/* ═══════════════════════════════════════════════ */}
-        {/* TRIP SUMMARY FOOTER                             */}
-        {/* ═══════════════════════════════════════════════ */}
-        <div className="mt-4 mb-16">
+        {/* ═══ TRIP SUMMARY FOOTER ═══ */}
+        <div className="mt-6 mb-16">
           <div
-            className="p-5"
+            className="p-6"
             style={{
               backgroundColor: RUST,
               borderRadius: "2px",
@@ -471,18 +470,18 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
             <div className="flex justify-between items-center">
               <div>
                 <p
-                  className="text-lg font-black uppercase tracking-wider"
+                  className="text-xl font-black uppercase tracking-wider"
                   style={{ color: MUSTARD }}
                 >
                   Trip Total
                 </p>
-                <p className="text-base mt-0.5 font-medium" style={{ color: CREAM, opacity: 0.6 }}>
+                <p className="text-lg mt-1 font-medium" style={{ color: CREAM, opacity: 0.7 }}>
                   {blocks.length} items across {Object.keys(dayGroups).length} days
                 </p>
               </div>
               <div className="text-right">
                 <p
-                  className="text-3xl font-black"
+                  className="text-4xl font-black"
                   style={{
                     color: CREAM,
                     fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif",
@@ -490,7 +489,7 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
                 >
                   ~${totalCost.toLocaleString()}
                 </p>
-                <p className="text-base font-medium" style={{ color: CREAM, opacity: 0.5 }}>
+                <p className="text-lg font-medium" style={{ color: CREAM, opacity: 0.6 }}>
                   estimated for group
                 </p>
               </div>
