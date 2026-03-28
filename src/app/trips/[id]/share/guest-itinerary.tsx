@@ -194,6 +194,57 @@ function TravelCard({ fromLocation, toLocation }: { fromLocation: string; toLoca
   );
 }
 
+function PackingListSection({ tripId }: { tripId: string }) {
+  const [list, setList] = useState<Record<string, string[]> | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const fetchList = () => {
+    if (list) { setOpen(!open); return; }
+    setLoading(true);
+    fetch(`/api/trips/${tripId}/packing-list`)
+      .then((r) => r.json())
+      .then((data) => {
+        setList(data.packingList);
+        setOpen(true);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto px-5 pb-8 sm:px-8">
+      <button
+        onClick={fetchList}
+        className="w-full text-xl font-bold py-4 text-center cursor-pointer"
+        style={{ backgroundColor: CARD_BG, color: INK, border: `2px solid ${RUST}`, borderRadius: "2px" }}
+      >
+        {loading ? "Generating packing list..." : open ? "🧳 Hide Packing List" : "🧳 What to Pack"}
+      </button>
+
+      {open && list && (
+        <div className="mt-4 p-6" style={{ backgroundColor: CARD_BG, border: `2px solid ${RUST}`, borderRadius: "2px" }}>
+          {Object.entries(list).map(([category, items]) => (
+            <div key={category} className="mb-5 last:mb-0">
+              <h3 className="text-xl font-black uppercase mb-2" style={{ color: RUST, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}>
+                {category}
+              </h3>
+              <ul className="space-y-1">
+                {items.map((item: string, i: number) => (
+                  <li key={i} className="text-lg font-medium flex items-start gap-2" style={{ color: INK }}>
+                    <span className="shrink-0">☐</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function GuestItinerary({ tripId }: { tripId: string }) {
   const [data, setData] = useState<ShareData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -377,6 +428,13 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
           Andrew planned this trip around what everyone said they wanted to do.
           Here&apos;s your week.
         </p>
+        <a
+          href={`/trips/${tripId}/share/guide`}
+          className="inline-block text-xl font-bold px-6 py-3 mt-4"
+          style={{ backgroundColor: CARD_BG, color: INK, border: `2px solid ${RUST}`, borderRadius: "2px" }}
+        >
+          🗺 Local Guide — Coffee, Groceries, Ice Cream →
+        </a>
       </div>
 
       {/* ═══ DAY PICKER ═══ */}
@@ -412,9 +470,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
             )}
             {dayLocs.length >= 2 && (
               <a
-                href={mapsDirectionsUrl(dayLocs)}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={`/trips/${tripId}/share/map/${activeDay}`}
                 className="text-xl font-bold underline underline-offset-4"
                 style={{ color: RUST }}
               >
@@ -549,6 +605,8 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
           ) : <div />}
         </div>
       </div>
+
+      <PackingListSection tripId={tripId} />
 
       {/* ═══ FOOTER ═══ */}
       <div className="max-w-3xl mx-auto px-5 pb-16 sm:px-8">
