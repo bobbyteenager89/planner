@@ -291,6 +291,7 @@ export const itineraryBlocks = pgTable(
     aiReasoning: text("ai_reasoning"),
     pinned: boolean("pinned").notNull().default(false),
     metadata: jsonb("metadata"),
+    imageUrl: text("image_url"),
   },
   (table) => [
     index("itinerary_blocks_itinerary_id_idx").on(table.itineraryId),
