@@ -119,7 +119,7 @@ function getWeekdayShort(startDate: string | null, dayNumber: number) {
 
 // Day vibe — first block title, abbreviated
 function getDayVibe(dayBlocks: Block[]): string {
-  const first = dayBlocks.sort((a, b) => a.sortOrder - b.sortOrder)[0];
+  const first = [...dayBlocks].sort((a, b) => a.sortOrder - b.sortOrder)[0];
   if (!first) return "";
   const t = first.title.replace(/^(Morning|Afternoon|Evening|Mid-Morning|Full-Day Trip):?\s*/i, "");
   return t.length > 25 ? t.slice(0, 25) + "..." : t;
@@ -178,20 +178,35 @@ function TravelCard({ fromLocation, toLocation }: { fromLocation: string; toLoca
 export function GuestItinerary({ tripId }: { tripId: string }) {
   const [data, setData] = useState<ShareData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [activeDay, setActiveDay] = useState(1);
   const [expandedBlock, setExpandedBlock] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/trips/${tripId}/share`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`${r.status}`);
+        return r.json();
+      })
       .then((json) => { setData(json); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => { setError(true); setLoading(false); });
   }, [tripId]);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
         <p className="text-xl font-semibold" style={{ color: INK }}>Loading your trip...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
+        <div className="text-center">
+          <p className="text-2xl font-bold" style={{ color: INK }}>Something went wrong</p>
+          <p className="text-lg mt-2" style={{ color: INK, opacity: 0.6 }}>Try refreshing the page.</p>
+        </div>
       </div>
     );
   }
@@ -272,7 +287,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
       </div>
 
       {/* ═══ DAY PICKER ═══ */}
-      <DayPicker days={dayTabs} activeDay={activeDay} onSelect={setActiveDay} />
+      <DayPicker days={dayTabs} activeDay={activeDay} onSelect={(d) => { setActiveDay(d); setExpandedBlock(null); }} />
 
       {/* ═══ DAY CONTENT ═══ */}
       <div className="max-w-3xl mx-auto px-5 py-8 sm:px-8">

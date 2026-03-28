@@ -52,7 +52,6 @@ const TYPE_CONFIG: Record<string, { icon: string; label: string; bg: string }> =
 };
 
 // ── Drive time estimates for Big Sky area ──
-const HOME = "20 Moose Ridge Road, Big Sky, MT";
 
 function estimateDriveMinutes(from: string, to: string): number | null {
   if (!from || !to) return null;
@@ -167,21 +166,36 @@ type ViewMode = "schedule" | "reasoning";
 export function ReviewItinerary({ tripId }: { tripId: string }) {
   const [data, setData] = useState<ShareData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [expandedBlock, setExpandedBlock] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("schedule");
   const [dayMapOpen, setDayMapOpen] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     fetch(`/api/trips/${tripId}/share`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`${r.status}`);
+        return r.json();
+      })
       .then((json) => { setData(json); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => { setError(true); setLoading(false); });
   }, [tripId]);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
         <p className="text-xl font-semibold" style={{ color: INK }}>Loading itinerary...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
+        <div className="text-center">
+          <p className="text-2xl font-bold" style={{ color: INK }}>Something went wrong</p>
+          <p className="text-lg mt-2 font-medium" style={{ color: INK, opacity: 0.6 }}>Try refreshing the page.</p>
+        </div>
       </div>
     );
   }
@@ -471,28 +485,21 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                       </div>
                     </div>
 
-                    {/* Embedded map */}
+                    {/* Map link panel */}
                     {isMapOpen && dayLocs.length >= 2 && (
-                      <div className="mb-4" style={{ borderRadius: "2px", overflow: "hidden", border: `2px solid ${RUST}` }}>
-                        <iframe
-                          width="100%"
-                          height="350"
-                          style={{ border: 0 }}
-                          loading="lazy"
-                          referrerPolicy="no-referrer-when-downgrade"
-                          src={`https://www.google.com/maps/embed/v1/directions?key=&origin=${encodeURIComponent(dayLocs[0])}&destination=${encodeURIComponent(dayLocs[dayLocs.length - 1])}${dayLocs.length > 2 ? `&waypoints=${dayLocs.slice(1, -1).map(encodeURIComponent).join("|")}` : ""}&mode=driving`}
-                        />
-                        <div className="px-4 py-3 text-center" style={{ backgroundColor: CARD_BG }}>
-                          <a
-                            href={mapsDirectionsUrl(dayLocs)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-lg font-bold underline underline-offset-4"
-                            style={{ color: RUST }}
-                          >
-                            Open in Google Maps for turn-by-turn →
-                          </a>
-                        </div>
+                      <div className="mb-4 px-5 py-4 text-center" style={{ backgroundColor: CARD_BG, border: `2px solid ${RUST}`, borderRadius: "2px" }}>
+                        <p className="text-lg font-bold mb-2" style={{ color: INK }}>
+                          {dayLocs.length} stops on this day
+                        </p>
+                        <a
+                          href={mapsDirectionsUrl(dayLocs)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block text-lg font-bold px-5 py-3 underline underline-offset-4"
+                          style={{ color: RUST }}
+                        >
+                          Open full route in Google Maps →
+                        </a>
                       </div>
                     )}
 

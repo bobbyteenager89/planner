@@ -28,7 +28,9 @@ export async function GET(
     .where(eq(trips.id, id))
     .limit(1);
 
-  if (!trip) return new Response("Trip not found", { status: 404 });
+  if (!trip) {
+    return Response.json({ error: "Trip not found" }, { status: 404 });
+  }
 
   // Only allow sharing if trip has an itinerary
   if (trip.status !== "reviewing" && trip.status !== "finalized") {
@@ -37,7 +39,12 @@ export async function GET(
 
   // Get latest itinerary
   const [itinerary] = await database
-    .select()
+    .select({
+      id: itineraries.id,
+      version: itineraries.version,
+      status: itineraries.status,
+      createdAt: itineraries.createdAt,
+    })
     .from(itineraries)
     .where(eq(itineraries.tripId, id))
     .orderBy(desc(itineraries.version))
@@ -47,46 +54,52 @@ export async function GET(
     return Response.json({ trip, itinerary: null, blocks: [], participants: [] });
   }
 
-  // Load blocks
-  const blocks = await database
-    .select()
-    .from(itineraryBlocks)
-    .where(eq(itineraryBlocks.itineraryId, itinerary.id));
+  // Load blocks + participants in parallel (independent queries)
+  const [blocks, allParticipants] = await Promise.all([
+    database
+      .select({
+        id: itineraryBlocks.id,
+        dayNumber: itineraryBlocks.dayNumber,
+        sortOrder: itineraryBlocks.sortOrder,
+        type: itineraryBlocks.type,
+        title: itineraryBlocks.title,
+        description: itineraryBlocks.description,
+        startTime: itineraryBlocks.startTime,
+        endTime: itineraryBlocks.endTime,
+        location: itineraryBlocks.location,
+        estimatedCost: itineraryBlocks.estimatedCost,
+      })
+      .from(itineraryBlocks)
+      .where(eq(itineraryBlocks.itineraryId, itinerary.id)),
+    database
+      .select({ name: participants.name, role: participants.role })
+      .from(participants)
+      .where(eq(participants.tripId, id)),
+  ]);
 
-  const sortedBlocks = blocks.sort(
+  const sortedBlocks = [...blocks].sort(
     (a, b) => a.dayNumber - b.dayNumber || a.sortOrder - b.sortOrder
   );
 
-  // Load participant names (first names only for privacy)
-  const allParticipants = await database
-    .select({ name: participants.name, role: participants.role })
-    .from(participants)
-    .where(eq(participants.tripId, id));
-
-  return Response.json({
-    trip,
-    itinerary: {
-      id: itinerary.id,
-      version: itinerary.version,
-      status: itinerary.status,
-      createdAt: itinerary.createdAt,
+  return Response.json(
+    {
+      trip,
+      itinerary: {
+        id: itinerary.id,
+        version: itinerary.version,
+        status: itinerary.status,
+        createdAt: itinerary.createdAt,
+      },
+      blocks: sortedBlocks,
+      participants: allParticipants.map((p) => ({
+        name: p.name,
+        role: p.role,
+      })),
     },
-    blocks: sortedBlocks.map((b) => ({
-      id: b.id,
-      dayNumber: b.dayNumber,
-      sortOrder: b.sortOrder,
-      type: b.type,
-      title: b.title,
-      description: b.description,
-      startTime: b.startTime,
-      endTime: b.endTime,
-      location: b.location,
-      estimatedCost: b.estimatedCost,
-      aiReasoning: b.aiReasoning,
-    })),
-    participants: allParticipants.map((p) => ({
-      name: p.name,
-      role: p.role,
-    })),
-  });
+    {
+      headers: {
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      },
+    }
+  );
 }
