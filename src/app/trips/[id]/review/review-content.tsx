@@ -164,7 +164,7 @@ function TravelCard({ fromLocation, toLocation }: { fromLocation: string; toLoca
 
 type ViewMode = "schedule" | "reasoning";
 
-export function ShareItinerary({ tripId }: { tripId: string }) {
+export function ReviewItinerary({ tripId }: { tripId: string }) {
   const [data, setData] = useState<ShareData | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedBlock, setExpandedBlock] = useState<string | null>(null);
@@ -266,10 +266,24 @@ export function ShareItinerary({ tripId }: { tripId: string }) {
         >
           📍 20 Moose Ridge Road, Big Sky, MT →
         </a>
+        <a
+          href={`/trips/${tripId}/share`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block text-lg mt-3 px-5 py-2.5 font-bold uppercase tracking-wider"
+          style={{
+            backgroundColor: MUSTARD,
+            color: INK,
+            border: `2px solid ${CREAM}`,
+            borderRadius: "2px",
+          }}
+        >
+          👁 Preview as Guest →
+        </a>
       </div>
 
       <div className="max-w-3xl mx-auto px-5 py-10 sm:px-8">
-        {/* ═══ HOW WE BUILT THIS ═══ */}
+        {/* ═══ HOST REVIEW — FULL REASONING ═══ */}
         <section className="mb-12">
           <SectionDivider title="How We Built This" />
           <div

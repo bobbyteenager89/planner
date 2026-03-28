@@ -1,4 +1,4 @@
-import { ShareItinerary } from "./share-content";
+import { GuestItinerary } from "./guest-itinerary";
 
 export default async function SharePage({
   params,
@@ -6,5 +6,5 @@ export default async function SharePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <ShareItinerary tripId={id} />;
+  return <GuestItinerary tripId={id} />;
 }
