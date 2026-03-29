@@ -70,6 +70,7 @@ export async function GET(
         estimatedCost: itineraryBlocks.estimatedCost,
         imageUrl: itineraryBlocks.imageUrl,
         aiReasoning: itineraryBlocks.aiReasoning,
+        pinned: itineraryBlocks.pinned,
       })
       .from(itineraryBlocks)
       .where(eq(itineraryBlocks.itineraryId, itinerary.id)),
