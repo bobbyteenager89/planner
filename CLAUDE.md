@@ -7,6 +7,7 @@
 - Claude API (Anthropic SDK) — Sonnet for reasoning, Haiku for intake
 - NextAuth v5 + Resend for magic link auth
 - shadcn/ui component library
+- @dnd-kit (drag-to-reorder on review page)
 
 ## Commands
 ```bash

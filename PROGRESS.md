@@ -176,9 +176,59 @@
 | `package.json` | Added @vercel/og dependency |
 
 ### Next Steps
-- [ ] Phase 2: Host Curation — inline block editing, drag-to-reorder, pin/unpin, per-day regeneration
+- [x] Phase 2: Host Curation — inline block editing, drag-to-reorder, pin/unpin, per-day regeneration — Done (S8)
 - [ ] Phase 3: Guest RSVP — name picker, "I'm in"/"Skip" buttons, headcount badges, party size awareness
-- [ ] DRY refactor — extract palette, types, drive estimates, travel card into shared module
+- [x] DRY refactor — extract palette, types, drive estimates, travel card into shared module — Done (S8)
 - [ ] Accessibility — expandable cards need role="button", tabIndex, keyboard handler
 - [ ] Convert background-image photos to next/image for lazy loading + optimization
 - [ ] Add Google Maps Embed API key for embedded maps on day map page
+
+---
+
+## 2026-03-28 — Session 8: Phase 2 — Host Curation Tools
+
+### Accomplished
+- **DRY refactor** — extracted ~300 lines of shared code into `src/lib/itinerary-shared.tsx`
+  - Block/ShareData types, palette constants, TYPE_CONFIG, 10 utility functions, TravelCard component
+  - Both guest + review pages now import from shared module (net ~130 line reduction)
+  - Added `pinned?: boolean` to Block interface for Phase 2
+- **Block mutation APIs** — 3 new auth-gated routes
+  - `PATCH /api/trips/[id]/blocks/[blockId]` — update title, description, times, location
+  - `PATCH /api/trips/[id]/blocks/[blockId]/pin` — toggle pinned boolean
+  - `PATCH /api/trips/[id]/blocks/reorder` — batch sortOrder update
+- **Per-day regeneration API** — `POST /api/trips/[id]/generate-day`
+  - Regenerates a single day's blocks via Claude Sonnet, preserves pinned blocks
+  - Streams NDJSON, deletes unpinned blocks, inserts new ones
+  - Includes other-day context to avoid activity duplication
+- **Host curation UI** — review page transformed into interactive workbench
+  - Inline block editing: ✏️ Edit button → input fields → Save/Cancel
+  - Drag-to-reorder: @dnd-kit with grip handles, optimistic local reorder + API persist
+  - Pin/unpin: 📌 toggle with mustard border accent for pinned blocks
+  - Per-day regen: 🔄 Regen Day button in day headers, streams + refetches
+- **Share API updated** — `pinned` field now included in block response
+- **6 commits**, 10 files changed (1,258 insertions, 486 deletions)
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `src/lib/itinerary-shared.tsx` | Shared types, palette, utilities, TravelCard (197 lines) |
+| `src/app/api/trips/[id]/blocks/[blockId]/route.ts` | Block field update API |
+| `src/app/api/trips/[id]/blocks/[blockId]/pin/route.ts` | Pin/unpin toggle API |
+| `src/app/api/trips/[id]/blocks/reorder/route.ts` | Batch reorder API |
+| `src/app/api/trips/[id]/generate-day/route.ts` | Per-day regeneration API (275 lines) |
+| `docs/superpowers/plans/2026-03-28-phase2-host-curation.md` | Phase 2 implementation plan |
+
+### Files Modified
+| File | Changes |
+|------|---------|
+| `src/app/trips/[id]/review/review-content.tsx` | Added edit mode, DnD, pin/unpin, regen UI (+764/-486) |
+| `src/app/trips/[id]/share/guest-itinerary.tsx` | Replaced duplicated code with shared imports (-212) |
+| `src/app/api/trips/[id]/share/route.ts` | Added pinned field to blocks select |
+| `package.json` | Added @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities |
+
+### Next Steps
+- [ ] Phase 3: Guest RSVP — name picker, "I'm in"/"Skip" buttons, headcount badges, party size awareness
+- [ ] Accessibility — expandable cards need role="button", tabIndex, keyboard handler
+- [ ] Convert background-image photos to next/image for lazy loading + optimization
+- [ ] Add Google Maps Embed API key for embedded maps on day map page
+- [ ] Log in and test all 4 curation features interactively (edit, drag, pin, regen)
