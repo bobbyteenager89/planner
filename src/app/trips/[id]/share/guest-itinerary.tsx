@@ -373,7 +373,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
           <div className="p-4 text-center" style={{ backgroundColor: CARD_BG, border: `2px solid ${RUST}`, borderRadius: "2px" }}>
             <p className="text-4xl font-black" style={{ color: RUST, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}>
               {(() => {
-                const tripDate = new Date("2026-07-18");
+                const tripDate = trip.startDate ? new Date(trip.startDate) : new Date("2026-07-18");
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 const diff = Math.ceil((tripDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));

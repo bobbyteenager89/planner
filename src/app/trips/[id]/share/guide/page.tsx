@@ -13,6 +13,14 @@ export default function GuidePage() {
   return (
     <div style={{ minHeight: "100dvh", backgroundColor: CREAM }}>
       <div className="px-5 py-8 sm:px-10 sm:py-10" style={{ backgroundColor: RUST }}>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a
+          href="javascript:history.back()"
+          className="text-lg font-bold"
+          style={{ color: CREAM, opacity: 0.7 }}
+        >
+          ← Back to itinerary
+        </a>
         <h1
           className="text-4xl sm:text-5xl font-black uppercase leading-none"
           style={{ color: CREAM, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}
