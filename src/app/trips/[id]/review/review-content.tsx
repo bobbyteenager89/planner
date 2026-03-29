@@ -1,130 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
-interface Block {
-  id: string;
-  dayNumber: number;
-  sortOrder: number;
-  type: string;
-  title: string;
-  description: string | null;
-  startTime: string | null;
-  endTime: string | null;
-  location: string | null;
-  estimatedCost: string | null;
-  aiReasoning: string | null;
-  imageUrl: string | null;
-}
-
-interface ShareData {
-  trip: {
-    id: string;
-    title: string;
-    destination: string | null;
-    startDate: string | null;
-    endDate: string | null;
-    status: string;
-  };
-  itinerary: {
-    id: string;
-    version: number;
-    status: string;
-    createdAt: string;
-  } | null;
-  blocks: Block[];
-  participants: Array<{ name: string | null; role: string }>;
-}
-
-// ── Big Sky palette — HIGH CONTRAST ──
-const INK = "#3B1A0F";
-const RUST = "#D14F36";
-const MUSTARD = "#EBB644";
-const CREAM = "#F3EBE0";
-const CARD_BG = "#EBE1D3";
-
-const TYPE_CONFIG: Record<string, { icon: string; label: string; bg: string }> = {
-  activity: { icon: "🏔", label: "Activity", bg: MUSTARD },
-  meal: { icon: "🍽", label: "Meal", bg: "#E8D5B8" },
-  transport: { icon: "🚗", label: "Transport", bg: CARD_BG },
-  lodging: { icon: "🏠", label: "Lodging", bg: CARD_BG },
-  free_time: { icon: "☀️", label: "Free Time", bg: "#E5DDD0" },
-  note: { icon: "📝", label: "Note", bg: CARD_BG },
-};
-
-// ── Drive time estimates for Big Sky area ──
-
-function estimateDriveMinutes(from: string, to: string): number | null {
-  if (!from || !to) return null;
-  const a = from.toLowerCase();
-  const b = to.toLowerCase();
-  if (a === b) return null;
-
-  // Same general area
-  const bothBigSky =
-    (a.includes("big sky") || a.includes("moose ridge") || a.includes("lone mountain") || a.includes("lone peak")) &&
-    (b.includes("big sky") || b.includes("moose ridge") || b.includes("lone mountain") || b.includes("lone peak"));
-  if (bothBigSky) return 10;
-
-  // Yellowstone trips
-  const hasYellowstone = a.includes("yellowstone") || b.includes("yellowstone");
-  const hasBigSky = a.includes("big sky") || a.includes("moose ridge") || b.includes("big sky") || b.includes("moose ridge");
-  if (hasYellowstone && hasBigSky) return 90;
-  if (hasYellowstone) return 45; // within yellowstone
-
-  // Ennis
-  const hasEnnis = a.includes("ennis") || b.includes("ennis");
-  if (hasEnnis && hasBigSky) return 55;
-
-  // Gallatin Gateway / Rainbow Ranch
-  const hasGallatin = a.includes("gallatin gateway") || a.includes("rainbow ranch") || b.includes("gallatin gateway") || b.includes("rainbow ranch");
-  if (hasGallatin && hasBigSky) return 25;
-
-  // Bozeman / Airport
-  const hasBozeman = a.includes("bozeman") || b.includes("bozeman") || a.includes("bzn") || b.includes("bzn");
-  if (hasBozeman && hasBigSky) return 50;
-  if (hasBozeman && hasYellowstone) return 90;
-
-  // Ousel Falls from Big Sky
-  const hasOusel = a.includes("ousel") || b.includes("ousel");
-  if (hasOusel && hasBigSky) return 8;
-
-  // Default: same town ~10, different areas ~25
-  if (a.includes("big sky") && b.includes("big sky")) return 10;
-  return 20;
-}
-
-function mapsUrl(location: string) {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
-}
-
-function mapsDirectionsUrl(locations: string[]) {
-  if (locations.length < 2) return mapsUrl(locations[0] || "Big Sky, MT");
-  const origin = encodeURIComponent(locations[0]);
-  const destination = encodeURIComponent(locations[locations.length - 1]);
-  const waypoints = locations.slice(1, -1).map((l) => encodeURIComponent(l)).join("|");
-  let url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
-  if (waypoints) url += `&waypoints=${waypoints}`;
-  return url;
-}
-
-function formatTime(time: string): string {
-  const [h, m] = time.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return m === 0 ? `${hour12} ${period}` : `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
-}
-
-function getDayDate(startDate: string | null, dayNumber: number) {
-  if (!startDate) return null;
-  const date = new Date(startDate);
-  date.setDate(date.getDate() + dayNumber - 1);
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-}
+import {
+  Block,
+  ShareData,
+  INK,
+  RUST,
+  MUSTARD,
+  CREAM,
+  CARD_BG,
+  TYPE_CONFIG,
+  mapsUrl,
+  mapsDirectionsUrl,
+  formatTime,
+  getDayDate,
+  formatDayDate,
+  getDayLocations,
+  getDayDriveTotal,
+  TravelCard,
+} from "@/lib/itinerary-shared";
 
 function SectionDivider({ title }: { title: string }) {
   return (
@@ -137,35 +31,6 @@ function SectionDivider({ title }: { title: string }) {
         {title}
       </h2>
     </div>
-  );
-}
-
-function TravelCard({ fromLocation, toLocation }: { fromLocation: string; toLocation: string }) {
-  const minutes = estimateDriveMinutes(fromLocation, toLocation);
-  if (!minutes) return null;
-
-  const directionsUrl = mapsDirectionsUrl([fromLocation, toLocation]);
-
-  return (
-    <a
-      href={directionsUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-3 px-5 py-2.5 mx-auto"
-      style={{ maxWidth: "fit-content" }}
-    >
-      <div className="flex flex-col items-center">
-        <div className="w-0.5 h-3" style={{ backgroundColor: RUST, opacity: 0.3 }} />
-        <span className="text-lg">🚗</span>
-        <div className="w-0.5 h-3" style={{ backgroundColor: RUST, opacity: 0.3 }} />
-      </div>
-      <span className="text-xl font-bold" style={{ color: INK, opacity: 0.6 }}>
-        ~{minutes} min drive
-      </span>
-      <span className="text-lg underline underline-offset-2" style={{ color: RUST }}>
-        Directions →
-      </span>
-    </a>
   );
 }
 
@@ -233,30 +98,6 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
   const altBlocks = blocks.filter((b) => b.title.includes("(Alt)"));
   const freeBlocks = blocks.filter((b) => b.type === "free_time");
   const names = participants.filter((p) => p.name && p.name !== "Test User").map((p) => p.name!);
-
-  // Get unique, non-alt locations for a day (for map route)
-  function getDayLocations(dayBlocks: Block[]): string[] {
-    const seen = new Set<string>();
-    const locs: string[] = [];
-    for (const b of dayBlocks.sort((a, c) => a.sortOrder - c.sortOrder)) {
-      if (b.location && !b.title.includes("(Alt)") && !seen.has(b.location)) {
-        seen.add(b.location);
-        locs.push(b.location);
-      }
-    }
-    return locs;
-  }
-
-  // Total driving for a day
-  function getDayDriveTotal(dayBlocks: Block[]): number {
-    const locs = getDayLocations(dayBlocks);
-    let total = 0;
-    for (let i = 1; i < locs.length; i++) {
-      const mins = estimateDriveMinutes(locs[i - 1], locs[i]);
-      if (mins) total += mins;
-    }
-    return total;
-  }
 
   return (
     <div style={{ minHeight: "100dvh", backgroundColor: CREAM }}>
@@ -453,7 +294,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                         </span>
                         {dayDate && (
                           <span className="text-xl font-bold uppercase tracking-wider" style={{ color: INK, opacity: 0.55 }}>
-                            {dayDate}
+                            {formatDayDate(dayDate)}
                           </span>
                         )}
                       </div>
