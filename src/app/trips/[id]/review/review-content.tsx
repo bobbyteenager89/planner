@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Block,
   ShareData,
@@ -19,6 +19,23 @@ import {
   getDayDriveTotal,
   TravelCard,
 } from "@/lib/itinerary-shared";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 function SectionDivider({ title }: { title: string }) {
   return (
@@ -34,6 +51,27 @@ function SectionDivider({ title }: { title: string }) {
   );
 }
 
+function SortableBlock({ id, children }: { id: string; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div className="flex">
+        <button
+          {...attributes}
+          {...listeners}
+          className="flex items-center px-2 cursor-grab active:cursor-grabbing touch-none"
+          style={{ color: INK, opacity: 0.35 }}
+          title="Drag to reorder"
+        >
+          <span className="text-xl">&#x2807;</span>
+        </button>
+        <div className="flex-1">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 type ViewMode = "schedule" | "reasoning";
 
 export function ReviewItinerary({ tripId }: { tripId: string }) {
@@ -44,7 +82,18 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
   const [viewMode, setViewMode] = useState<ViewMode>("schedule");
   const [dayMapOpen, setDayMapOpen] = useState<Record<number, boolean>>({});
 
-  useEffect(() => {
+  // Host curation state
+  const [editingBlock, setEditingBlock] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<Block>>({});
+  const [saving, setSaving] = useState(false);
+  const [regeneratingDay, setRegeneratingDay] = useState<number | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const fetchData = useCallback(() => {
     fetch(`/api/trips/${tripId}/share`)
       .then((r) => {
         if (!r.ok) throw new Error(`${r.status}`);
@@ -53,6 +102,130 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
       .then((json) => { setData(json); setLoading(false); })
       .catch(() => { setError(true); setLoading(false); });
   }, [tripId]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  // ── Pin/Unpin ──
+  async function togglePin(blockId: string) {
+    const res = await fetch(`/api/trips/${tripId}/blocks/${blockId}/pin`, { method: "PATCH" });
+    if (!res.ok) return;
+    const { pinned } = await res.json();
+    setData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        blocks: prev.blocks.map((b) => (b.id === blockId ? { ...b, pinned } : b)),
+      };
+    });
+  }
+
+  // ── Edit ──
+  function startEditing(block: Block) {
+    setEditingBlock(block.id);
+    setEditForm({
+      title: block.title,
+      description: block.description,
+      startTime: block.startTime,
+      endTime: block.endTime,
+      location: block.location,
+    });
+  }
+
+  function cancelEditing() {
+    setEditingBlock(null);
+    setEditForm({});
+  }
+
+  async function saveEdit(blockId: string) {
+    setSaving(true);
+    const res = await fetch(`/api/trips/${tripId}/blocks/${blockId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(editForm),
+    });
+    if (res.ok) {
+      const { block: updated } = await res.json();
+      setData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          blocks: prev.blocks.map((b) =>
+            b.id === blockId
+              ? { ...b, title: updated.title, description: updated.description, startTime: updated.startTime, endTime: updated.endTime, location: updated.location }
+              : b
+          ),
+        };
+      });
+      setEditingBlock(null);
+      setEditForm({});
+    }
+    setSaving(false);
+  }
+
+  // ── Drag-to-reorder ──
+  function handleDragEnd(dayNumber: number) {
+    return (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id || !data) return;
+
+      const dayBlocks = data.blocks
+        .filter((b) => b.dayNumber === dayNumber)
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+
+      const oldIndex = dayBlocks.findIndex((b) => b.id === active.id);
+      const newIndex = dayBlocks.findIndex((b) => b.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(dayBlocks, oldIndex, newIndex);
+      const newBlockIds = reordered.map((b) => b.id);
+
+      // Optimistic update
+      setData((prev) => {
+        if (!prev) return prev;
+        const updated = prev.blocks.map((b) => {
+          if (b.dayNumber !== dayNumber) return b;
+          const newOrder = newBlockIds.indexOf(b.id);
+          return newOrder >= 0 ? { ...b, sortOrder: newOrder + 1 } : b;
+        });
+        return { ...prev, blocks: updated };
+      });
+
+      // Persist
+      fetch(`/api/trips/${tripId}/blocks/reorder`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blockIds: newBlockIds }),
+      });
+    };
+  }
+
+  // ── Regen Day ──
+  async function regenDay(dayNumber: number) {
+    setRegeneratingDay(dayNumber);
+    try {
+      const res = await fetch(`/api/trips/${tripId}/generate-day`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dayNumber }),
+      });
+      if (res.ok && res.body) {
+        // Consume the stream to completion
+        const reader = res.body.getReader();
+        while (true) {
+          const { done } = await reader.read();
+          if (done) break;
+        }
+      }
+      // Refetch all data
+      const shareRes = await fetch(`/api/trips/${tripId}/share`);
+      if (shareRes.ok) {
+        const json = await shareRes.json();
+        setData(json);
+      }
+    } finally {
+      setRegeneratingDay(null);
+    }
+  }
 
   if (loading) {
     return (
@@ -98,6 +271,29 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
   const altBlocks = blocks.filter((b) => b.title.includes("(Alt)"));
   const freeBlocks = blocks.filter((b) => b.type === "free_time");
   const names = participants.filter((p) => p.name && p.name !== "Test User").map((p) => p.name!);
+
+  const inputStyle: React.CSSProperties = {
+    backgroundColor: CREAM,
+    border: `2px solid ${RUST}`,
+    borderRadius: "2px",
+    color: INK,
+    padding: "0.5rem 0.75rem",
+    fontSize: "1rem",
+    fontWeight: 600,
+    width: "100%",
+  };
+
+  const toolbarBtnStyle = (active?: boolean): React.CSSProperties => ({
+    backgroundColor: active ? MUSTARD : "transparent",
+    color: INK,
+    border: `2px solid ${RUST}`,
+    borderRadius: "2px",
+    padding: "0.25rem 0.75rem",
+    fontSize: "0.875rem",
+    fontWeight: 700,
+    opacity: active ? 1 : 0.6,
+    cursor: "pointer",
+  });
 
   return (
     <div style={{ minHeight: "100dvh", backgroundColor: CREAM }}>
@@ -275,11 +471,13 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
             {Object.entries(dayGroups)
               .sort(([a], [b]) => Number(a) - Number(b))
               .map(([day, dayBlocks]) => {
-                const dayDate = getDayDate(trip.startDate, Number(day));
+                const dayNum = Number(day);
+                const dayDate = getDayDate(trip.startDate, dayNum);
                 const sortedBlocks = dayBlocks.sort((a, b) => a.sortOrder - b.sortOrder);
                 const dayLocs = getDayLocations(dayBlocks);
                 const dayDriveTotal = getDayDriveTotal(dayBlocks);
-                const isMapOpen = dayMapOpen[Number(day)] || false;
+                const isMapOpen = dayMapOpen[dayNum] || false;
+                const isRegenerating = regeneratingDay === dayNum;
 
                 return (
                   <div key={day} className="mb-12">
@@ -299,7 +497,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                         )}
                       </div>
 
-                      {/* Day drive total + map toggle */}
+                      {/* Day drive total + map toggle + regen button */}
                       <div className="flex items-center gap-4 mt-2 flex-wrap">
                         {dayDriveTotal > 0 && (
                           <span className="text-xl font-bold" style={{ color: INK, opacity: 0.6 }}>
@@ -318,7 +516,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                               Open full route →
                             </a>
                             <button
-                              onClick={() => setDayMapOpen((prev) => ({ ...prev, [Number(day)]: !prev[Number(day)] }))}
+                              onClick={() => setDayMapOpen((prev) => ({ ...prev, [dayNum]: !prev[dayNum] }))}
                               className="text-lg font-bold px-4 py-1.5"
                               style={{
                                 backgroundColor: isMapOpen ? RUST : CARD_BG,
@@ -331,6 +529,21 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                             </button>
                           </>
                         )}
+                        <button
+                          onClick={() => regenDay(dayNum)}
+                          disabled={regeneratingDay !== null}
+                          className="text-lg font-bold px-4 py-1.5"
+                          style={{
+                            backgroundColor: isRegenerating ? MUSTARD : CARD_BG,
+                            color: INK,
+                            border: `2px solid ${RUST}`,
+                            borderRadius: "2px",
+                            opacity: regeneratingDay !== null && !isRegenerating ? 0.4 : 1,
+                            cursor: regeneratingDay !== null ? "not-allowed" : "pointer",
+                          }}
+                        >
+                          {isRegenerating ? "Regenerating..." : "🔄 Regen Day"}
+                        </button>
                       </div>
                     </div>
 
@@ -352,131 +565,251 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                       </div>
                     )}
 
-                    {/* Blocks with travel cards */}
-                    <div className="space-y-0">
-                      {sortedBlocks.map((block, idx) => {
-                        const config = TYPE_CONFIG[block.type] || TYPE_CONFIG.note;
-                        const isExpanded = expandedBlock === block.id;
-                        const isAlt = block.title.includes("(Alt)");
+                    {/* Blocks with travel cards + drag-to-reorder */}
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd(dayNum)}
+                    >
+                      <SortableContext
+                        items={sortedBlocks.map((b) => b.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="space-y-0">
+                          {sortedBlocks.map((block, idx) => {
+                            const config = TYPE_CONFIG[block.type] || TYPE_CONFIG.note;
+                            const isExpanded = expandedBlock === block.id;
+                            const isAlt = block.title.includes("(Alt)");
+                            const isEditing = editingBlock === block.id;
 
-                        // Show travel card between non-alt blocks with different locations
-                        const prevBlock = idx > 0 ? sortedBlocks[idx - 1] : null;
-                        const showTravel =
-                          !isAlt &&
-                          prevBlock &&
-                          !prevBlock.title.includes("(Alt)") &&
-                          prevBlock.location &&
-                          block.location &&
-                          prevBlock.location !== block.location;
+                            // Show travel card between non-alt blocks with different locations
+                            const prevBlock = idx > 0 ? sortedBlocks[idx - 1] : null;
+                            const showTravel =
+                              !isAlt &&
+                              prevBlock &&
+                              !prevBlock.title.includes("(Alt)") &&
+                              prevBlock.location &&
+                              block.location &&
+                              prevBlock.location !== block.location;
 
-                        return (
-                          <div key={block.id}>
-                            {showTravel && (
-                              <TravelCard
-                                fromLocation={prevBlock!.location!}
-                                toLocation={block.location!}
-                              />
-                            )}
-                            <div
-                              onClick={() => setExpandedBlock(isExpanded ? null : block.id)}
-                              className="cursor-pointer transition-opacity mb-4"
-                              style={{
-                                backgroundColor: CARD_BG,
-                                border: `2px solid ${isAlt ? MUSTARD : RUST}`,
-                                borderRadius: "2px",
-                                borderStyle: isAlt ? "dashed" : "solid",
-                                padding: "1.5rem 1.75rem",
-                                marginLeft: isAlt ? "1.5rem" : 0,
-                                opacity: isAlt && !isExpanded ? 0.8 : 1,
-                                overflow: "hidden",
-                              }}
-                            >
-                              {/* Photo banner */}
-                              {block.imageUrl && (
+                            return (
+                              <SortableBlock key={block.id} id={block.id}>
+                                {showTravel && (
+                                  <TravelCard
+                                    fromLocation={prevBlock!.location!}
+                                    toLocation={block.location!}
+                                  />
+                                )}
                                 <div
-                                  className="w-full h-40 sm:h-48 bg-cover bg-center -mt-6 -mx-7 mb-4"
-                                  style={{
-                                    backgroundImage: `url(${block.imageUrl})`,
-                                    width: "calc(100% + 3.5rem)",
-                                    borderRadius: "2px 2px 0 0",
+                                  onClick={() => {
+                                    if (!isEditing) setExpandedBlock(isExpanded ? null : block.id);
                                   }}
-                                />
-                              )}
-                              {/* Top row */}
-                              <div className="flex items-center gap-2.5 flex-wrap mb-2">
-                                {block.startTime && (
-                                  <span className="text-xl font-mono font-bold" style={{ color: INK, opacity: 0.65 }}>
-                                    {formatTime(block.startTime)}{block.endTime && `–${formatTime(block.endTime)}`}
-                                  </span>
-                                )}
-                                <span
-                                  className="text-lg px-3 py-1 font-bold uppercase tracking-wider"
-                                  style={{ backgroundColor: config.bg, color: INK, border: `1.5px solid ${RUST}`, borderRadius: "2px" }}
+                                  className="cursor-pointer transition-opacity mb-4"
+                                  style={{
+                                    backgroundColor: CARD_BG,
+                                    border: `2px solid ${isAlt ? MUSTARD : RUST}`,
+                                    borderLeft: block.pinned ? `4px solid ${MUSTARD}` : (isAlt ? `2px dashed ${MUSTARD}` : `2px solid ${RUST}`),
+                                    borderRadius: "2px",
+                                    borderStyle: isAlt ? "dashed" : "solid",
+                                    padding: "1.5rem 1.75rem",
+                                    marginLeft: isAlt ? "1.5rem" : 0,
+                                    opacity: isAlt && !isExpanded ? 0.8 : 1,
+                                    overflow: "hidden",
+                                  }}
                                 >
-                                  {config.icon} {config.label}
-                                </span>
-                                {isAlt && (
-                                  <span
-                                    className="text-lg px-3 py-1 font-bold uppercase tracking-wider"
-                                    style={{ backgroundColor: CREAM, color: INK, border: `1.5px solid ${MUSTARD}`, borderRadius: "2px" }}
-                                  >
-                                    ↔️ Alternative
-                                  </span>
-                                )}
-                                {block.estimatedCost && parseFloat(block.estimatedCost) > 0 && (
-                                  <span className="text-xl font-bold ml-auto" style={{ color: INK, opacity: 0.55 }}>
-                                    ~${block.estimatedCost}
-                                  </span>
-                                )}
-                              </div>
+                                  {/* ── Block toolbar ── */}
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); togglePin(block.id); }}
+                                      style={toolbarBtnStyle(!!block.pinned)}
+                                    >
+                                      📌 {block.pinned ? "Pinned" : "Pin"}
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); startEditing(block); }}
+                                      style={toolbarBtnStyle()}
+                                    >
+                                      ✏️ Edit
+                                    </button>
+                                  </div>
 
-                              {/* Title */}
-                              <p
-                                className="font-black uppercase text-2xl leading-tight"
-                                style={{ color: RUST, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif", letterSpacing: "-0.01em" }}
-                              >
-                                {block.title}
-                              </p>
-
-                              {/* Location */}
-                              {block.location && (
-                                <a
-                                  href={mapsUrl(block.location)}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="inline-block text-xl mt-1.5 font-semibold underline underline-offset-4 decoration-1"
-                                  style={{ color: INK, opacity: 0.75 }}
-                                >
-                                  📍 {block.location} →
-                                </a>
-                              )}
-
-                              {/* Expanded */}
-                              {isExpanded && (
-                                <div className="mt-4 space-y-3">
-                                  {block.description && (
-                                    <p className="text-xl leading-relaxed font-medium" style={{ color: INK }}>
-                                      {block.description}
-                                    </p>
-                                  )}
-                                  {block.aiReasoning && (
-                                    <div className="px-5 py-4" style={{ backgroundColor: MUSTARD, borderRadius: "2px" }}>
-                                      <p className="text-lg font-black uppercase tracking-wider mb-1.5" style={{ color: INK, opacity: 0.55 }}>
-                                        Why this made the cut
-                                      </p>
-                                      <p className="text-xl leading-relaxed font-semibold" style={{ color: INK }}>
-                                        {block.aiReasoning}
-                                      </p>
+                                  {/* ── Edit form (replaces read-only content) ── */}
+                                  {isEditing ? (
+                                    <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
+                                      <div>
+                                        <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>Title</label>
+                                        <input
+                                          type="text"
+                                          value={editForm.title || ""}
+                                          onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                                          style={{ ...inputStyle, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif", textTransform: "uppercase" }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>Description</label>
+                                        <textarea
+                                          value={editForm.description || ""}
+                                          onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+                                          rows={3}
+                                          style={inputStyle}
+                                        />
+                                      </div>
+                                      <div className="flex gap-3">
+                                        <div className="flex-1">
+                                          <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>Start Time</label>
+                                          <input
+                                            type="time"
+                                            value={editForm.startTime || ""}
+                                            onChange={(e) => setEditForm((f) => ({ ...f, startTime: e.target.value || null }))}
+                                            style={inputStyle}
+                                          />
+                                        </div>
+                                        <div className="flex-1">
+                                          <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>End Time</label>
+                                          <input
+                                            type="time"
+                                            value={editForm.endTime || ""}
+                                            onChange={(e) => setEditForm((f) => ({ ...f, endTime: e.target.value || null }))}
+                                            style={inputStyle}
+                                          />
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>Location</label>
+                                        <input
+                                          type="text"
+                                          value={editForm.location || ""}
+                                          onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value || null }))}
+                                          style={inputStyle}
+                                        />
+                                      </div>
+                                      <div className="flex gap-2 pt-1">
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); saveEdit(block.id); }}
+                                          disabled={saving}
+                                          style={{
+                                            backgroundColor: RUST,
+                                            color: CREAM,
+                                            border: `2px solid ${RUST}`,
+                                            borderRadius: "2px",
+                                            padding: "0.5rem 1.25rem",
+                                            fontWeight: 700,
+                                            fontSize: "0.875rem",
+                                            cursor: saving ? "not-allowed" : "pointer",
+                                            opacity: saving ? 0.6 : 1,
+                                          }}
+                                        >
+                                          {saving ? "Saving..." : "Save"}
+                                        </button>
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); cancelEditing(); }}
+                                          style={{
+                                            backgroundColor: "transparent",
+                                            color: INK,
+                                            border: `2px solid ${RUST}`,
+                                            borderRadius: "2px",
+                                            padding: "0.5rem 1.25rem",
+                                            fontWeight: 700,
+                                            fontSize: "0.875rem",
+                                            cursor: "pointer",
+                                          }}
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
                                     </div>
+                                  ) : (
+                                    <>
+                                      {/* Photo banner */}
+                                      {block.imageUrl && (
+                                        <div
+                                          className="w-full h-40 sm:h-48 bg-cover bg-center -mt-6 -mx-7 mb-4"
+                                          style={{
+                                            backgroundImage: `url(${block.imageUrl})`,
+                                            width: "calc(100% + 3.5rem)",
+                                            borderRadius: "2px 2px 0 0",
+                                          }}
+                                        />
+                                      )}
+                                      {/* Top row */}
+                                      <div className="flex items-center gap-2.5 flex-wrap mb-2">
+                                        {block.startTime && (
+                                          <span className="text-xl font-mono font-bold" style={{ color: INK, opacity: 0.65 }}>
+                                            {formatTime(block.startTime)}{block.endTime && `–${formatTime(block.endTime)}`}
+                                          </span>
+                                        )}
+                                        <span
+                                          className="text-lg px-3 py-1 font-bold uppercase tracking-wider"
+                                          style={{ backgroundColor: config.bg, color: INK, border: `1.5px solid ${RUST}`, borderRadius: "2px" }}
+                                        >
+                                          {config.icon} {config.label}
+                                        </span>
+                                        {isAlt && (
+                                          <span
+                                            className="text-lg px-3 py-1 font-bold uppercase tracking-wider"
+                                            style={{ backgroundColor: CREAM, color: INK, border: `1.5px solid ${MUSTARD}`, borderRadius: "2px" }}
+                                          >
+                                            ↔️ Alternative
+                                          </span>
+                                        )}
+                                        {block.estimatedCost && parseFloat(block.estimatedCost) > 0 && (
+                                          <span className="text-xl font-bold ml-auto" style={{ color: INK, opacity: 0.55 }}>
+                                            ~${block.estimatedCost}
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      {/* Title */}
+                                      <p
+                                        className="font-black uppercase text-2xl leading-tight"
+                                        style={{ color: RUST, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif", letterSpacing: "-0.01em" }}
+                                      >
+                                        {block.title}
+                                      </p>
+
+                                      {/* Location */}
+                                      {block.location && (
+                                        <a
+                                          href={mapsUrl(block.location)}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="inline-block text-xl mt-1.5 font-semibold underline underline-offset-4 decoration-1"
+                                          style={{ color: INK, opacity: 0.75 }}
+                                        >
+                                          📍 {block.location} →
+                                        </a>
+                                      )}
+
+                                      {/* Expanded */}
+                                      {isExpanded && (
+                                        <div className="mt-4 space-y-3">
+                                          {block.description && (
+                                            <p className="text-xl leading-relaxed font-medium" style={{ color: INK }}>
+                                              {block.description}
+                                            </p>
+                                          )}
+                                          {block.aiReasoning && (
+                                            <div className="px-5 py-4" style={{ backgroundColor: MUSTARD, borderRadius: "2px" }}>
+                                              <p className="text-lg font-black uppercase tracking-wider mb-1.5" style={{ color: INK, opacity: 0.55 }}>
+                                                Why this made the cut
+                                              </p>
+                                              <p className="text-xl leading-relaxed font-semibold" style={{ color: INK }}>
+                                                {block.aiReasoning}
+                                              </p>
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+                                    </>
                                   )}
                                 </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                              </SortableBlock>
+                            );
+                          })}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
                   </div>
                 );
               })}
