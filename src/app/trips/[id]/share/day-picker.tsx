@@ -52,18 +52,18 @@ export function DayPicker({
               }}
             >
               <span
-                className="text-lg font-black uppercase"
+                className="text-xl font-black uppercase"
                 style={{ fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}
               >
                 Day {d.dayNumber}
               </span>
-              <span className="text-base font-bold uppercase tracking-wider" style={{ opacity: isActive ? 0.8 : 0.5 }}>
+              <span className="text-lg font-bold uppercase tracking-wider" style={{ opacity: isActive ? 0.85 : 0.55 }}>
                 {d.weekday}
               </span>
               {d.vibe && (
                 <span
-                  className="text-xs font-medium mt-0.5 max-w-[5rem] truncate"
-                  style={{ opacity: isActive ? 0.7 : 0.35 }}
+                  className="text-sm font-medium mt-0.5 max-w-[5.5rem] truncate"
+                  style={{ opacity: isActive ? 0.75 : 0.4 }}
                 >
                   {d.vibe}
                 </span>

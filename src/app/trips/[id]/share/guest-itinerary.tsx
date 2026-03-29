@@ -254,37 +254,32 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
   const [weather, setWeather] = useState<Record<number, { high: number; low: number; code: number }>>({});
 
   useEffect(() => {
-    fetch(`/api/trips/${tripId}/share`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`${r.status}`);
-        return r.json();
+    // Fetch trip data + weather in parallel (independent requests)
+    const sharePromise = fetch(`/api/trips/${tripId}/share`)
+      .then((r) => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); });
+
+    const weatherPromise = fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=45.28&longitude=-111.40&daily=temperature_2m_max,temperature_2m_min,weather_code&temperature_unit=fahrenheit&start_date=2026-07-18&end_date=2026-07-25&timezone=America/Denver`
+    ).then((r) => r.ok ? r.json() : null).catch(() => null);
+
+    Promise.all([sharePromise, weatherPromise])
+      .then(([json, weatherJson]) => {
+        setData(json);
+        setLoading(false);
+        if (weatherJson?.daily) {
+          const map: Record<number, { high: number; low: number; code: number }> = {};
+          weatherJson.daily.time.forEach((date: string, i: number) => {
+            map[i + 1] = {
+              high: Math.round(weatherJson.daily.temperature_2m_max[i]),
+              low: Math.round(weatherJson.daily.temperature_2m_min[i]),
+              code: weatherJson.daily.weather_code[i],
+            };
+          });
+          setWeather(map);
+        }
       })
-      .then((json) => { setData(json); setLoading(false); })
       .catch(() => { setError(true); setLoading(false); });
   }, [tripId]);
-
-  useEffect(() => {
-    if (!data?.trip.startDate) return;
-    const start = data.trip.startDate.split("T")[0];
-    const end = data.trip.endDate?.split("T")[0] || start;
-    fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=45.28&longitude=-111.40&daily=temperature_2m_max,temperature_2m_min,weather_code&temperature_unit=fahrenheit&start_date=${start}&end_date=${end}&timezone=America/Denver`
-    )
-      .then((r) => r.ok ? r.json() : null)
-      .then((json) => {
-        if (!json?.daily) return;
-        const map: Record<number, { high: number; low: number; code: number }> = {};
-        json.daily.time.forEach((date: string, i: number) => {
-          map[i + 1] = {
-            high: Math.round(json.daily.temperature_2m_max[i]),
-            low: Math.round(json.daily.temperature_2m_min[i]),
-            code: json.daily.weather_code[i],
-          };
-        });
-        setWeather(map);
-      })
-      .catch(() => {});
-  }, [data]);
 
   if (loading) {
     return (

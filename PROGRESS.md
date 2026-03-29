@@ -1,150 +1,5 @@
 # Planner — Progress Log
 
-## Session 1 — Phase 1 Foundation — 2026-03-11
-
-### Completed
-- Scaffolded Next.js 16 + TypeScript + Tailwind v4 + shadcn/ui
-- Full Drizzle schema: users, accounts, sessions, verification_tokens, trips, participants, preferences, research_items, itineraries, itinerary_blocks, reactions
-- NextAuth v5 with Resend magic link provider + Drizzle adapter
-- Auth middleware protecting app routes
-- Landing page, login flow, dashboard
-- Trip creation (title, dates, destination)
-- Participant invite flow (email entry, Resend email, token-based acceptance)
-- Invite acceptance with auto-linking to user account
-- GitHub repo + Vercel deployment
-- Build passing, deployed to production
-
-### Pending
-- ~~Phase 2: Owner Onboarding AI~~ Done (S2)
-- ~~Phase 3: Participant Intake~~ Done (S3)
-- Phase 4: Itinerary Generation + Reactions
-- Phase 5: Research Feed + Polish
-
-### URLs
-- GitHub: https://github.com/bobbyteenager89/planner
-- Vercel: https://planner-sooty-theta.vercel.app
-
----
-
-## Session 2 — Phase 2: Owner Onboarding AI — 2026-03-11
-
-### Completed
-- AI-powered onboarding chat with streaming responses
-- Three onboarding paths: brainstorm, draft, research
-- Conversation persisted as JSONB on trip record
-- Middleware migrated from middleware.ts to proxy.ts for Next.js 16
-
----
-
-## Session 3 — Phase 3: Participant Intake Questionnaire — 2026-03-12
-
-### Accomplished
-- Built full-screen mobile-first 3-step intake questionnaire (destination, crew, vibe)
-- Liquid glass header panel with backdrop-blur over drifting cloud background
-- Outfit font scoping via route layout, custom CSS keyframes for cloud drift + step transitions
-- Press-down option cards with magenta selected state + radio dot indicators
-- Server action with auth + ownership verification (prevents cross-participant writes)
-- Preferences upsert to rawData JSONB + activityPreferences mapping + status update
-- Parallelized DB queries in page.tsx with scoped column selection
-- Comprehensive accessibility: radiogroup semantics, progressbar ARIA, sr-only live region
-- prefers-reduced-motion media query, safe-area-inset handling, focus-visible rings
-- Created seed script (scripts/seed-intake-test.ts) + 5-point integration test suite (scripts/test-intake-action.ts)
-- Dev-only demo page at /trips/intake-demo (404s in production)
-- Ran 4 review agents in parallel (code, security, frontend design, performance) — found and fixed 11 bugs
-
-### Files Modified
-| File | Changes |
-|------|---------|
-| `src/app/trips/[id]/intake/layout.tsx` | Created — Outfit font loading |
-| `src/app/trips/[id]/intake/intake.css` | Created — Cloud drift, liquid glass, step transitions, reduced motion |
-| `src/app/trips/[id]/intake/steps.ts` | Created — Type-safe 3-step config with subtitles |
-| `src/app/trips/[id]/intake/arc-text.tsx` | Created — SVG curved text component (unused but available) |
-| `src/app/trips/[id]/intake/sparkles.tsx` | Created — Cloud shapes + ambient glow background |
-| `src/app/trips/[id]/intake/actions.ts` | Created — Server action with auth check + preferences upsert |
-| `src/app/trips/[id]/intake/intake-questionnaire.tsx` | Created — Main client component (step state, animations, submit) |
-| `src/app/trips/[id]/intake/page.tsx` | Replaced stub — Server component with parallel queries |
-| `src/app/trips/intake-demo/page.tsx` | Created — Dev-only demo page |
-| `scripts/seed-intake-test.ts` | Created — Test data seeder |
-| `scripts/test-intake-action.ts` | Created — Integration test suite |
-
-### Bugs Found & Fixed
-1. neon-http doesn't support `db().transaction()` → runtime crash
-2. `isSubmitting` never reset on success → stuck spinner
-3. Rapid "Next" clicks advance step out of bounds → crash
-4. Server action had no auth/ownership check → any user could write to any participant
-5. `overflow-hidden` breaks `backdrop-filter` on mobile Safari
-6. `fixed inset-0` overflows parent on 430-639px viewports
-7. `aria-live` on `<main>` floods screen readers with all option text
-8. Demo page shipped to production without guard
-9. Cloud opacities too low — effectively invisible
-10. Sequential DB queries in page.tsx (parallelized with Promise.all)
-11. Over-fetching all columns in DB queries (scoped to needed fields)
-
-### Known Issue (not fixed — broader project scope)
-- `src/proxy.ts` middleware is a dead file (wrong filename for Next.js) — no middleware auth enforcement runs
-
-### Next Steps
-- [x] Fix proxy.ts → middleware.ts (rename + proper session validation) — Done (S4)
-- [x] Phase 4: Itinerary Generation + Reactions — Done (S4)
-- [ ] Phase 5: Research Feed + Polish
-
----
-
-## 2026-03-17 — Session 4: Phase 4 + Big Sky Survey + Retro Design
-
-### Accomplished
-- **Middleware fix:** Renamed `proxy.ts` → `middleware.ts`, added `/api/invite` to public routes
-- **Phase 4 — Itinerary Generation:** Full spec, plan, and implementation
-  - Streaming NDJSON generation via Claude Sonnet 4.6 (`POST /generate`)
-  - Per-block reactions (love/fine/rather not/hard no) + general comments
-  - `GET /itinerary` with reaction aggregates, version switcher
-  - `POST /reactions` with upsert, `POST /comments`
-  - Owner pinning, regeneration with post-hoc merge of pinned blocks
-  - Email notifications via Resend (itinerary ready + new version)
-  - GenerateView (streaming UI with progress bar) + ItineraryView (review with reactions)
-  - Trip detail page rewrite handling all status states (owner + participant views)
-  - Schema: added `comments` JSONB to itineraries table
-- **Big Sky Family Trip:** First real trip created and survey built
-  - Seeded trip (July 18-25, 20 Moose Ridge Road)
-  - Custom intake survey with 13 activities, 6 restaurants, 4 chef options, 7 honorable mention activities, 4 honorable mention dinners
-  - Real images from activity provider websites (montanaflyfishing.com, jakeshorses.com, lonemountainranch.com, bigskyresort.com, alpacasofmontana.com, yellowstonellamas.com, nps.gov)
-  - Public access — no auth required, name + optional email
-  - Retro travel agency design (cream/rust/mustard palette, Arial Black headers, pill buttons, box-shadow submit)
-  - All votes save to preferences.rawData as structured JSON
-  - Thank you page with matching retro style
-- **App renamed** to "Big Sky Trip Planner"
-- **20+ commits** across middleware, Phase 4 APIs, UI components, Big Sky survey, design iterations
-
-### Files Created
-| File | Purpose |
-|------|---------|
-| `src/app/api/trips/[id]/generate/route.ts` | Streaming itinerary generation |
-| `src/app/api/trips/[id]/itinerary/route.ts` | GET itinerary + blocks + reactions |
-| `src/app/api/trips/[id]/reactions/route.ts` | POST reaction with upsert |
-| `src/app/api/trips/[id]/comments/route.ts` | POST general comment |
-| `src/lib/ai/itinerary-prompt.ts` | buildItineraryPrompt function |
-| `src/lib/email/itinerary-ready.ts` | Resend email notifications |
-| `src/app/trips/[id]/generate-view.tsx` | Streaming generation UI |
-| `src/app/trips/[id]/itinerary-view.tsx` | Review view with reactions |
-| `src/app/trips/[id]/trip-content.tsx` | Client component for all trip states |
-| `src/app/trips/[id]/intake/bigsky-config.ts` | Big Sky activities, restaurants, chef data |
-| `src/app/trips/[id]/intake/bigsky-intake.tsx` | Retro-styled survey component |
-| `src/app/trips/[id]/intake/bigsky-actions.ts` | Server action for public survey |
-| `src/app/trips/[id]/intake/thanks/page.tsx` | Thank you page |
-| `scripts/seed-bigsky-trip.ts` | Seed script for Big Sky trip |
-| `docs/superpowers/specs/2026-03-17-phase4-itinerary-generation-design.md` | Phase 4 spec |
-| `docs/superpowers/plans/2026-03-17-phase4-itinerary-generation.md` | Phase 4 implementation plan |
-
-### Next Steps
-- [x] Build leader dashboard — Done (S5)
-- [x] AI-processed preferences, tiebreak tools — Done (S5)
-- [x] Leader can start draft itinerary from early answers (iterative refinement) — Done (S5)
-- [ ] Phase 5: Research Feed + Polish
-- [ ] Social Layer — comments, reactions, group discussion
-- [ ] Agentic Trip Agent — collaborative travel agent assistant
-
----
-
 ## 2026-03-19 — Session 5: Leader Dashboard + Intelligence + Iterative Generation + Polish
 
 ### Accomplished
@@ -258,11 +113,72 @@
 | `src/middleware.ts` | Added /share and /api/*/share to public allowlist, fixed parens |
 
 ### Next Steps
+- [x] Activity photos on cards — Done (S7)
+- [x] Custom OG image for share link previews — Done (S7)
 - [ ] DRY refactor — extract ~300 lines of shared code (palette, types, drive estimates, travel card)
 - [ ] Accessibility on expandable cards (role="button", tabIndex, keyboard handler)
-- [ ] Activity photos on cards (imageUrl field + host upload during curation)
-- [ ] Guest RSVP on split tracks ("I'll do this one" with host headcount)
-- [ ] Custom OG image for share link previews in iMessage/WhatsApp
-- [ ] Host drag-to-reorder + swap activities
+- [ ] Guest RSVP on split tracks ("I'll do this one" with host headcount) — Phase 3
+- [ ] Host drag-to-reorder + swap activities — Phase 2
 - [ ] Research Feed (Phase 5)
 - [ ] Social Layer — comments, reactions, group discussion
+
+---
+
+## 2026-03-28 — Session 7: Visual Polish + Interactive Maps + CEO Review
+
+### Accomplished
+- **CEO product review** — full system audit, 3-phase roadmap created
+  - Phase 1: Photos + Visual Polish + Maps (this session)
+  - Phase 2: Host Curation Tools (drag-to-reorder, inline edit, per-day regen)
+  - Phase 3: Guest RSVP + Feedback Loop (name picker, headcount, reactions)
+- **Typography overhaul** — bumped all text sizes across share + review pages
+  - Time codes: text-lg → text-xl, badges: text-base → text-lg, costs/locations: +1 step
+  - Opacity bumped +0.1-0.15 everywhere for better contrast on cream background
+  - Day picker: text-xs vibe → text-sm, weekday text-base → text-lg
+- **AM/PM time format** — replaced 24h (18:30) with 12h (6:30 PM) on both pages
+- **Removed costs from guest view** — no per-card costs, no trip total footer
+- **Fixed Ennis dinner** — swapped Corral Steakhouse (55 min each way) to Horn & Cantle at Lone Mountain Ranch (10 min)
+- **Activity photos** — added imageUrl column, seeded all 38/38 blocks with photos
+  - Photo banners render edge-to-edge inside card borders on both share + review pages
+- **OG image** — @vercel/og edge route generates branded 1200x630 card (BIG SKY retro style)
+  - Full OpenGraph + Twitter Card metadata on share page
+  - Immutable cache header for CDN
+- **Countdown + travel info** — 3-card grid: days-to-go counter, BZN→house directions, nearest grocery
+- **Weather forecast** — Open-Meteo API fetched in parallel with share data, shows per-day high/low + emoji
+- **Local Guide page** (`/share/guide`) — 16 curated spots across 6 categories (coffee, grocery, gas, ice cream, gear, pharmacy)
+- **Day Map page** (`/share/map/[day]`) — numbered stop list with Google Maps route link
+- **AI Packing List** — on-demand Haiku-generated packing list based on actual itinerary activities, cached 24h
+- **Performance fixes** — parallelized weather+data fetch (eliminated waterfall), added cache headers to OG and packing-list error paths
+- **3 parallel review agents** (code quality, security, performance) — findings addressed
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `src/app/api/trips/[id]/og/route.tsx` | OG image generation (edge, @vercel/og) |
+| `src/app/api/trips/[id]/packing-list/route.ts` | AI packing list via Claude Haiku |
+| `src/app/trips/[id]/share/guide/page.tsx` | Local spots guide (coffee, grocery, gear) |
+| `src/app/trips/[id]/share/map/[day]/page.tsx` | Interactive day map with stop list |
+| `src/lib/bigsky-local-spots.ts` | Curated local spots data (16 spots, 6 categories) |
+| `scripts/fix-ennis-dinner.ts` | DB script: swap Corral → Horn & Cantle |
+| `scripts/add-block-images.ts` | DB script: seed imageUrl for all blocks |
+| `docs/superpowers/plans/2026-03-28-phase1-visual-polish.md` | Phase 1 implementation plan |
+
+### Files Modified
+| File | Changes |
+|------|---------|
+| `src/db/schema.ts` | Added imageUrl column to itineraryBlocks |
+| `src/app/api/trips/[id]/share/route.ts` | Added imageUrl to blocks select |
+| `src/app/trips/[id]/share/guest-itinerary.tsx` | Typography, AM/PM, photos, countdown, weather, guide link, map link, packing list, removed costs |
+| `src/app/trips/[id]/share/day-picker.tsx` | Typography bump (text sizes + opacity) |
+| `src/app/trips/[id]/review/review-content.tsx` | Typography, AM/PM, photos, formatTime |
+| `src/app/trips/[id]/share/page.tsx` | Added generateMetadata with OG image |
+| `src/middleware.ts` | Added /og and /packing-list to public routes |
+| `package.json` | Added @vercel/og dependency |
+
+### Next Steps
+- [ ] Phase 2: Host Curation — inline block editing, drag-to-reorder, pin/unpin, per-day regeneration
+- [ ] Phase 3: Guest RSVP — name picker, "I'm in"/"Skip" buttons, headcount badges, party size awareness
+- [ ] DRY refactor — extract palette, types, drive estimates, travel card into shared module
+- [ ] Accessibility — expandable cards need role="button", tabIndex, keyboard handler
+- [ ] Convert background-image photos to next/image for lazy loading + optimization
+- [ ] Add Google Maps Embed API key for embedded maps on day map page

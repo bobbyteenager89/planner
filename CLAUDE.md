@@ -25,6 +25,9 @@ src/
 │   │   ├── auth/[...nextauth]/  # NextAuth handlers
 │   │   ├── invite/accept/       # Invite acceptance endpoint
 │   │   └── trips/               # Trip CRUD + invite API
+│   │       └── [id]/
+│   │           ├── og/          # OG image generation (@vercel/og, edge)
+│   │           └── packing-list/ # AI packing list (Claude Haiku, cached 24h)
 │   ├── dashboard/               # Trip listing (protected)
 │   ├── invite/[token]/          # Invite landing page
 │   ├── login/                   # Magic link auth
@@ -34,6 +37,8 @@ src/
 │       │   ├── onboard/        # Owner AI onboarding chat (Phase 2)
 │       │   ├── review/         # Host itinerary review (auth-gated, full reasoning)
 │       │   └── share/          # Guest itinerary view (public, clean day-by-day)
+│       │       ├── guide/     # Local spots guide (coffee, grocery, gear)
+│       │       └── map/[day]/ # Interactive day map with stop list
 │       ├── intake-demo/        # Dev-only demo page (404 in production)
 │       └── new/                 # Trip creation form
 ├── components/ui/               # shadcn/ui components
@@ -42,6 +47,7 @@ src/
 │   └── schema.ts                # Full Drizzle schema
 ├── lib/
 │   ├── auth.ts                  # NextAuth config
+│   ├── bigsky-local-spots.ts    # Curated local spots data (16 spots)
 │   └── utils.ts                 # shadcn utils
 └── middleware.ts                # Auth middleware
 ```
