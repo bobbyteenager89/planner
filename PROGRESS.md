@@ -281,3 +281,49 @@
 - [ ] Color-coded overview map with all days + hover cards
 - [ ] Per-person RSVP + custom itinerary pages (post-Sharon feedback)
 - See `NEXT_SESSION.md` for full roadmap
+
+---
+
+## 2026-04-08 — Session 10: Ops Doc + Cowork Report-Back
+
+### Accomplished
+- **Caught a real miss:** Corban filled out the survey on 2026-03-28 but `src/lib/ai/rationale.ts` had him bundled as "Maddie speaks for both." Split them into separate voting units — Corban is YES on fly-fishing/rodeo, Maddie is YES on spa-day. Regenerated the rationale.
+- **Validated the itinerary already handled it** — Day 4 fly-fishing/spa alternates exactly match the Maddie↔Corban split. No itinerary moves needed.
+- **Built the Ops Doc feature** — downloadable markdown brief for Claude Cowork to drive bookings:
+  - Schema: added `adult_count`, `kid_count`, `reservation_status`, `reservation_notes`, `booking_window` to `itinerary_blocks`; new `ops_items` and `ops_tokens` tables
+  - Seeded 37 Big Sky blocks with headcounts (default 7A+2K; Day 4 fly/spa split to 1A each; other overrides for booked/walk-in/not-needed)
+  - Seeded 13 initial todos: 12 owned by Andrew, 1 owned by Maddie (spa booking)
+  - `src/lib/ops/markdown.ts` — pure doc generator
+  - `GET /api/trips/[id]/ops/doc` — auth-gated markdown download, attachment filename
+  - "Download Ops Doc" button on host review page
+- **Cowork report-back loop** — `POST /api/trips/[id]/ops/update` with bearer token auth (sha256-hashed in `ops_tokens`). Mint via `scripts/mint-ops-token.mjs`. Verified end-to-end: real update → `{"ok":true,"updated":1}`, revoked token → 401.
+- **Middleware carve-out** — added `ops/update` to middleware bypass list since it uses bearer not cookie.
+- **Docs** — `docs/COWORK.md` brief for the cowork agent (job, update payload shape, curl example, headcount cheat sheet, trip context).
+- **Token rotation** — old token revoked, new one issued.
+- **Preflight + smoke-test** — build clean, typecheck clean, all public routes 200, auth-gated routes 307, ops/update endpoint live with valid bearer.
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `src/lib/ops/markdown.ts` | Ops doc generator (headcounts, reservation status, todos by owner, cowork instructions) |
+| `src/lib/ops/auth.ts` | Token hash/generate helpers |
+| `src/app/api/trips/[id]/ops/doc/route.ts` | GET markdown download endpoint |
+| `src/app/api/trips/[id]/ops/update/route.ts` | POST bearer-auth report-back endpoint |
+| `scripts/seed-bigsky-ops.mjs` | Idempotent seed for Big Sky headcounts + todos |
+| `scripts/mint-ops-token.mjs` | Ops token mint script (prints raw once, stores hash) |
+| `docs/COWORK.md` | Brief for Claude Cowork agent |
+
+### Files Modified
+| File | Changes |
+|------|---------|
+| `src/db/schema.ts` | Added 2 enums, 5 columns on `itinerary_blocks`, new `ops_items` + `ops_tokens` tables |
+| `src/lib/ai/rationale.ts` | Split "Maddie & Corban" into separate voters |
+| `src/app/trips/[id]/review/review-content.tsx` | Added "Download Ops Doc" button |
+| `src/middleware.ts` | Bypass `ops/update` for bearer-auth endpoint |
+| `.gitignore` | Added `.claude/` and `.superpowers/` sweep guards |
+
+### Next Steps (Session 11+)
+- [ ] Hand ops doc + token to Claude Cowork, let it start booking
+- [ ] In-app editor for headcounts and todos (currently SQL-only)
+- [ ] Token revoke endpoint (currently manual SQL)
+- [ ] Wait for Sharon's notes

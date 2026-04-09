@@ -77,6 +77,14 @@ See `.env.local.example` for required vars.
 - **Host Review:** https://planner-sooty-theta.vercel.app/trips/83fdfdb7-eb88-4a81-9712-0c8306854b42/review
 - **Public** — survey and share pages require no auth; review page is auth-gated
 
+## Ops Doc (for Claude Cowork)
+- **Download ops markdown:** `GET /api/trips/[id]/ops/doc` (auth-gated, returns attachment)
+- **Cowork report-back:** `POST /api/trips/[id]/ops/update` with bearer token (hashed in `ops_tokens`)
+- **Mint token:** `node scripts/mint-ops-token.mjs <trip_id> [label]` — prints raw token ONCE
+- **Seed Big Sky ops:** `node scripts/seed-bigsky-ops.mjs` (idempotent)
+- **Cowork brief:** `docs/COWORK.md`
+- Per-block headcounts + reservation status live on `itinerary_blocks` (`adult_count`, `kid_count`, `reservation_status`, `reservation_notes`, `booking_window`). Default group = 7A+2K.
+
 ## URLs
 - **GitHub:** https://github.com/bobbyteenager89/planner
 - **Vercel:** https://planner-sooty-theta.vercel.app
