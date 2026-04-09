@@ -44,3 +44,7 @@ next-env.d.ts
 
 # drizzle
 /drizzle
+
+# Tooling sweep guards
+.claude/
+.superpowers/
