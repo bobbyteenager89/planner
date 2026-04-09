@@ -232,3 +232,52 @@
 - [ ] Convert background-image photos to next/image for lazy loading + optimization
 - [ ] Add Google Maps Embed API key for embedded maps on day map page
 - [ ] Log in and test all 4 curation features interactively (edit, drag, pin, regen)
+
+---
+
+## 2026-04-08 — Session 9: Mom-Friendly Rationale Review Page
+
+### Accomplished
+- **New public route** `/trips/[id]/share/rationale` — auth-free, read-only review page for sharing the itinerary logic with trusted reviewers (Andrew's mom Sharon)
+- **Rationale generator** (`src/lib/ai/rationale.ts`) — server module that calls Claude Sonnet once to synthesize and cache as JSON on `itineraries.ai_reasoning`:
+  - `intro`: 4-6 bullet planning priorities
+  - `participants`: per-household cards with members, "excited for", "passing on", notes (derived from real per-voter mentions in block reasonings)
+  - `days`: 2-3 sentence per-day logic
+  - `todos`: pre-trip To Do list grouped into Restaurants / Activities & Tickets / Bookings / Logistics / Supplies
+  - Owner can `?regen=1` to force regenerate
+- **Fixed wrong group data** — scrubbed every "20 people", "ages 4-69", "4-year-old", "69-year-old", "7 participants" phrase from 5 block reasonings. Actual group = 4 households, 9 people.
+- **Deleted redundant Group Kickoff block** — Andrew will handle it at welcome dinner
+- **Fixed rodeo timing** — was wrongly mid-morning, moved to Evening 7-9:30 PM (Big Sky PBR runs Thursday nights). Rejiggered Day 6: lunch 12-1 → zipline/scenic drive 1:30-4:30 → early dinner 4:45-6:15 → rodeo 7-9:30
+- **Typography pass** — body text bumped to `text-xl` (day logic, descriptions, intro) and `text-lg` (reasonings, todos) for Mom-readable sizes
+- **DB ownership fix** — reassigned Big Sky trip from an orphan owner to andrewgoble1@gmail.com
+- **Session bug caught and fixed** — imported date helpers from `itinerary-shared.tsx` (`"use client"`) into a server component → prod runtime crash. Fix: inlined helpers in the page.
+- **Shipped and sent to Sharon for notes** — awaiting feedback before next build
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `src/lib/ai/rationale.ts` | Rationale generator: households model + Claude prompt + cache (~220 lines) |
+| `src/app/trips/[id]/share/rationale/page.tsx` | Server-component review page (~440 lines) |
+| `src/app/trips/[id]/share/rationale/regenerate-button.tsx` | Client component for owner regen |
+| `scripts/gen-rationale.ts` | CLI to pre-generate rationale from local env |
+| `NEXT_SESSION.md` | Full roadmap: product thesis, CEO review prompts, infra + feature backlog |
+
+### Files Modified
+| File | Changes |
+|------|---------|
+| DB: `itinerary_blocks` (Big Sky) | Scrubbed stale age/count phrases from 5 blocks; deleted Group Kickoff; retimed Day 6 (rodeo → evening) |
+| DB: `itineraries.ai_reasoning` (Big Sky) | Now holds full Rationale JSON (intro/participants/days/todos) |
+| DB: `trips` (Big Sky) | `owner_id` reassigned to andrewgoble1 |
+
+### Next Steps (Session 10+)
+- [ ] **Wait for Sharon's notes** and iterate based on feedback
+- [ ] `/plan-ceo-review` of the product — is the "travel agent + social psychology" thesis showing up in the UX?
+- [ ] Logging suite — Claude call observability (latency/cost/errors), structured runtime logs
+- [ ] Testing pages — e2e on rationale/review/intake/share; add live-route render check to preflight
+- [ ] Claude Cowork MD ingestion — ingest strategy/brief MD files as rationale context
+- [ ] Google Calendar integration — "Add trip to calendar" per participant
+- [ ] Phone home-screen wallpaper generator
+- [ ] Twilio SMS roadmap — T-30/14/7/1 + day-of briefings + change alerts
+- [ ] Color-coded overview map with all days + hover cards
+- [ ] Per-person RSVP + custom itinerary pages (post-Sharon feedback)
+- See `NEXT_SESSION.md` for full roadmap
