@@ -176,7 +176,7 @@ export default async function RationalePage({
           </h3>
           {rationale ? (
             <div
-              className="p-6 space-y-2 text-lg leading-relaxed"
+              className="p-6 space-y-3 text-xl leading-relaxed"
               style={{
                 backgroundColor: CARD_BG,
                 border: `2px solid ${INK}`,
@@ -214,6 +214,107 @@ export default async function RationalePage({
         </div>
       </section>
 
+      {/* ── Who is Going ── */}
+      {rationale?.participants && rationale.participants.length > 0 && (
+        <section className="px-5 sm:px-8 pb-12">
+          <div className="max-w-3xl mx-auto">
+            <h2
+              className="text-xs uppercase tracking-[0.2em] mb-4"
+              style={{ color: RUST, fontWeight: 700 }}
+            >
+              Who Is Going
+            </h2>
+            <h3
+              className="text-3xl font-black mb-3"
+              style={{
+                fontFamily: "'Arial Black', Impact, sans-serif",
+                color: INK,
+              }}
+            >
+              The crew & what everyone's excited about
+            </h3>
+            <p
+              className="text-base mb-6"
+              style={{ color: INK, opacity: 0.7 }}
+            >
+              {rationale.participants.reduce(
+                (n, p) => n + (p.members?.length ?? 0),
+                0
+              )}{" "}
+              people across {rationale.participants.length} households. Later
+              on, everyone will be able to mark which activities they actually
+              want to join so we can lock in reservation counts.
+            </p>
+            <div className="space-y-4">
+              {rationale.participants.map((p, i) => (
+                <div
+                  key={i}
+                  className="p-6"
+                  style={{
+                    backgroundColor: CARD_BG,
+                    border: `2px solid ${INK}`,
+                    borderRadius: 2,
+                  }}
+                >
+                  <div
+                    className="text-2xl font-black mb-1"
+                    style={{
+                      fontFamily: "'Arial Black', Impact, sans-serif",
+                      color: INK,
+                    }}
+                  >
+                    {p.name}
+                  </div>
+                  {p.members && p.members.length > 0 && (
+                    <div
+                      className="text-lg mb-3"
+                      style={{ color: INK, opacity: 0.75 }}
+                    >
+                      {p.members.join(" · ")}
+                    </div>
+                  )}
+                  <div className="space-y-2 text-lg leading-relaxed">
+                    {p.likes && (
+                      <div>
+                        <span
+                          className="text-[11px] uppercase tracking-[0.2em] mr-2"
+                          style={{ color: RUST, fontWeight: 700 }}
+                        >
+                          Excited for
+                        </span>
+                        <span style={{ color: INK }}>{p.likes}</span>
+                      </div>
+                    )}
+                    {p.dislikes && (
+                      <div>
+                        <span
+                          className="text-[11px] uppercase tracking-[0.2em] mr-2"
+                          style={{ color: RUST, fontWeight: 700 }}
+                        >
+                          Passing on
+                        </span>
+                        <span style={{ color: INK }}>{p.dislikes}</span>
+                      </div>
+                    )}
+                    {p.notes && (
+                      <div>
+                        <span
+                          className="text-[11px] uppercase tracking-[0.2em] mr-2"
+                          style={{ color: RUST, fontWeight: 700 }}
+                        >
+                          Note
+                        </span>
+                        <span style={{ color: INK }}>{p.notes}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── Days ── */}
       <section className="px-5 sm:px-8">
         <div className="max-w-3xl mx-auto">
@@ -245,7 +346,7 @@ export default async function RationalePage({
                 {/* Day logic */}
                 {dayLogic && (
                   <div
-                    className="p-5 mb-6 text-base leading-relaxed italic"
+                    className="p-6 mb-6 text-xl leading-relaxed italic"
                     style={{
                       backgroundColor: MUSTARD,
                       color: INK,
@@ -254,7 +355,7 @@ export default async function RationalePage({
                     }}
                   >
                     <div
-                      className="text-[10px] not-italic uppercase tracking-[0.2em] mb-2"
+                      className="text-[11px] not-italic uppercase tracking-[0.2em] mb-2"
                       style={{ fontWeight: 700 }}
                     >
                       Logic for this day
@@ -290,7 +391,7 @@ export default async function RationalePage({
                           </span>
                           {b.startTime && (
                             <span
-                              className="text-sm font-bold"
+                              className="text-base font-bold"
                               style={{ color: INK, opacity: 0.7 }}
                             >
                               {formatTime(b.startTime)}
@@ -299,7 +400,7 @@ export default async function RationalePage({
                           )}
                         </div>
                         <h4
-                          className="text-2xl font-black leading-tight mb-1"
+                          className="text-3xl font-black leading-tight mb-1"
                           style={{
                             fontFamily: "'Arial Black', Impact, sans-serif",
                             color: INK,
@@ -309,7 +410,7 @@ export default async function RationalePage({
                         </h4>
                         {b.location && (
                           <div
-                            className="text-sm mb-2"
+                            className="text-base mb-3"
                             style={{ color: INK, opacity: 0.7 }}
                           >
                             📍 {b.location}
@@ -317,7 +418,7 @@ export default async function RationalePage({
                         )}
                         {b.description && (
                           <p
-                            className="text-base leading-relaxed mb-3"
+                            className="text-xl leading-relaxed mb-3"
                             style={{ color: INK }}
                           >
                             {b.description}
@@ -325,7 +426,7 @@ export default async function RationalePage({
                         )}
                         {b.aiReasoning && (
                           <div
-                            className="mt-3 pt-3 border-t text-sm leading-relaxed"
+                            className="mt-4 pt-4 border-t text-lg leading-relaxed"
                             style={{
                               borderColor: INK,
                               borderTopStyle: "dashed",
@@ -333,7 +434,7 @@ export default async function RationalePage({
                             }}
                           >
                             <div
-                              className="text-[10px] uppercase tracking-[0.2em] mb-1"
+                              className="text-[11px] uppercase tracking-[0.2em] mb-1"
                               style={{ color: RUST, fontWeight: 700 }}
                             >
                               Why it's here
