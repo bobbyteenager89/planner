@@ -28,7 +28,7 @@ export type Rationale = {
 
 // Household groupings for the Big Sky trip. One row per "voting unit".
 // Alicia speaks for the Clark/Alicia family (4 people incl. the two girls).
-// Maddie speaks for her + Corban (Corban didn't fill out the survey).
+// Maddie and Corban each filled out the survey independently.
 // Jeff & Sharon are the grandparents / planners.
 // Andrew is solo.
 const HOUSEHOLDS: Array<{
@@ -56,10 +56,16 @@ const HOUSEHOLDS: Array<{
     voterNames: ["Andrew"],
   },
   {
-    name: "Maddie & Corban",
-    represents: "Maddie filled out the survey for both",
-    members: ["Maddie", "Corban"],
+    name: "Maddie",
+    represents: "Solo",
+    members: ["Maddie"],
     voterNames: ["Maddie"],
+  },
+  {
+    name: "Corban",
+    represents: "Solo",
+    members: ["Corban"],
+    voterNames: ["Corban"],
   },
 ];
 
