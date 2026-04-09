@@ -73,6 +73,21 @@ export const researchCategoryEnum = pgEnum("research_category", [
   "other",
 ]);
 
+export const reservationStatusEnum = pgEnum("reservation_status", [
+  "not_needed",
+  "walk_in",
+  "needed",
+  "booked",
+  "unknown",
+]);
+
+export const opsItemStatusEnum = pgEnum("ops_item_status", [
+  "todo",
+  "doing",
+  "done",
+  "blocked",
+]);
+
 // ── Users ──────────────────────────────────────────────────
 
 export const users = pgTable("users", {
@@ -292,9 +307,64 @@ export const itineraryBlocks = pgTable(
     pinned: boolean("pinned").notNull().default(false),
     metadata: jsonb("metadata"),
     imageUrl: text("image_url"),
+    adultCount: integer("adult_count"),
+    kidCount: integer("kid_count"),
+    reservationStatus: reservationStatusEnum("reservation_status"),
+    reservationNotes: text("reservation_notes"),
+    bookingWindow: text("booking_window"),
   },
   (table) => [
     index("itinerary_blocks_itinerary_id_idx").on(table.itineraryId),
+  ]
+);
+
+// ── Ops Items (todos for cowork) ───────────────────────────
+
+export const opsItems = pgTable(
+  "ops_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    blockId: uuid("block_id").references(() => itineraryBlocks.id, {
+      onDelete: "set null",
+    }),
+    category: varchar("category", { length: 50 }).notNull(),
+    title: varchar("title", { length: 500 }).notNull(),
+    description: text("description"),
+    ownerName: varchar("owner_name", { length: 100 }).notNull(),
+    status: opsItemStatusEnum("status").notNull().default("todo"),
+    dueDate: timestamp("due_date"),
+    confirmation: text("confirmation"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("ops_items_trip_id_idx").on(table.tripId),
+    index("ops_items_block_id_idx").on(table.blockId),
+  ]
+);
+
+// ── Ops Tokens (cowork bearer auth) ────────────────────────
+
+export const opsTokens = pgTable(
+  "ops_tokens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    tokenHash: varchar("token_hash", { length: 128 }).notNull(),
+    label: varchar("label", { length: 100 }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    lastUsedAt: timestamp("last_used_at"),
+    revokedAt: timestamp("revoked_at"),
+  },
+  (table) => [
+    index("ops_tokens_trip_id_idx").on(table.tripId),
+    uniqueIndex("ops_tokens_hash_idx").on(table.tokenHash),
   ]
 );
 
