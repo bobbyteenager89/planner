@@ -339,6 +339,18 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
         >
           👁 Preview as Guest →
         </a>
+        <a
+          href={`/api/trips/${tripId}/ops/doc`}
+          className="inline-block text-lg mt-3 ml-2 px-5 py-2.5 font-bold uppercase tracking-wider"
+          style={{
+            backgroundColor: CREAM,
+            color: INK,
+            border: `2px solid ${CREAM}`,
+            borderRadius: "2px",
+          }}
+        >
+          📋 Download Ops Doc
+        </a>
       </div>
 
       <div className="max-w-3xl mx-auto px-5 py-10 sm:px-8">
