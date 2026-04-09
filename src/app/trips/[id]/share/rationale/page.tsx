@@ -3,18 +3,53 @@ import { trips, itineraries, itineraryBlocks } from "@/db/schema";
 import { eq, desc, asc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { getRationale } from "@/lib/ai/rationale";
-import {
-  INK,
-  RUST,
-  MUSTARD,
-  CREAM,
-  CARD_BG,
-  TYPE_CONFIG,
-  formatTime,
-  getDayDate,
-  formatDayDate,
-  getWeekdayShort,
-} from "@/lib/itinerary-shared";
+// NOTE: itinerary-shared is "use client" — we can't call its functions from
+// a server component, so the helpers are inlined below.
+const INK = "#3B1A0F";
+const RUST = "#D14F36";
+const MUSTARD = "#EBB644";
+const CREAM = "#F3EBE0";
+const CARD_BG = "#EBE1D3";
+
+const TYPE_CONFIG: Record<string, { icon: string; label: string; bg: string }> = {
+  activity: { icon: "🏔", label: "Activity", bg: MUSTARD },
+  meal: { icon: "🍽", label: "Meal", bg: "#E8D5B8" },
+  transport: { icon: "🚗", label: "Transport", bg: CARD_BG },
+  lodging: { icon: "🏠", label: "Lodging", bg: CARD_BG },
+  free_time: { icon: "☀️", label: "Free Time", bg: "#E5DDD0" },
+  note: { icon: "📝", label: "Note", bg: CARD_BG },
+};
+
+function formatTime(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return m === 0
+    ? `${hour12} ${period}`
+    : `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
+}
+
+function getDayDate(startDate: string | null, dayNumber: number): Date | null {
+  if (!startDate) return null;
+  const date = new Date(startDate);
+  date.setDate(date.getDate() + dayNumber - 1);
+  return date;
+}
+
+function formatDayDate(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function getWeekdayShort(startDate: string | null, dayNumber: number): string {
+  if (!startDate) return `D${dayNumber}`;
+  const date = new Date(startDate);
+  date.setDate(date.getDate() + dayNumber - 1);
+  return date.toLocaleDateString("en-US", { weekday: "short" });
+}
 import { RegenerateButton } from "./regenerate-button";
 import type { Metadata } from "next";
 
