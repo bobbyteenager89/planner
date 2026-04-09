@@ -452,6 +452,99 @@ export default async function RationalePage({
         </div>
       </section>
 
+      {/* ── To Do List ── */}
+      {rationale?.todos && rationale.todos.length > 0 && (() => {
+        const grouped: Record<string, typeof rationale.todos> = {};
+        for (const t of rationale.todos) {
+          if (!grouped[t.category]) grouped[t.category] = [];
+          grouped[t.category].push(t);
+        }
+        const categoryOrder = [
+          "Activities & Tickets",
+          "Restaurants",
+          "Bookings",
+          "Logistics",
+          "Supplies",
+          "Other",
+        ];
+        const categories = Object.keys(grouped).sort(
+          (a, b) =>
+            (categoryOrder.indexOf(a) === -1 ? 99 : categoryOrder.indexOf(a)) -
+            (categoryOrder.indexOf(b) === -1 ? 99 : categoryOrder.indexOf(b))
+        );
+        return (
+          <section className="px-5 sm:px-8 py-12 mt-8 border-t-2" style={{ borderColor: INK }}>
+            <div className="max-w-3xl mx-auto">
+              <h2
+                className="text-xs uppercase tracking-[0.2em] mb-4"
+                style={{ color: RUST, fontWeight: 700 }}
+              >
+                Pre-Trip To Do
+              </h2>
+              <h3
+                className="text-3xl font-black mb-3"
+                style={{
+                  fontFamily: "'Arial Black', Impact, sans-serif",
+                  color: INK,
+                }}
+              >
+                What still needs to be booked
+              </h3>
+              <p
+                className="text-base mb-8"
+                style={{ color: INK, opacity: 0.7 }}
+              >
+                Andrew will work through this list. Included here so you can
+                see what's involved — nothing is booked yet.
+              </p>
+              <div className="space-y-8">
+                {categories.map((cat) => (
+                  <div key={cat}>
+                    <div
+                      className="text-[11px] uppercase tracking-[0.2em] mb-3 pb-2 border-b"
+                      style={{
+                        color: RUST,
+                        fontWeight: 700,
+                        borderColor: INK,
+                      }}
+                    >
+                      {cat}
+                    </div>
+                    <ul className="space-y-3">
+                      {grouped[cat].map((t, i) => (
+                        <li
+                          key={i}
+                          className="flex gap-3 text-lg leading-relaxed"
+                          style={{ color: INK }}
+                        >
+                          <span
+                            className="shrink-0 text-xl"
+                            style={{ color: RUST, fontWeight: 700 }}
+                          >
+                            ☐
+                          </span>
+                          <div>
+                            <div>{t.item}</div>
+                            {t.notes && (
+                              <div
+                                className="text-base mt-0.5"
+                                style={{ color: INK, opacity: 0.6 }}
+                              >
+                                {t.notes}
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      })()}
+
       {/* ── Footer ── */}
       <footer
         className="px-5 sm:px-8 pt-12 pb-8 border-t-2 mt-8"

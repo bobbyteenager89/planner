@@ -12,10 +12,17 @@ export type ParticipantSummary = {
   notes?: string;
 };
 
+export type TodoItem = {
+  category: string;
+  item: string;
+  notes?: string;
+};
+
 export type Rationale = {
   intro: string;
   participants: ParticipantSummary[];
   days: Record<string, string>;
+  todos: TodoItem[];
   generatedAt: string;
 };
 
@@ -153,7 +160,11 @@ Produce a JSON object with this EXACT shape:
     { "name": "Jeff & Sharon", "represents": "...", "likes": "...", "dislikes": "...", "notes": "..." },
     ...
   ],
-  "days": { "1": "...", "2": "...", ... }
+  "days": { "1": "...", "2": "...", ... },
+  "todos": [
+    { "category": "Reservations", "item": "...", "notes": "..." },
+    ...
+  ]
 }
 
 RULES:
@@ -169,6 +180,12 @@ RULES:
   * "notes": 1 short optional sentence of anything unique. Empty string if nothing stands out.
 
 - "days": For each day number in the itinerary, 2-3 sentences explaining the logic — the arc, pacing, and how it serves the group. Plain prose, no bullets. Do NOT explain obvious things (e.g. "we did a group kickoff because it builds alignment"). Do NOT keep repeating "ages 4–69".
+
+- "todos": Scan the full itinerary and list every pre-trip TO DO the host will actually need to do — reservations, ticket purchases, bookings, permits, pre-orders. Each item:
+  * "category": One of "Restaurants", "Activities & Tickets", "Bookings", "Logistics", "Supplies". Pick the best fit.
+  * "item": Short action verb phrase, e.g. "Reserve Horn & Cantle dinner (group of 9, Day 1 evening)". Include party size and day when relevant.
+  * "notes": Optional extra detail (phone/website, lead time, cost, etc.) — or empty string.
+  Only include items that actually require action. Do NOT include free/walkup things (stargazing, free time, home dinners unless a private chef needs booking). DO include the private chef booking, rodeo tickets, fly fishing guide, rafting outfit, zipline reservation, horseback ride, gondola, Yellowstone entry/permits, alpaca farm, golf tee time, spa booking, cooking class, and every restaurant reservation the group likely needs.
 
 Output ONLY the JSON. No code fences, no preamble.`;
 
@@ -208,12 +225,21 @@ Output ONLY the JSON. No code fences, no preamble.`;
     };
   });
 
+  const todos: TodoItem[] = Array.isArray(parsed.todos)
+    ? parsed.todos.map((t: { category?: string; item?: string; notes?: string }) => ({
+        category: String(t?.category ?? "Other"),
+        item: String(t?.item ?? ""),
+        notes: t?.notes ? String(t.notes) : "",
+      }))
+    : [];
+
   const rationale: Rationale = {
     intro: String(parsed.intro ?? ""),
     participants,
     days: Object.fromEntries(
       Object.entries(parsed.days ?? {}).map(([k, v]) => [String(k), String(v)])
     ),
+    todos,
     generatedAt: new Date().toISOString(),
   };
 
