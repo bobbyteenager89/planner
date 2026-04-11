@@ -26,6 +26,8 @@ import {
 import { NamePicker } from "@/components/itinerary/name-picker";
 import { ThreeDotMenu } from "@/components/itinerary/three-dot-menu";
 import { SignOffBanner } from "@/components/itinerary/sign-off-banner";
+import { HeroSection } from "@/components/itinerary/hero-section";
+import { TripStats } from "@/components/itinerary/trip-stats";
 import { type FeedbackItem, type Participant } from "@/lib/itinerary-shared";
 import { getGuestParticipantId } from "@/lib/guest-identity";
 
@@ -220,97 +222,93 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
 
   return (
     <div style={{ minHeight: "100dvh", backgroundColor: CREAM }}>
-      {/* ═══ HEADER ═══ */}
-      <div className="px-5 py-8 sm:px-10 sm:py-10" style={{ backgroundColor: RUST }}>
-        <p className="text-lg font-bold uppercase tracking-widest mb-3" style={{ color: MUSTARD }}>
-          Goble Family
-        </p>
-        <h1
-          className="text-6xl sm:text-8xl font-black uppercase leading-none"
-          style={{
-            color: CREAM,
-            fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif",
-            textShadow: `3px 3px 0 ${MUSTARD}`,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          BIG SKY
-        </h1>
-        <p className="text-xl sm:text-3xl font-bold mt-3" style={{ color: CREAM }}>
-          July 18 — 25, 2026
-        </p>
-        <a
-          href={mapsUrl("20 Moose Ridge Road, Big Sky, MT")}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block text-lg mt-2 font-medium underline underline-offset-4 decoration-1"
-          style={{ color: CREAM, opacity: 0.8 }}
-        >
-          📍 20 Moose Ridge Road, Big Sky, MT →
-        </a>
-      </div>
+      {/* ═══ HERO ═══ */}
+      <HeroSection
+        title="BIG SKY"
+        subtitle="Goble Family · Est. 2026"
+        kicker="An eight-day itinerary in the Montana mountains"
+        dateLabel="July 18 — 25, 2026"
+        daysToGo={(() => {
+          const tripDate = trip.startDate ? new Date(trip.startDate) : new Date("2026-07-18");
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const diff = Math.ceil((tripDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          return diff > 0 ? diff : 0;
+        })()}
+      />
 
-      {/* ═══ COUNTDOWN + TRAVEL INFO ═══ */}
-      <div className="max-w-3xl mx-auto px-5 pt-8 sm:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Countdown */}
-          <div className="p-4 text-center" style={{ backgroundColor: CARD_BG, border: `2px solid ${RUST}`, borderRadius: "2px" }}>
-            <p className="text-4xl font-black" style={{ color: RUST, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}>
-              {(() => {
-                const tripDate = trip.startDate ? new Date(trip.startDate) : new Date("2026-07-18");
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const diff = Math.ceil((tripDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                return diff > 0 ? diff : 0;
-              })()}
-            </p>
-            <p className="text-lg font-bold uppercase tracking-wider" style={{ color: INK, opacity: 0.55 }}>
-              days to go
-            </p>
-          </div>
-
-          {/* Airport → House */}
-          <div className="p-4 text-center" style={{ backgroundColor: CARD_BG, border: `2px solid ${RUST}`, borderRadius: "2px" }}>
-            <p className="text-xl font-black" style={{ color: INK }}>✈️ BZN → 🏠</p>
-            <p className="text-lg font-bold mt-1" style={{ color: INK, opacity: 0.55 }}>55 min drive</p>
-            <a
-              href={mapsDirectionsUrl(["Bozeman Yellowstone International Airport", "20 Moose Ridge Road, Big Sky, MT"])}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-lg font-bold underline underline-offset-4 mt-1 inline-block"
-              style={{ color: RUST }}
-            >
-              Directions →
-            </a>
-          </div>
-
-          {/* Nearest Grocery */}
-          <div className="p-4 text-center" style={{ backgroundColor: CARD_BG, border: `2px solid ${RUST}`, borderRadius: "2px" }}>
-            <p className="text-xl font-black" style={{ color: INK }}>🛒 Nearest Grocery</p>
-            <p className="text-lg font-bold mt-1" style={{ color: INK, opacity: 0.55 }}>Hungry Moose Market</p>
-            <a
-              href={mapsUrl("Hungry Moose Market & Deli, Big Sky, MT")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-lg font-bold underline underline-offset-4 mt-1 inline-block"
-              style={{ color: RUST }}
-            >
-              5 min drive →
-            </a>
-          </div>
-        </div>
+      {/* ═══ TRIP STATS STRIP ═══ */}
+      <div className="max-w-3xl mx-auto">
+        <TripStats
+          stats={[
+            {
+              label: "Basecamp",
+              value: (
+                <>
+                  20 Moose Ridge Rd
+                  <br />
+                  <span style={{ opacity: 0.5, fontSize: "13px" }}>Big Sky, MT</span>
+                </>
+              ),
+              href: mapsUrl("20 Moose Ridge Road, Big Sky, MT"),
+            },
+            {
+              label: "Airport → House",
+              value: (
+                <>
+                  BZN <span style={{ color: RUST }}>→</span> 55 min
+                </>
+              ),
+              href: mapsDirectionsUrl([
+                "Bozeman Yellowstone International Airport",
+                "20 Moose Ridge Road, Big Sky, MT",
+              ]),
+            },
+            {
+              label: "Groceries",
+              value: (
+                <>
+                  Hungry Moose
+                  <br />
+                  <span style={{ opacity: 0.5, fontSize: "13px" }}>5 min drive</span>
+                </>
+              ),
+              href: mapsUrl("Hungry Moose Market & Deli, Big Sky, MT"),
+            },
+          ]}
+        />
       </div>
 
       {/* ═══ WARM INTRO ═══ */}
-      <div className="max-w-3xl mx-auto px-5 pt-8 pb-4 sm:px-8">
-        <p className="text-2xl leading-relaxed font-medium" style={{ color: INK }}>
-          Andrew planned this trip around what everyone said they wanted to do.
-          Here&apos;s your week.
+      <div className="max-w-3xl mx-auto px-5 pt-10 pb-6 sm:px-8">
+        <div
+          className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-3"
+          style={{ color: RUST, fontFamily: "'Arial Black', Impact, sans-serif" }}
+        >
+          The Plan
+          <span className="flex-1 h-px opacity-30" style={{ background: RUST }} />
+        </div>
+        <p
+          className="leading-relaxed"
+          style={{
+            color: INK,
+            fontSize: "19px",
+            fontFamily: "var(--font-fraunces), Georgia, serif",
+            maxWidth: "560px",
+          }}
+        >
+          Andrew planned this trip around what everyone said they wanted to do. Here&apos;s your week — tap any activity to react, leave a note, or propose an alternative.
         </p>
         <a
           href={`/trips/${tripId}/share/guide`}
-          className="inline-block text-xl font-bold px-6 py-3 mt-4"
-          style={{ backgroundColor: CARD_BG, color: INK, border: `2px solid ${RUST}`, borderRadius: "2px" }}
+          className="inline-block mt-6 text-sm font-black uppercase tracking-wider px-5 py-3 transition-colors"
+          style={{
+            backgroundColor: CARD_BG,
+            color: INK,
+            border: `2px solid ${RUST}`,
+            fontFamily: "'Arial Black', Impact, sans-serif",
+            letterSpacing: "0.1em",
+          }}
         >
           🗺 Local Guide — Coffee, Groceries, Ice Cream →
         </a>
@@ -353,10 +351,17 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
             Day {activeDay}
           </h2>
           {dayDate && (
-            <p className="text-xl font-bold uppercase tracking-wider mt-1" style={{ color: INK, opacity: 0.55 }}>
+            <p
+              className="text-lg italic mt-2"
+              style={{
+                color: INK,
+                opacity: 0.6,
+                fontFamily: "var(--font-fraunces), Georgia, serif",
+              }}
+            >
               {formatDayDate(dayDate)}
               {weather[activeDay] && (
-                <span className="ml-3 normal-case tracking-normal">
+                <span className="ml-3">
                   {weatherEmoji(weather[activeDay].code)} {weather[activeDay].high}°/{weather[activeDay].low}°F
                 </span>
               )}
@@ -366,7 +371,14 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
           {/* Day driving summary + route link */}
           <div className="flex items-center gap-4 mt-3 flex-wrap">
             {dayDrive > 0 && (
-              <span className="text-xl font-bold" style={{ color: INK, opacity: 0.6 }}>
+              <span
+                className="text-lg italic"
+                style={{
+                  color: INK,
+                  opacity: 0.6,
+                  fontFamily: "var(--font-fraunces), Georgia, serif",
+                }}
+              >
                 🚗 ~{dayDrive} min total driving
               </span>
             )}
