@@ -31,57 +31,6 @@ import { TripStats } from "@/components/itinerary/trip-stats";
 import { type FeedbackItem, type Participant } from "@/lib/itinerary-shared";
 import { getGuestParticipantId } from "@/lib/guest-identity";
 
-function PackingListSection({ tripId }: { tripId: string }) {
-  const [list, setList] = useState<Record<string, string[]> | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-
-  const fetchList = () => {
-    if (list) { setOpen(!open); return; }
-    setLoading(true);
-    fetch(`/api/trips/${tripId}/packing-list`)
-      .then((r) => r.json())
-      .then((data) => {
-        setList(data.packingList);
-        setOpen(true);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  };
-
-  return (
-    <div className="max-w-3xl mx-auto px-5 pb-8 sm:px-8">
-      <button
-        onClick={fetchList}
-        className="w-full text-xl font-bold py-4 text-center cursor-pointer"
-        style={{ backgroundColor: CARD_BG, color: INK, border: `2px solid ${RUST}`, borderRadius: "2px" }}
-      >
-        {loading ? "Generating packing list..." : open ? "🧳 Hide Packing List" : "🧳 What to Pack"}
-      </button>
-
-      {open && list && (
-        <div className="mt-4 p-6" style={{ backgroundColor: CARD_BG, border: `2px solid ${RUST}`, borderRadius: "2px" }}>
-          {Object.entries(list).map(([category, items]) => (
-            <div key={category} className="mb-5 last:mb-0">
-              <h3 className="text-xl font-black uppercase mb-2" style={{ color: RUST, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}>
-                {category}
-              </h3>
-              <ul className="space-y-1">
-                {items.map((item: string, i: number) => (
-                  <li key={i} className="text-lg font-medium flex items-start gap-2" style={{ color: INK }}>
-                    <span className="shrink-0">☐</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function GuestItinerary({ tripId }: { tripId: string }) {
   const [data, setData] = useState<ShareData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -142,6 +91,21 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
       .then((items) => setFeedbackItems(items))
       .catch(() => {});
   }, [guestId, tripId]);
+
+  // Initialize day from URL hash (e.g. #day-3 on load)
+  useEffect(() => {
+    if (typeof window === "undefined" || !data) return;
+    const match = window.location.hash.match(/^#day-(\d+)$/);
+    if (match) {
+      const d = parseInt(match[1], 10);
+      if (d >= 1) {
+        setActiveDay(d);
+        requestAnimationFrame(() => {
+          document.getElementById("day-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+    }
+  }, [data]);
 
   async function submitFeedback(blockId: string, type: string, text?: string) {
     if (!guestId) return;
@@ -278,40 +242,42 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
         />
       </div>
 
-      {/* ═══ WARM INTRO ═══ */}
-      <div className="max-w-3xl mx-auto px-5 pt-10 pb-6 sm:px-8">
-        <div
-          className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-3"
-          style={{ color: RUST, fontFamily: "'Arial Black', Impact, sans-serif" }}
-        >
-          The Plan
-          <span className="flex-1 h-px opacity-30" style={{ background: RUST }} />
+      {/* ═══ WARM INTRO (day 1 only) ═══ */}
+      {activeDay === 1 && (
+        <div className="max-w-3xl mx-auto px-5 pt-10 pb-6 sm:px-8">
+          <div
+            className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-3"
+            style={{ color: RUST, fontFamily: "'Arial Black', Impact, sans-serif" }}
+          >
+            The Plan
+            <span className="flex-1 h-px opacity-30" style={{ background: RUST }} />
+          </div>
+          <p
+            className="leading-relaxed"
+            style={{
+              color: INK,
+              fontSize: "19px",
+              fontFamily: "var(--font-fraunces), Georgia, serif",
+              maxWidth: "560px",
+            }}
+          >
+            Andrew planned this trip around what everyone said they wanted to do. Here&apos;s your week — tap any activity to react, leave a note, or propose an alternative.
+          </p>
+          <a
+            href={`/trips/${tripId}/share/guide`}
+            className="inline-block mt-6 text-sm font-black uppercase tracking-wider px-5 py-3 transition-colors"
+            style={{
+              backgroundColor: CARD_BG,
+              color: INK,
+              border: `2px solid ${RUST}`,
+              fontFamily: "'Arial Black', Impact, sans-serif",
+              letterSpacing: "0.1em",
+            }}
+          >
+            🗺 Local Guide — Coffee, Groceries, Ice Cream →
+          </a>
         </div>
-        <p
-          className="leading-relaxed"
-          style={{
-            color: INK,
-            fontSize: "19px",
-            fontFamily: "var(--font-fraunces), Georgia, serif",
-            maxWidth: "560px",
-          }}
-        >
-          Andrew planned this trip around what everyone said they wanted to do. Here&apos;s your week — tap any activity to react, leave a note, or propose an alternative.
-        </p>
-        <a
-          href={`/trips/${tripId}/share/guide`}
-          className="inline-block mt-6 text-sm font-black uppercase tracking-wider px-5 py-3 transition-colors"
-          style={{
-            backgroundColor: CARD_BG,
-            color: INK,
-            border: `2px solid ${RUST}`,
-            fontFamily: "'Arial Black', Impact, sans-serif",
-            letterSpacing: "0.1em",
-          }}
-        >
-          🗺 Local Guide — Coffee, Groceries, Ice Cream →
-        </a>
-      </div>
+      )}
 
       {/* ═══ GUEST IDENTITY + SIGN-OFF ═══ */}
       <div className="max-w-3xl mx-auto px-5 py-4 sm:px-8">
@@ -337,10 +303,25 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
       </div>
 
       {/* ═══ DAY PICKER ═══ */}
-      <DayPicker days={dayTabs} activeDay={activeDay} onSelect={(d) => { setActiveDay(d); }} />
+      <DayPicker
+        days={dayTabs}
+        activeDay={activeDay}
+        onSelect={(d) => {
+          setActiveDay(d);
+          // Update URL hash and scroll to the day content
+          if (typeof window !== "undefined") {
+            window.history.replaceState(null, "", `#day-${d}`);
+            requestAnimationFrame(() => {
+              document
+                .getElementById("day-content")
+                ?.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+          }
+        }}
+      />
 
       {/* ═══ DAY CONTENT ═══ */}
-      <div className="max-w-3xl mx-auto px-5 py-8 sm:px-8">
+      <div id="day-content" className="max-w-3xl mx-auto px-5 py-8 sm:px-8 scroll-mt-4">
         {/* Day title */}
         <div className="mb-6">
           <h2
@@ -380,15 +361,6 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
               >
                 🚗 ~{dayDrive} min total driving
               </span>
-            )}
-            {dayLocs.length >= 2 && (
-              <a
-                href={`/trips/${tripId}/share/map/${activeDay}`}
-                className="text-xl font-bold underline underline-offset-4"
-                style={{ color: RUST }}
-              >
-                Open full route →
-              </a>
             )}
           </div>
         </div>
@@ -518,7 +490,14 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
         <div className="flex justify-between mt-8">
           {activeDay > dayNumbers[0] ? (
             <button
-              onClick={() => setActiveDay(activeDay - 1)}
+              onClick={() => {
+                const next = activeDay - 1;
+                setActiveDay(next);
+                window.history.replaceState(null, "", `#day-${next}`);
+                requestAnimationFrame(() => {
+                  document.getElementById("day-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+              }}
               className="text-xl font-bold px-6 py-3"
               style={{ backgroundColor: CARD_BG, color: INK, border: `2px solid ${RUST}`, borderRadius: "2px" }}
             >
@@ -527,7 +506,14 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
           ) : <div />}
           {activeDay < dayNumbers[dayNumbers.length - 1] ? (
             <button
-              onClick={() => { setActiveDay(activeDay + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              onClick={() => {
+                const next = activeDay + 1;
+                setActiveDay(next);
+                window.history.replaceState(null, "", `#day-${next}`);
+                requestAnimationFrame(() => {
+                  document.getElementById("day-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+              }}
               className="text-xl font-bold px-6 py-3"
               style={{ backgroundColor: RUST, color: CREAM, border: `2px solid ${RUST}`, borderRadius: "2px" }}
             >
@@ -536,8 +522,6 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
           ) : <div />}
         </div>
       </div>
-
-      <PackingListSection tripId={tripId} />
 
       {/* ═══ FOOTER ═══ */}
       <div className="max-w-3xl mx-auto px-5 pb-16 sm:px-8">
