@@ -23,6 +23,11 @@ import {
   getDayDriveTotal,
   TravelCard,
 } from "@/lib/itinerary-shared";
+import { NamePicker } from "@/components/itinerary/name-picker";
+import { ThreeDotMenu } from "@/components/itinerary/three-dot-menu";
+import { SignOffBanner } from "@/components/itinerary/sign-off-banner";
+import { type FeedbackItem, type Participant } from "@/lib/itinerary-shared";
+import { getGuestParticipantId } from "@/lib/guest-identity";
 
 function PackingListSection({ tripId }: { tripId: string }) {
   const [list, setList] = useState<Record<string, string[]> | null>(null);
@@ -82,6 +87,10 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
   const [activeDay, setActiveDay] = useState(1);
   const [expandedBlock, setExpandedBlock] = useState<string | null>(null);
   const [weather, setWeather] = useState<Record<number, { high: number; low: number; code: number }>>({});
+  const [guestId, setGuestId] = useState<string | null>(null);
+  const [guestName, setGuestName] = useState<string | null>(null);
+  const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
+  const [signOffStatus, setSignOffStatus] = useState<"approved" | "has_feedback" | null>(null);
 
   useEffect(() => {
     // Fetch trip data + weather in parallel (independent requests)
@@ -110,6 +119,51 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
       })
       .catch(() => { setError(true); setLoading(false); });
   }, [tripId]);
+
+  // Initialize guest identity from localStorage
+  useEffect(() => {
+    if (!data) return;
+    const storedId = getGuestParticipantId(tripId);
+    if (storedId) {
+      const participant = (data.participants as Participant[] | undefined)?.find((p) => p.id === storedId);
+      if (participant) {
+        setGuestId(storedId);
+        setGuestName(participant.name || "Guest");
+      }
+    }
+  }, [data, tripId]);
+
+  // Fetch feedback items when guest is identified
+  useEffect(() => {
+    if (!guestId) return;
+    fetch(`/api/trips/${tripId}/feedback`)
+      .then((r) => r.json())
+      .then((items) => setFeedbackItems(items))
+      .catch(() => {});
+  }, [guestId, tripId]);
+
+  async function submitFeedback(blockId: string, type: string, text?: string) {
+    if (!guestId) return;
+    const res = await fetch(`/api/trips/${tripId}/feedback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ blockId, participantId: guestId, type, text }),
+    });
+    if (res.ok) {
+      const item = await res.json();
+      setFeedbackItems((prev) => [...prev, item]);
+    }
+  }
+
+  async function submitSignOff(status: "approved" | "has_feedback") {
+    if (!guestId) return;
+    await fetch(`/api/trips/${tripId}/sign-off`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ participantId: guestId, status }),
+    });
+    setSignOffStatus(status);
+  }
 
   if (loading) {
     return (
@@ -262,6 +316,29 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
         </a>
       </div>
 
+      {/* ═══ GUEST IDENTITY + SIGN-OFF ═══ */}
+      <div className="max-w-3xl mx-auto px-5 py-4 sm:px-8">
+        {!guestId ? (
+          <NamePicker
+            tripId={tripId}
+            participants={(data.participants as Participant[]) || []}
+            onSelect={(id, name) => {
+              setGuestId(id);
+              setGuestName(name);
+            }}
+          />
+        ) : (
+          <SignOffBanner
+            tripId={tripId}
+            participantId={guestId}
+            participantName={guestName}
+            itineraryStatus={data.itinerary?.status || "reviewing"}
+            onSignOff={submitSignOff}
+            existingSignOff={signOffStatus}
+          />
+        )}
+      </div>
+
       {/* ═══ DAY PICKER ═══ */}
       <DayPicker days={dayTabs} activeDay={activeDay} onSelect={(d) => { setActiveDay(d); setExpandedBlock(null); }} />
 
@@ -328,7 +405,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                 )}
                 <div
                   onClick={() => setExpandedBlock(isExpanded ? null : block.id)}
-                  className="cursor-pointer transition-opacity mb-4"
+                  className="cursor-pointer transition-opacity mb-5"
                   style={{
                     backgroundColor: CARD_BG,
                     border: `2px solid ${isAlt ? MUSTARD : RUST}`,
@@ -354,19 +431,19 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                   {/* Top row */}
                   <div className="flex items-center gap-2.5 flex-wrap mb-2">
                     {block.startTime && (
-                      <span className="text-xl font-mono font-bold" style={{ color: INK, opacity: 0.65 }}>
+                      <span className="text-base font-mono font-bold" style={{ color: INK, opacity: 0.65 }}>
                         {formatTime(block.startTime)}{block.endTime && `–${formatTime(block.endTime)}`}
                       </span>
                     )}
                     <span
-                      className="text-lg px-3 py-1 font-bold uppercase tracking-wider"
+                      className="text-sm px-3 py-1 font-bold uppercase tracking-wider"
                       style={{ backgroundColor: config.bg, color: INK, border: `1.5px solid ${RUST}`, borderRadius: "2px" }}
                     >
                       {config.icon} {config.label}
                     </span>
                     {isAlt && (
                       <span
-                        className="text-lg px-3 py-1 font-bold uppercase tracking-wider"
+                        className="text-sm px-3 py-1 font-bold uppercase tracking-wider"
                         style={{ backgroundColor: CREAM, color: INK, border: `1.5px solid ${MUSTARD}`, borderRadius: "2px" }}
                       >
                         ↔️ Alternative
@@ -374,13 +451,26 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                     )}
                   </div>
 
-                  {/* Title */}
-                  <p
-                    className="font-black uppercase text-2xl leading-tight"
-                    style={{ color: RUST, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}
-                  >
-                    {block.title}
-                  </p>
+                  {/* Title + feedback menu */}
+                  <div className="flex items-start justify-between gap-2">
+                    <p
+                      className="font-black uppercase text-2xl leading-tight"
+                      style={{ color: RUST, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}
+                    >
+                      {block.title}
+                    </p>
+                    {guestId && (
+                      <ThreeDotMenu
+                        blockId={block.id}
+                        onFeedback={(type, text) => submitFeedback(block.id, type, text)}
+                        existingFeedback={
+                          feedbackItems.find(
+                            (f) => f.blockId === block.id && f.participantId === guestId
+                          )?.type
+                        }
+                      />
+                    )}
+                  </div>
 
                   {/* Location */}
                   {block.location && (
@@ -389,7 +479,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-block text-xl mt-1.5 font-semibold underline underline-offset-4 decoration-1"
+                      className="inline-block text-base mt-1.5 font-semibold underline underline-offset-4 decoration-1"
                       style={{ color: INK, opacity: 0.75 }}
                     >
                       📍 {block.location} →
@@ -398,7 +488,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
 
                   {/* Expanded — description only, NO reasoning */}
                   {isExpanded && block.description && (
-                    <p className="text-xl leading-relaxed font-medium mt-4" style={{ color: INK }}>
+                    <p className="text-base leading-relaxed font-medium mt-4" style={{ color: INK }}>
                       {block.description}
                     </p>
                   )}
