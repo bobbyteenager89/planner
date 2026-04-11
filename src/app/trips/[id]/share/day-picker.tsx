@@ -34,7 +34,7 @@ export function DayPicker({
       className="sticky top-0 z-20 overflow-x-auto"
       style={{ backgroundColor: CREAM, borderBottom: `2px solid ${RUST}` }}
     >
-      <div className="flex gap-1 px-4 py-3 pr-8 min-w-max sm:justify-center">
+      <div className="flex gap-2 px-4 py-3 pr-8 min-w-max">
         {days.map((d) => {
           const isActive = d.dayNumber === activeDay;
           return (
@@ -42,28 +42,38 @@ export function DayPicker({
               key={d.dayNumber}
               ref={isActive ? activeRef : undefined}
               onClick={() => onSelect(d.dayNumber)}
-              className="flex flex-col items-center px-4 py-2 transition-all shrink-0"
+              className="flex flex-col items-center px-3 py-2.5 transition-all shrink-0"
               style={{
                 backgroundColor: isActive ? RUST : CARD_BG,
                 color: isActive ? CREAM : INK,
                 borderRadius: "2px",
                 border: `1.5px solid ${RUST}`,
-                minWidth: "4.5rem",
+                width: "7.5rem",
               }}
             >
               <span
-                className="text-xl font-black uppercase"
+                className="text-xs font-black uppercase tracking-[0.15em]"
+                style={{
+                  fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif",
+                  opacity: isActive ? 0.85 : 0.55,
+                }}
+              >
+                {d.weekday}
+              </span>
+              <span
+                className="text-2xl font-black uppercase leading-none mt-0.5"
                 style={{ fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}
               >
-                Day {d.dayNumber}
-              </span>
-              <span className="text-lg font-bold uppercase tracking-wider" style={{ opacity: isActive ? 0.85 : 0.55 }}>
-                {d.weekday}
+                {d.dayNumber}
               </span>
               {d.vibe && (
                 <span
-                  className="text-sm font-medium mt-0.5 max-w-[5.5rem] truncate"
-                  style={{ opacity: isActive ? 0.75 : 0.4 }}
+                  className="text-[11px] italic text-center mt-1 leading-tight"
+                  style={{
+                    opacity: isActive ? 0.9 : 0.55,
+                    fontFamily: "var(--font-fraunces), Georgia, serif",
+                    wordBreak: "break-word",
+                  }}
                 >
                   {d.vibe}
                 </span>
