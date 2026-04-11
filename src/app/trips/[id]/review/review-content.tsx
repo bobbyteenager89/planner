@@ -36,6 +36,10 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { FeedbackInbox } from "@/components/itinerary/feedback-inbox";
+import { MapTab } from "@/components/itinerary/map-tab";
+import { OpsTab } from "@/components/itinerary/ops-tab";
+import { type FeedbackItem, type SignOff, type Participant } from "@/lib/itinerary-shared";
 
 function SectionDivider({ title }: { title: string }) {
   return (
@@ -73,6 +77,7 @@ function SortableBlock({ id, children }: { id: string; children: React.ReactNode
 }
 
 type ViewMode = "schedule" | "reasoning";
+type EditorTab = "agenda" | "map" | "ops";
 
 export function ReviewItinerary({ tripId }: { tripId: string }) {
   const [data, setData] = useState<ShareData | null>(null);
@@ -87,6 +92,9 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
   const [editForm, setEditForm] = useState<Partial<Block>>({});
   const [saving, setSaving] = useState(false);
   const [regeneratingDay, setRegeneratingDay] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<EditorTab>("agenda");
+  const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
+  const [signOffs, setSignOffs] = useState<SignOff[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -104,6 +112,17 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
   }, [tripId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => {
+    if (!data) return;
+    Promise.all([
+      fetch(`/api/trips/${tripId}/feedback`).then((r) => r.json()),
+      fetch(`/api/trips/${tripId}/sign-offs`).then((r) => r.json()),
+    ]).then(([fb, so]) => {
+      setFeedbackItems(fb);
+      setSignOffs(so);
+    }).catch(() => {});
+  }, [data, tripId]);
 
   // ── Pin/Unpin ──
   async function togglePin(blockId: string) {
@@ -225,6 +244,25 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
     } finally {
       setRegeneratingDay(null);
     }
+  }
+
+  async function handleFeedbackAction(feedbackId: string, action: "accepted" | "dismissed", adminNote?: string) {
+    const res = await fetch(`/api/trips/${tripId}/feedback/${feedbackId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: action, adminNote }),
+    });
+    if (res.ok) {
+      setFeedbackItems((prev) =>
+        prev.map((f) => (f.id === feedbackId ? { ...f, status: action, adminNote: adminNote || f.adminNote } : f))
+      );
+    }
+  }
+
+  async function handleFinalize() {
+    if (!confirm("This will mark the plan as final for all guests. Continue?")) return;
+    const res = await fetch(`/api/trips/${tripId}/finalize`, { method: "PATCH" });
+    if (res.ok) fetchData();
   }
 
   if (loading) {
@@ -410,6 +448,41 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
           </div>
         </section>
 
+        {/* ═══ TAB BAR ═══ */}
+        <div className="flex gap-2 mb-6 items-center">
+          {(["agenda", "map", "ops"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className="px-5 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wide transition-colors"
+              style={{
+                background: activeTab === tab ? RUST : CREAM,
+                color: activeTab === tab ? "white" : INK,
+              }}
+            >
+              {tab === "agenda" ? "Agenda" : tab === "map" ? "Map" : "Ops"}
+              {tab === "ops" && feedbackItems.filter((f) => f.status === "pending").length > 0 && (
+                <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs" style={{ background: MUSTARD, color: INK }}>
+                  {feedbackItems.filter((f) => f.status === "pending").length}
+                </span>
+              )}
+            </button>
+          ))}
+          <button
+            onClick={handleFinalize}
+            className="ml-auto px-5 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wide"
+            style={{ background: "#4CAF50", color: "white" }}
+          >
+            Finalize
+          </button>
+        </div>
+
+        {activeTab === "agenda" && (
+          <FeedbackInbox items={feedbackItems} onAction={handleFeedbackAction} />
+        )}
+
+        {activeTab === "agenda" && (
+          <>
         {/* ═══ VIEW TOGGLE ═══ */}
         <div className="flex gap-2 mb-6">
           {[
@@ -826,6 +899,21 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                 );
               })}
           </>
+        )}
+          </>
+        )}
+
+        {activeTab === "map" && data && (
+          <MapTab blocks={data.blocks} startDate={data.trip?.startDate || null} />
+        )}
+
+        {activeTab === "ops" && data && (
+          <OpsTab
+            tripId={tripId}
+            participants={(data.participants as Participant[]) || []}
+            feedbackItems={feedbackItems}
+            signOffs={signOffs}
+          />
         )}
 
         {/* ═══ FOOTER ═══ */}
