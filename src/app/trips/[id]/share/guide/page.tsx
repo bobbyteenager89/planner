@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { LOCAL_SPOTS, SPOT_CATEGORIES } from "@/lib/bigsky-local-spots";
 
 const INK = "#3B1A0F";
@@ -9,18 +10,22 @@ function mapsUrl(address: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
 
-export default function GuidePage() {
+export default async function GuidePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   return (
     <div style={{ minHeight: "100dvh", backgroundColor: CREAM }}>
       <div className="px-5 py-8 sm:px-10 sm:py-10" style={{ backgroundColor: RUST }}>
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a
-          href="javascript:history.back()"
-          className="text-lg font-bold"
+        <Link
+          href={`/trips/${id}/share`}
+          className="text-lg font-bold hover:opacity-100 transition-opacity"
           style={{ color: CREAM, opacity: 0.7 }}
         >
           ← Back to itinerary
-        </a>
+        </Link>
         <h1
           className="text-4xl sm:text-5xl font-black uppercase leading-none"
           style={{ color: CREAM, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}
