@@ -38,6 +38,40 @@ export interface ShareData {
   participants: Array<{ name: string | null; role: string }>;
 }
 
+export interface FeedbackItem {
+  id: string;
+  blockId: string;
+  participantId: string;
+  participantName: string | null;
+  type: "love" | "propose_alternative" | "different_time" | "skip" | "note";
+  text: string | null;
+  status: "pending" | "accepted" | "dismissed";
+  adminNote: string | null;
+  createdAt: string;
+}
+
+export interface SignOff {
+  id: string;
+  participantId: string;
+  participantName: string | null;
+  status: "approved" | "has_feedback";
+  createdAt: string;
+}
+
+export interface Participant {
+  id: string;
+  name: string | null;
+  role: string;
+}
+
+export const FEEDBACK_TYPE_CONFIG: Record<string, { icon: string; label: string }> = {
+  love: { icon: "\u2764\uFE0F", label: "Loves this" },
+  propose_alternative: { icon: "\uD83D\uDD04", label: "Proposed alternative" },
+  different_time: { icon: "\u23F0", label: "Different time" },
+  skip: { icon: "\u23ED\uFE0F", label: "Skipping" },
+  note: { icon: "\uD83D\uDCDD", label: "Note" },
+};
+
 // ── Palette ──
 export const INK = "#3B1A0F";
 export const RUST = "#D14F36";
