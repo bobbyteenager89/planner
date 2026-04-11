@@ -3,125 +3,164 @@
 import { useState, useRef, useEffect } from "react";
 import { INK, CREAM, RUST, MUSTARD } from "@/lib/itinerary-shared";
 
-interface ThreeDotMenuProps {
+interface FeedbackActionsProps {
   blockId: string;
   onFeedback: (type: string, text?: string) => void;
-  existingFeedback?: string;
+  existingFeedback?: string; // type of existing feedback
 }
 
-const MENU_ITEMS = [
-  { type: "love", icon: "\u2764\uFE0F", label: "Love this" },
-  { type: "propose_alternative", icon: "\uD83D\uDD04", label: "Propose alternative" },
-  { type: "different_time", icon: "\u23F0", label: "Different time" },
-  { type: "skip", icon: "\u23ED\uFE0F", label: "I'll skip this" },
-  { type: "note", icon: "\uD83D\uDCDD", label: "Add a note" },
+const SUGGEST_OPTIONS = [
+  { type: "propose_alternative", label: "Alternative activity", placeholder: "What would you suggest instead?" },
+  { type: "different_time", label: "Different time", placeholder: "When would work better?" },
+  { type: "skip", label: "I'll skip this", placeholder: "Any reason? (optional)", optional: true },
+  { type: "note", label: "Just a note", placeholder: "What's on your mind?" },
 ];
 
-export function ThreeDotMenu({ blockId, onFeedback, existingFeedback }: ThreeDotMenuProps) {
+export function ThreeDotMenu({ blockId, onFeedback, existingFeedback }: FeedbackActionsProps) {
   const [open, setOpen] = useState(false);
-  const [textMode, setTextMode] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
   const [text, setText] = useState("");
-  const menuRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (formRef.current && !formRef.current.contains(e.target as Node)) {
         setOpen(false);
-        setTextMode(null);
+        setSelectedType(null);
         setText("");
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
+    if (open) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [open]);
 
-  function handleItemClick(type: string) {
-    if (type === "love") {
-      onFeedback("love");
-      setOpen(false);
-      return;
-    }
-    setTextMode(type);
+  const isLoved = existingFeedback === "love";
+  const hasSuggestion = existingFeedback && existingFeedback !== "love";
+
+  function handleLove() {
+    if (isLoved) return; // already loved
+    onFeedback("love");
   }
 
-  function handleSubmit() {
-    if (textMode && text.trim()) {
-      onFeedback(textMode, text.trim());
-      setOpen(false);
-      setTextMode(null);
-      setText("");
-    }
+  function handleSubmitSuggestion() {
+    if (!selectedType) return;
+    const option = SUGGEST_OPTIONS.find((o) => o.type === selectedType);
+    if (!option?.optional && !text.trim()) return;
+    onFeedback(selectedType, text.trim() || undefined);
+    setOpen(false);
+    setSelectedType(null);
+    setText("");
   }
 
   return (
-    <div className="relative" ref={menuRef}>
-      <button
-        onClick={(e) => { e.stopPropagation(); setOpen(!open); setTextMode(null); setText(""); }}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:scale-105"
-        style={{
-          background: existingFeedback ? MUSTARD : CREAM,
-          border: `1.5px solid ${RUST}`,
-          color: INK,
-          fontFamily: "'Arial Black', Impact, sans-serif",
-          fontSize: "10px",
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-        }}
-        title="React or propose a change"
-      >
-        <span style={{ fontSize: "13px", lineHeight: 1 }}>{existingFeedback ? "\u2713" : "\u22EF"}</span>
-        <span>{existingFeedback ? "Sent" : "React"}</span>
-      </button>
+    <div className="relative" ref={formRef}>
+      <div className="flex gap-2">
+        {/* Love button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); handleLove(); }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:scale-105"
+          style={{
+            background: isLoved ? RUST : CREAM,
+            border: `1.5px solid ${RUST}`,
+            color: isLoved ? "white" : INK,
+            fontFamily: "'Arial Black', Impact, sans-serif",
+            fontSize: "10px",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+          }}
+          title={isLoved ? "You loved this" : "Love this activity"}
+        >
+          <span style={{ fontSize: "12px", lineHeight: 1 }}>{isLoved ? "\u2665" : "\u2661"}</span>
+          <span>{isLoved ? "Loved" : "Love"}</span>
+        </button>
 
+        {/* Suggest button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); setOpen(!open); setSelectedType(null); setText(""); }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:scale-105"
+          style={{
+            background: hasSuggestion ? MUSTARD : CREAM,
+            border: `1.5px solid ${RUST}`,
+            color: INK,
+            fontFamily: "'Arial Black', Impact, sans-serif",
+            fontSize: "10px",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+          }}
+          title="Propose a change or leave a note"
+        >
+          <span style={{ fontSize: "12px", lineHeight: 1 }}>{hasSuggestion ? "\u2713" : "\u270E"}</span>
+          <span>{hasSuggestion ? "Sent" : "Suggest"}</span>
+        </button>
+      </div>
+
+      {/* Suggest panel */}
       {open && (
         <div
-          className="absolute right-0 top-full mt-1 z-50 rounded-xl shadow-lg border overflow-hidden min-w-[220px]"
+          className="absolute right-0 top-full mt-2 z-50 rounded-xl shadow-lg border overflow-hidden w-[300px]"
           style={{ background: "white", borderColor: CREAM }}
         >
-          {!textMode ? (
-            MENU_ITEMS.map((item) => (
-              <button
-                key={item.type}
-                onClick={() => handleItemClick(item.type)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left hover:bg-black/5 transition-colors"
-                style={{ color: INK, background: existingFeedback === item.type ? CREAM : undefined }}
+          {!selectedType ? (
+            <div className="py-2">
+              <div
+                className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em]"
+                style={{ color: RUST, fontFamily: "'Arial Black', Impact, sans-serif" }}
               >
-                <span>{item.icon}</span>
-                <span>{item.label}</span>
-                {existingFeedback === item.type && (
-                  <span className="ml-auto text-xs opacity-50">sent</span>
-                )}
-              </button>
-            ))
+                What kind of suggestion?
+              </div>
+              {SUGGEST_OPTIONS.map((opt) => (
+                <button
+                  key={opt.type}
+                  onClick={() => setSelectedType(opt.type)}
+                  className="w-full px-4 py-3 text-sm text-left hover:bg-black/5 transition-colors"
+                  style={{ color: INK, fontFamily: "var(--font-fraunces), Georgia, serif" }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           ) : (
             <div className="p-4">
-              <p className="text-sm font-semibold mb-2" style={{ color: INK }}>
-                {MENU_ITEMS.find((m) => m.type === textMode)?.label}
-              </p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-semibold" style={{ color: INK, fontFamily: "'Arial Black', Impact, sans-serif", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                  {SUGGEST_OPTIONS.find((o) => o.type === selectedType)?.label}
+                </p>
+                <button
+                  onClick={() => { setSelectedType(null); setText(""); }}
+                  className="text-xs opacity-50 hover:opacity-100"
+                  style={{ color: INK }}
+                >
+                  &larr; Back
+                </button>
+              </div>
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="What do you have in mind?"
+                placeholder={SUGGEST_OPTIONS.find((o) => o.type === selectedType)?.placeholder}
                 className="w-full rounded-lg border p-3 text-sm resize-none"
-                style={{ borderColor: CREAM, color: INK }}
+                style={{
+                  borderColor: CREAM,
+                  color: INK,
+                  fontFamily: "var(--font-fraunces), Georgia, serif",
+                  fontSize: "14px",
+                }}
                 rows={3}
                 autoFocus
               />
               <div className="flex gap-2 mt-2">
                 <button
-                  onClick={handleSubmit}
-                  disabled={!text.trim()}
+                  onClick={handleSubmitSuggestion}
+                  disabled={!SUGGEST_OPTIONS.find((o) => o.type === selectedType)?.optional && !text.trim()}
                   className="flex-1 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-40"
-                  style={{ background: RUST }}
+                  style={{
+                    background: RUST,
+                    fontFamily: "'Arial Black', Impact, sans-serif",
+                    fontSize: "11px",
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                  }}
                 >
                   Send
-                </button>
-                <button
-                  onClick={() => { setTextMode(null); setText(""); }}
-                  className="px-4 py-2 rounded-lg text-sm"
-                  style={{ color: INK }}
-                >
-                  Cancel
                 </button>
               </div>
             </div>
