@@ -87,7 +87,6 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [activeDay, setActiveDay] = useState(1);
-  const [expandedBlock, setExpandedBlock] = useState<string | null>(null);
   const [weather, setWeather] = useState<Record<number, { high: number; low: number; code: number }>>({});
   const [guestId, setGuestId] = useState<string | null>(null);
   const [guestName, setGuestName] = useState<string | null>(null);
@@ -338,7 +337,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
       </div>
 
       {/* ═══ DAY PICKER ═══ */}
-      <DayPicker days={dayTabs} activeDay={activeDay} onSelect={(d) => { setActiveDay(d); setExpandedBlock(null); }} />
+      <DayPicker days={dayTabs} activeDay={activeDay} onSelect={(d) => { setActiveDay(d); }} />
 
       {/* ═══ DAY CONTENT ═══ */}
       <div className="max-w-3xl mx-auto px-5 py-8 sm:px-8">
@@ -398,7 +397,6 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
         <div className="space-y-0">
           {currentBlocks.map((block, idx) => {
             const config = TYPE_CONFIG[block.type] || TYPE_CONFIG.note;
-            const isExpanded = expandedBlock === block.id;
             const isAlt = block.title.includes("(Alt)");
 
             const prevBlock = idx > 0 ? currentBlocks[idx - 1] : null;
@@ -416,8 +414,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                   <TravelCard fromLocation={prevBlock!.location!} toLocation={block.location!} />
                 )}
                 <div
-                  onClick={() => setExpandedBlock(isExpanded ? null : block.id)}
-                  className="cursor-pointer transition-opacity mb-5"
+                  className="transition-opacity mb-5"
                   style={{
                     backgroundColor: CARD_BG,
                     border: `2px solid ${isAlt ? MUSTARD : RUST}`,
@@ -425,7 +422,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                     borderStyle: isAlt ? "dashed" : "solid",
                     padding: "1.5rem 1.75rem",
                     marginLeft: isAlt ? "1.5rem" : 0,
-                    opacity: isAlt && !isExpanded ? 0.8 : 1,
+                    opacity: isAlt ? 0.9 : 1,
                     overflow: "hidden",
                   }}
                 >
@@ -498,9 +495,16 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                     </a>
                   )}
 
-                  {/* Expanded — description only, NO reasoning */}
-                  {isExpanded && block.description && (
-                    <p className="text-base leading-relaxed font-medium mt-4" style={{ color: INK }}>
+                  {block.description && (
+                    <p
+                      className="leading-relaxed mt-4"
+                      style={{
+                        color: INK,
+                        fontSize: "16px",
+                        opacity: 0.85,
+                        fontFamily: "var(--font-fraunces), Georgia, serif",
+                      }}
+                    >
                       {block.description}
                     </p>
                   )}
@@ -523,7 +527,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
           ) : <div />}
           {activeDay < dayNumbers[dayNumbers.length - 1] ? (
             <button
-              onClick={() => { setActiveDay(activeDay + 1); setExpandedBlock(null); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              onClick={() => { setActiveDay(activeDay + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
               className="text-xl font-bold px-6 py-3"
               style={{ backgroundColor: RUST, color: CREAM, border: `2px solid ${RUST}`, borderRadius: "2px" }}
             >

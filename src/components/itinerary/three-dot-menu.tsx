@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { INK, CREAM, RUST } from "@/lib/itinerary-shared";
+import { INK, CREAM, RUST, MUSTARD } from "@/lib/itinerary-shared";
 
 interface ThreeDotMenuProps {
   blockId: string;
@@ -57,11 +57,20 @@ export function ThreeDotMenu({ blockId, onFeedback, existingFeedback }: ThreeDot
     <div className="relative" ref={menuRef}>
       <button
         onClick={(e) => { e.stopPropagation(); setOpen(!open); setTextMode(null); setText(""); }}
-        className="p-1.5 rounded-full hover:bg-black/5 transition-colors"
-        style={{ color: INK }}
-        title="Options"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:scale-105"
+        style={{
+          background: existingFeedback ? MUSTARD : CREAM,
+          border: `1.5px solid ${RUST}`,
+          color: INK,
+          fontFamily: "'Arial Black', Impact, sans-serif",
+          fontSize: "10px",
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+        }}
+        title="React or propose a change"
       >
-        <span className="text-lg leading-none">{"\u22EF"}</span>
+        <span style={{ fontSize: "13px", lineHeight: 1 }}>{existingFeedback ? "\u2713" : "\u22EF"}</span>
+        <span>{existingFeedback ? "Sent" : "React"}</span>
       </button>
 
       {open && (

@@ -55,8 +55,8 @@ export function SignOffBanner({
           <h3 className="text-xl font-bold mb-2" style={{ fontFamily: "'Arial Black', Impact, sans-serif" }}>
             How&apos;s this look, {participantName}?
           </h3>
-          <p className="text-sm opacity-70 mb-4">
-            Review the plan below. You can react to individual items using the menu on each activity.
+          <p className="text-sm opacity-70 mb-4" style={{ fontFamily: "var(--font-fraunces), Georgia, serif", fontSize: "15px" }}>
+            Scroll through the week below. Tap <strong style={{ color: RUST }}>&#x22EF; React</strong> on any activity to leave a note, propose an alternative, or say you love it.
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <button
@@ -78,9 +78,9 @@ export function SignOffBanner({
       ) : (
         <div className="rounded-xl px-4 py-3 text-center text-sm" style={{ background: CREAM, color: INK }}>
           {submitted === "approved" ? (
-            <span>&#x2705; You&apos;re all set, {participantName}! You can still leave notes on individual items below.</span>
+            <span>&#x2705; You&apos;re all set, {participantName}! You can still tap <strong style={{ color: RUST }}>&#x22EF; React</strong> on any activity below to leave notes.</span>
           ) : (
-            <span>&#x1F4DD; Thanks, {participantName}! Use the menu on each item to share your thoughts.</span>
+            <span>&#x1F4DD; Thanks, {participantName}! Tap <strong style={{ color: RUST }}>&#x22EF; React</strong> on any activity below to share your thoughts.</span>
           )}
         </div>
       )}
