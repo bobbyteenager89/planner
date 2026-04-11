@@ -75,7 +75,7 @@ export async function GET(
       .from(itineraryBlocks)
       .where(eq(itineraryBlocks.itineraryId, itinerary.id)),
     database
-      .select({ name: participants.name, role: participants.role })
+      .select({ id: participants.id, name: participants.name, role: participants.role })
       .from(participants)
       .where(eq(participants.tripId, id)),
   ]);
@@ -95,6 +95,7 @@ export async function GET(
       },
       blocks: sortedBlocks,
       participants: allParticipants.map((p) => ({
+        id: p.id,
         name: p.name,
         role: p.role,
       })),
