@@ -33,6 +33,7 @@ export const participantStatusEnum = pgEnum("participant_status", [
 
 export const participantRoleEnum = pgEnum("participant_role", [
   "owner",
+  "co_admin",
   "participant",
 ]);
 
@@ -274,6 +275,7 @@ export const itineraries = pgTable(
     comments: jsonb("comments")
       .$type<Array<{ participantId: string; text: string; createdAt: string }>>()
       .default([]),
+    presentationDismissed: boolean("presentation_dismissed").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [

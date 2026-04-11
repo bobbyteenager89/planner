@@ -1,0 +1,172 @@
+import {
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+  integer,
+  pgEnum,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { trips, participants, itineraryBlocks } from "./schema";
+
+// ── Feedback Enums ────────────────────────────────────────
+
+export const feedbackTypeEnum = pgEnum("feedback_type", [
+  "love",
+  "propose_alternative",
+  "different_time",
+  "skip",
+  "note",
+]);
+
+export const feedbackStatusEnum = pgEnum("feedback_status", [
+  "pending",
+  "accepted",
+  "dismissed",
+]);
+
+export const signOffStatusEnum = pgEnum("sign_off_status", [
+  "approved",
+  "has_feedback",
+]);
+
+// ── Feedback Items ────────────────────────────────────────
+
+export const feedbackItems = pgTable(
+  "feedback_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    blockId: uuid("block_id")
+      .references(() => itineraryBlocks.id, { onDelete: "cascade" }),
+    participantId: uuid("participant_id")
+      .notNull()
+      .references(() => participants.id, { onDelete: "cascade" }),
+    type: feedbackTypeEnum("type").notNull(),
+    text: text("text"),
+    status: feedbackStatusEnum("status").notNull().default("pending"),
+    adminNote: text("admin_note"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("feedback_items_trip_id_idx").on(table.tripId),
+    index("feedback_items_block_id_idx").on(table.blockId),
+    index("feedback_items_participant_id_idx").on(table.participantId),
+  ]
+);
+
+// ── Sign Offs ─────────────────────────────────────────────
+
+export const signOffs = pgTable(
+  "sign_offs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    participantId: uuid("participant_id")
+      .notNull()
+      .references(() => participants.id, { onDelete: "cascade" }),
+    status: signOffStatusEnum("status").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("sign_offs_trip_id_idx").on(table.tripId),
+    uniqueIndex("sign_offs_trip_participant_idx").on(
+      table.tripId,
+      table.participantId
+    ),
+  ]
+);
+
+// ── Households ────────────────────────────────────────────
+
+export const households = pgTable(
+  "households",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 255 }).notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+  },
+  (table) => [index("households_trip_id_idx").on(table.tripId)]
+);
+
+// ── Household Members ─────────────────────────────────────
+
+export const householdMembers = pgTable(
+  "household_members",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    householdId: uuid("household_id")
+      .notNull()
+      .references(() => households.id, { onDelete: "cascade" }),
+    participantId: uuid("participant_id")
+      .notNull()
+      .references(() => participants.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    index("household_members_household_id_idx").on(table.householdId),
+    uniqueIndex("household_members_household_participant_idx").on(
+      table.householdId,
+      table.participantId
+    ),
+  ]
+);
+
+// ── Relations ─────────────────────────────────────────────
+
+export const feedbackItemsRelations = relations(feedbackItems, ({ one }) => ({
+  trip: one(trips, {
+    fields: [feedbackItems.tripId],
+    references: [trips.id],
+  }),
+  block: one(itineraryBlocks, {
+    fields: [feedbackItems.blockId],
+    references: [itineraryBlocks.id],
+  }),
+  participant: one(participants, {
+    fields: [feedbackItems.participantId],
+    references: [participants.id],
+  }),
+}));
+
+export const signOffsRelations = relations(signOffs, ({ one }) => ({
+  trip: one(trips, {
+    fields: [signOffs.tripId],
+    references: [trips.id],
+  }),
+  participant: one(participants, {
+    fields: [signOffs.participantId],
+    references: [participants.id],
+  }),
+}));
+
+export const householdsRelations = relations(households, ({ one, many }) => ({
+  trip: one(trips, {
+    fields: [households.tripId],
+    references: [trips.id],
+  }),
+  members: many(householdMembers),
+}));
+
+export const householdMembersRelations = relations(
+  householdMembers,
+  ({ one }) => ({
+    household: one(households, {
+      fields: [householdMembers.householdId],
+      references: [households.id],
+    }),
+    participant: one(participants, {
+      fields: [householdMembers.participantId],
+      references: [participants.id],
+    }),
+  })
+);
