@@ -174,9 +174,74 @@
 | `drizzle.config.ts` | Added schema-feedback.ts to schema array |
 
 ### Next Steps (Session 12+)
-- [ ] Fix itinerary day-of-week conflicts (Farmers Market → Wednesday, Rodeo → arrival night PBR or LMR Tuesday)
-- [ ] Hand ops doc + token to Claude Cowork for booking
-- [ ] Household configuration UI in Ops tab (currently API-only)
-- [ ] Seed Big Sky activity photos (imageUrl on blocks)
-- [ ] Personal itinerary pages (per-person RSVP views)
+- [x] Fix itinerary day-of-week conflicts (done in S12)
+- [x] Hand ops doc + token to Claude Cowork (done in S12)
+- [x] Household configuration UI in Ops tab (done in S12)
+- [x] Seed Big Sky activity photos (done in S12)
+- [x] Personal itinerary pages (done in S12)
 - [ ] Wait for family feedback after sharing the link
+
+---
+
+## 2026-04-12 — Session 12: Full Schedule Verification + Product Improvements
+
+### Accomplished
+- **Schedule verification** — researched actual operating days/hours for every activity and restaurant. Found 8 conflicts:
+  - Lone Peak Brewery permanently closed → replaced with Buck's T-4
+  - Gallatin Riverhouse Grill renamed to Riverhouse BBQ, no lunch → fixed
+  - Olive B's dinner-only → replaced Tue lunch with Hungry Moose
+  - Buck's T-4 closed Mon-Tue, dinner-only → replaced Wed lunch
+  - "Out of Bounds Chef" doesn't exist → renamed to Big Sky Culinary Classes
+  - Alpaca farm is in Bozeman (50mi) → adjusted timing for drive
+  - Farmers Market is Wed 5-8 PM evening (not morning) → moved to Wed evening
+  - Montana Rodeo was on wrong day → moved to Tue (LMR Tuesday Night Rodeo)
+- **Dinner times normalized** — all dinners shifted to 5:30 PM start for kids
+- **Day 5 finalized** — Rainbow Ranch dinner replaced with LMR Tuesday Night Rodeo (5:15-8 PM, food included)
+- **"Beehive Basin" → "Dinner at Home"** — fixed confusing naming
+- **Yellowstone day improved** — updated description with recommended route (Grand Prismatic → Old Faithful → Norris → Artist Point), lunch options at Old Faithful (Inn, Cafeteria, Geyser Grill, Bear Paw Deli), bison calf season note
+- **Ops token minted** — fresh bearer token for Cowork handoff, old token revoked
+- **Product improvements** (4 parallel worktree agents):
+  - Personal itinerary pages: `/share/my-plan` route with per-participant filtered view
+  - Group config: `groupConfig` JSONB column on trips, editable UI in Ops tab, dynamic ops doc
+  - Dashboard: Owner/Invited role badges on trip cards
+  - Activity photos: 37 blocks seeded with Unsplash images
+- **Design fixes** — day picker tabs centered on desktop (`mx-auto`), "Suggeston" spacing fix
+- **3 commits pushed**, Vercel auto-deployed successfully
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `src/app/trips/[id]/share/my-plan/page.tsx` | Personal itinerary server component |
+| `src/app/trips/[id]/share/my-plan/my-plan-view.tsx` | Personal itinerary client view |
+| `src/app/api/trips/[id]/group-config/route.ts` | PATCH endpoint for group config |
+| `scripts/seed-bigsky-group.mjs` | Seed Big Sky group config |
+
+### Files Modified
+| File | Changes |
+|------|---------|
+| `src/db/schema.ts` | Added `groupConfig` JSONB column + GroupConfig/Household types |
+| `src/components/itinerary/ops-tab.tsx` | Added Group section with editable household cards |
+| `src/app/trips/[id]/share/guest-itinerary.tsx` | Added "View My Plan" link |
+| `src/app/trips/[id]/share/day-picker.tsx` | Centered tabs with mx-auto |
+| `src/components/itinerary/sign-off-banner.tsx` | Fixed "Suggeston" spacing |
+| `src/app/dashboard/page.tsx` | Added Owner/Invited role badges |
+| `src/lib/ops/markdown.ts` | Reads groupConfig dynamically |
+| `src/lib/itinerary-shared.tsx` | Added groupConfig to ShareData type |
+| `src/app/api/trips/[id]/share/route.ts` | Added groupConfig to share query |
+| `src/app/trips/[id]/review/review-content.tsx` | Passes groupConfig to OpsTab |
+
+### DB Changes (no code commit needed)
+- 9 restaurant/activity swaps and time corrections
+- 37 activity photos seeded (Unsplash URLs)
+- Group config seeded (5 households, 7A+2K)
+- Dinner times normalized to 5:30 PM
+- Yellowstone day description + lunch options updated
+- LMR Rodeo replaces Rainbow Ranch on Day 5
+
+### Next Steps (Session 13+)
+- [ ] Wait for family feedback via sign-off system
+- [ ] Start Cowork session to begin restaurant/activity bookings
+- [ ] Iterative generation — regenerate itinerary from updated preferences via UI
+- [ ] Research feed — curated spots with group voting
+- [ ] Gondola timing — confirm Big Sky Resort summer 2026 lift hours (tight at 5 PM close)
+- [ ] Check Yellowstone 2026 timed-entry requirements

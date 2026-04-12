@@ -77,6 +77,10 @@ See `.env.local.example` for required vars.
 - **Host Review:** https://planner-sooty-theta.vercel.app/trips/83fdfdb7-eb88-4a81-9712-0c8306854b42/review
 - **Public** — survey and share pages require no auth; review page is auth-gated
 
+## New Routes (Session 12)
+- **Personal itinerary:** `/trips/[id]/share/my-plan` — per-participant filtered view (uses guest identity from localStorage)
+- **Group config API:** `PATCH /api/trips/[id]/group-config` — auth-gated, updates `groupConfig` JSONB on trips table
+
 ## Ops Doc (for Claude Cowork)
 - **Download ops markdown:** `GET /api/trips/[id]/ops/doc` (auth-gated, returns attachment)
 - **Cowork report-back:** `POST /api/trips/[id]/ops/update` with bearer token (hashed in `ops_tokens`)
