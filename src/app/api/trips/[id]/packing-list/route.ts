@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { trips, itineraries, itineraryBlocks } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
-import Anthropic from "@anthropic-ai/sdk";
+import { ai } from "@/lib/ai/client";
 
 export async function GET(
   _request: Request,
@@ -34,8 +34,7 @@ export async function GET(
 
   const activities = blocks.map((b) => `${b.title}: ${b.description || ""}`).join("\n");
 
-  const client = new Anthropic();
-  const message = await client.messages.create({
+  const message = await ai().messages.create({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 1024,
     messages: [

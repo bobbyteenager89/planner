@@ -1,12 +1,24 @@
 import { db } from "@/db";
 import { itineraries, trips } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
+import { auth } from "@/lib/auth";
 
 export async function PATCH(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id: tripId } = await params;
+
+  // Verify ownership
+  const [trip] = await db().select().from(trips).where(eq(trips.id, tripId));
+  if (!trip || trip.ownerId !== session.user.id) {
+    return Response.json({ error: "Not found" }, { status: 404 });
+  }
 
   const [itinerary] = await db()
     .select()

@@ -10,6 +10,15 @@ function getResend() {
   return new Resend(process.env.AUTH_RESEND_KEY);
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -51,9 +60,8 @@ export async function POST(
   }
 
   const inviteToken = randomBytes(32).toString("hex");
-  const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000";
+  const baseUrl = process.env.NEXTAUTH_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
   await db().insert(participants).values({
     tripId,
@@ -71,8 +79,8 @@ export async function POST(
       subject: `You're invited to plan: ${trip.title}`,
       html: `
         <h2>You've been invited to help plan a trip!</h2>
-        <p><strong>${session.user.name || session.user.email}</strong> invited you to help plan <strong>${trip.title}</strong>.</p>
-        ${trip.destination ? `<p>Destination: ${trip.destination}</p>` : ""}
+        <p><strong>${escapeHtml(session.user.name || session.user.email || "Someone")}</strong> invited you to help plan <strong>${escapeHtml(trip.title)}</strong>.</p>
+        ${trip.destination ? `<p>Destination: ${escapeHtml(trip.destination)}</p>` : ""}
         <p><a href="${baseUrl}/invite/${inviteToken}">Click here to join and share your preferences</a></p>
       `,
     });

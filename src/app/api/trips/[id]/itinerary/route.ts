@@ -6,7 +6,7 @@ import {
   itineraryBlocks,
   reactions,
 } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 
 export async function GET(
   request: Request,
@@ -74,32 +74,34 @@ export async function GET(
 
   const nameMap = new Map(allParticipants.map((p) => [p.id, p.name || p.email]));
 
-  // Load reactions per block (neon-http driver; loop instead of inArray)
-  const blocksWithReactions = await Promise.all(
-    sortedBlocks.map(async (block) => {
-      const blockReactions = await database
+  // Load reactions per block — single batch query
+  const blockIds = sortedBlocks.map((b) => b.id);
+  const allReactions = blockIds.length > 0
+    ? await database
         .select()
         .from(reactions)
-        .where(eq(reactions.blockId, block.id));
+        .where(inArray(reactions.blockId, blockIds))
+    : [];
 
-      const reactionSummary = { love: 0, fine: 0, rather_not: 0, hard_no: 0 };
-      const reactionList = blockReactions.map((r) => {
-        reactionSummary[r.reaction]++;
-        return {
-          participantId: r.participantId,
-          name: nameMap.get(r.participantId) || "Unknown",
-          reaction: r.reaction,
-          note: r.note,
-        };
-      });
-
+  const blocksWithReactions = sortedBlocks.map((block) => {
+    const blockReactions = allReactions.filter((r) => r.blockId === block.id);
+    const reactionSummary = { love: 0, fine: 0, rather_not: 0, hard_no: 0 };
+    const reactionList = blockReactions.map((r) => {
+      reactionSummary[r.reaction]++;
       return {
-        ...block,
-        reactions: reactionList,
-        reactionSummary,
+        participantId: r.participantId,
+        name: nameMap.get(r.participantId) || "Unknown",
+        reaction: r.reaction,
+        note: r.note,
       };
-    })
-  );
+    });
+
+    return {
+      ...block,
+      reactions: reactionList,
+      reactionSummary,
+    };
+  });
 
   // Load all versions for version switcher
   const allVersions = await database

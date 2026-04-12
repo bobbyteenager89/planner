@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { feedbackItems } from "@/db/schema-feedback";
 import { participants } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export async function GET(
   _request: Request,
@@ -39,6 +39,16 @@ export async function POST(
 
   if (!blockId || !participantId || !type) {
     return Response.json({ error: "blockId, participantId, and type are required" }, { status: 400 });
+  }
+
+  // Verify participant belongs to this trip
+  const [participant] = await db()
+    .select({ id: participants.id })
+    .from(participants)
+    .where(and(eq(participants.id, participantId), eq(participants.tripId, tripId)));
+
+  if (!participant) {
+    return Response.json({ error: "Invalid participant" }, { status: 403 });
   }
 
   const [item] = await db()
