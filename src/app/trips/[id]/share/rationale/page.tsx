@@ -3,6 +3,7 @@ import { trips, itineraries, itineraryBlocks } from "@/db/schema";
 import { eq, desc, asc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { getRationale } from "@/lib/ai/rationale";
+import { auth } from "@/lib/auth";
 // NOTE: itinerary-shared is "use client" — we can't call its functions from
 // a server component, so the helpers are inlined below.
 const INK = "#3B1A0F";
@@ -101,7 +102,15 @@ export default async function RationalePage({
     .where(eq(itineraryBlocks.itineraryId, itinerary.id))
     .orderBy(asc(itineraryBlocks.dayNumber), asc(itineraryBlocks.sortOrder));
 
-  const rationale = await getRationale(id, { force: regen === "1" });
+  // Only allow force-regeneration for authenticated trip owners (prevents API credit drain)
+  let forceRegen = false;
+  if (regen === "1") {
+    const session = await auth();
+    if (session?.user?.id && trip.ownerId === session.user.id) {
+      forceRegen = true;
+    }
+  }
+  const rationale = await getRationale(id, { force: forceRegen });
 
   const dayNumbers = Array.from(new Set(blocks.map((b) => b.dayNumber))).sort(
     (a, b) => a - b
@@ -118,6 +127,7 @@ export default async function RationalePage({
 
   return (
     <main
+      id="main-content"
       style={{ backgroundColor: CREAM, color: INK, minHeight: "100vh" }}
       className="pb-24"
     >
@@ -147,7 +157,7 @@ export default async function RationalePage({
           </div>
           <div
             className="text-lg mt-1"
-            style={{ color: INK, opacity: 0.7 }}
+            style={{ color: "#7A6254" }}
           >
             {trip.startDate && trip.endDate
               ? `${new Date(trip.startDate).toLocaleDateString("en-US", { month: "long", day: "numeric" })} – ${new Date(trip.endDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
@@ -199,7 +209,7 @@ export default async function RationalePage({
               })}
             </div>
           ) : (
-            <p className="text-lg opacity-70">
+            <p className="text-lg" style={{ color: "#7A6254" }}>
               Rationale unavailable. Try{" "}
               <a
                 href={`/trips/${id}/share/rationale?regen=1`}
@@ -235,7 +245,7 @@ export default async function RationalePage({
             </h3>
             <p
               className="text-base mb-6"
-              style={{ color: INK, opacity: 0.7 }}
+              style={{ color: "#7A6254" }}
             >
               {rationale.participants.reduce(
                 (n, p) => n + (p.members?.length ?? 0),
@@ -268,7 +278,7 @@ export default async function RationalePage({
                   {p.members && p.members.length > 0 && (
                     <div
                       className="text-lg mb-3"
-                      style={{ color: INK, opacity: 0.75 }}
+                      style={{ color: "#7A6254" }}
                     >
                       {p.members.join(" · ")}
                     </div>
@@ -392,7 +402,7 @@ export default async function RationalePage({
                           {b.startTime && (
                             <span
                               className="text-base font-bold"
-                              style={{ color: INK, opacity: 0.7 }}
+                              style={{ color: "#7A6254" }}
                             >
                               {formatTime(b.startTime)}
                               {b.endTime ? ` – ${formatTime(b.endTime)}` : ""}
@@ -411,7 +421,7 @@ export default async function RationalePage({
                         {b.location && (
                           <div
                             className="text-base mb-3"
-                            style={{ color: INK, opacity: 0.7 }}
+                            style={{ color: "#7A6254" }}
                           >
                             📍 {b.location}
                           </div>
@@ -492,7 +502,7 @@ export default async function RationalePage({
               </h3>
               <p
                 className="text-base mb-8"
-                style={{ color: INK, opacity: 0.7 }}
+                style={{ color: "#7A6254" }}
               >
                 Andrew will work through this list. Included here so you can
                 see what's involved — nothing is booked yet.
@@ -528,7 +538,7 @@ export default async function RationalePage({
                             {t.notes && (
                               <div
                                 className="text-base mt-0.5"
-                                style={{ color: INK, opacity: 0.6 }}
+                                style={{ color: "#7A6254" }}
                               >
                                 {t.notes}
                               </div>
@@ -551,7 +561,7 @@ export default async function RationalePage({
         style={{ borderColor: INK }}
       >
         <div className="max-w-3xl mx-auto flex items-center justify-between flex-wrap gap-3">
-          <div className="text-sm" style={{ color: INK, opacity: 0.6 }}>
+          <div className="text-sm" style={{ color: "#7A6254" }}>
             {rationale?.generatedAt
               ? `Rationale generated ${new Date(rationale.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
               : null}

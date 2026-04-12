@@ -6,6 +6,7 @@ import {
   Block,
   ShareData,
   INK,
+  INK_MUTED,
   RUST,
   MUSTARD,
   CREAM,
@@ -132,31 +133,31 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
+      <main id="main-content" className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
         <p className="text-xl font-semibold" style={{ color: INK }}>Loading your trip...</p>
-      </div>
+      </main>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
+      <main id="main-content" className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
         <div className="text-center">
           <p className="text-2xl font-bold" style={{ color: INK }}>Something went wrong</p>
-          <p className="text-lg mt-2" style={{ color: INK, opacity: 0.6 }}>Try refreshing the page.</p>
+          <p className="text-lg mt-2" style={{ color: INK_MUTED }}>Try refreshing the page.</p>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (!data || !data.itinerary || data.blocks.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
+      <main id="main-content" className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
         <div className="text-center">
           <p className="text-2xl font-bold" style={{ color: INK }}>No itinerary yet</p>
-          <p className="text-lg mt-2" style={{ color: INK, opacity: 0.6 }}>Check back soon!</p>
+          <p className="text-lg mt-2" style={{ color: INK_MUTED }}>Check back soon!</p>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -184,7 +185,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
   const dayDrive = getDayDriveTotal(currentBlocks);
 
   return (
-    <div style={{ minHeight: "100dvh", backgroundColor: CREAM }}>
+    <main id="main-content" style={{ minHeight: "100dvh", backgroundColor: CREAM }}>
       {/* ═══ HERO ═══ */}
       <HeroSection
         title="BIG SKY"
@@ -210,7 +211,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                 <>
                   20 Moose Ridge Rd
                   <br />
-                  <span style={{ opacity: 0.5, fontSize: "13px" }}>Big Sky, MT</span>
+                  <span style={{ color: INK_MUTED, fontSize: "13px" }}>Big Sky, MT</span>
                 </>
               ),
               href: mapsUrl("20 Moose Ridge Road, Big Sky, MT"),
@@ -233,7 +234,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                 <>
                   Hungry Moose
                   <br />
-                  <span style={{ opacity: 0.5, fontSize: "13px" }}>5 min drive</span>
+                  <span style={{ color: INK_MUTED, fontSize: "13px" }}>5 min drive</span>
                 </>
               ),
               href: mapsUrl("Hungry Moose Market & Deli, Big Sky, MT"),
@@ -334,8 +335,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
             <p
               className="text-lg italic mt-2"
               style={{
-                color: INK,
-                opacity: 0.6,
+                color: INK_MUTED,
                 fontFamily: "var(--font-fraunces), Georgia, serif",
               }}
             >
@@ -354,8 +354,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
               <span
                 className="text-lg italic"
                 style={{
-                  color: INK,
-                  opacity: 0.6,
+                  color: INK_MUTED,
                   fontFamily: "var(--font-fraunces), Georgia, serif",
                 }}
               >
@@ -401,6 +400,8 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                   {/* Photo banner */}
                   {block.imageUrl && (
                     <div
+                      role="img"
+                      aria-label={block.title || "Activity photo"}
                       className="w-full h-40 sm:h-48 bg-cover bg-center -mt-6 -mx-7 mb-4"
                       style={{
                         backgroundImage: `url(${block.imageUrl})`,
@@ -412,7 +413,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                   {/* Top row */}
                   <div className="flex items-center gap-2.5 flex-wrap mb-2">
                     {block.startTime && (
-                      <span className="text-base font-mono font-bold" style={{ color: INK, opacity: 0.65 }}>
+                      <span className="text-base font-mono font-bold" style={{ color: INK_MUTED }}>
                         {formatTime(block.startTime)}{block.endTime && `–${formatTime(block.endTime)}`}
                       </span>
                     )}
@@ -461,7 +462,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
                       className="inline-block text-base mt-1.5 font-semibold underline underline-offset-4 decoration-1"
-                      style={{ color: INK, opacity: 0.75 }}
+                      style={{ color: INK_MUTED }}
                     >
                       📍 {block.location} →
                     </a>
@@ -473,7 +474,6 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                       style={{
                         color: INK,
                         fontSize: "16px",
-                        opacity: 0.85,
                         fontFamily: "var(--font-fraunces), Georgia, serif",
                       }}
                     >
@@ -534,6 +534,6 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
           </p>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

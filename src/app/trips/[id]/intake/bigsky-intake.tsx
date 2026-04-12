@@ -12,17 +12,13 @@ import {
   type Activity,
 } from "./bigsky-config";
 import { saveBigSkyAnswers, type BigSkyAnswers } from "./bigsky-actions";
+import { RUST, RUST_MUTED, MUSTARD, CREAM, CARD_BG } from "@/lib/itinerary-shared";
 
 type VoteValue = "yes" | "fine" | "pass";
 
 interface Props {
   tripId: string;
 }
-
-const RUST = "#D14F36";
-const MUSTARD = "#EBB644";
-const CREAM = "#F3EBE0";
-const CARD_BG = "#EBE1D3";
 
 const VOTE_OPTIONS: { value: VoteValue; label: string; emoji: string }[] = [
   { value: "yes", label: "Yes!", emoji: "✅" },
@@ -63,7 +59,7 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle: string })
       >
         {title}
       </h2>
-      <p className="text-sm mt-1 font-medium" style={{ color: RUST, opacity: 0.7 }}>
+      <p className="text-sm mt-1 font-medium" style={{ color: RUST_MUTED }}>
         {subtitle}
       </p>
     </div>
@@ -73,12 +69,18 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle: string })
 function VoteButtons({
   value,
   onChange,
+  label,
 }: {
   value: VoteValue | undefined;
   onChange: (v: VoteValue) => void;
+  label?: string;
 }) {
   return (
-    <div className="flex flex-wrap gap-2 mt-3">
+    <div
+      role="radiogroup"
+      aria-label={label ?? "Vote on this option"}
+      className="flex flex-wrap gap-2 mt-3"
+    >
       {VOTE_OPTIONS.map((opt) => {
         const selected = value === opt.value;
         let bg = "transparent";
@@ -107,6 +109,8 @@ function VoteButtons({
           <button
             key={opt.value}
             type="button"
+            role="radio"
+            aria-checked={selected}
             onClick={() => onChange(opt.value)}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-all"
             style={{
@@ -183,8 +187,8 @@ function ActivityCard({
         )}
         <ul className="mt-2 space-y-1">
           {activity.bullets.map((b) => (
-            <li key={b} className="flex gap-2 text-sm" style={{ color: RUST, opacity: 0.8 }}>
-              <span className="shrink-0 mt-0.5" style={{ color: RUST, opacity: 0.4 }}>•</span>
+            <li key={b} className="flex gap-2 text-sm" style={{ color: RUST_MUTED }}>
+              <span className="shrink-0 mt-0.5" style={{ color: RUST_MUTED }}>•</span>
               <span>{b}</span>
             </li>
           ))}
@@ -249,13 +253,13 @@ function CompactVoteCard({
       {subtitle && (
         <p
           className="text-sm font-bold uppercase tracking-wider mt-0.5"
-          style={{ color: RUST, opacity: 0.5 }}
+          style={{ color: RUST_MUTED }}
         >
           {subtitle}
         </p>
       )}
       {description && (
-        <p className="text-sm mt-1.5 leading-snug" style={{ color: RUST, opacity: 0.8 }}>
+        <p className="text-sm mt-1.5 leading-snug" style={{ color: RUST_MUTED }}>
           {description}
         </p>
       )}
@@ -330,7 +334,6 @@ export function BigSkyIntake({ tripId }: Props) {
     padding: "0.5rem 0.75rem",
     fontSize: "0.875rem",
     color: RUST,
-    outline: "none",
     fontFamily: "system-ui, sans-serif",
   };
 
@@ -423,7 +426,7 @@ export function BigSkyIntake({ tripId }: Props) {
                   Email{" "}
                   <span
                     className="font-normal normal-case text-sm"
-                    style={{ color: RUST, opacity: 0.6 }}
+                    style={{ color: RUST_MUTED }}
                   >
                     — optional, in case we need to reach you
                   </span>
@@ -474,7 +477,7 @@ export function BigSkyIntake({ tripId }: Props) {
 
           <p
             className="text-sm mt-3 font-medium"
-            style={{ color: RUST, opacity: 0.65 }}
+            style={{ color: RUST_MUTED }}
           >
             No wrong answers — say Yes to everything if you want. The more you vote,
             the better the plan.
@@ -493,7 +496,7 @@ export function BigSkyIntake({ tripId }: Props) {
           <section key={category} className="mb-10">
             <h3
               className="text-sm font-black uppercase tracking-widest mb-4"
-              style={{ color: RUST, opacity: 0.5 }}
+              style={{ color: RUST_MUTED }}
             >
               {category}
             </h3>
@@ -522,7 +525,7 @@ export function BigSkyIntake({ tripId }: Props) {
           </h3>
           <p
             className="text-base mb-4 font-medium"
-            style={{ color: RUST, opacity: 0.6 }}
+            style={{ color: RUST_MUTED }}
           >
             A few more ideas we came across. Let us know if any of these jump out.
           </p>
@@ -553,13 +556,13 @@ export function BigSkyIntake({ tripId }: Props) {
         <section className="mb-10">
           <h3
             className="text-sm font-black uppercase tracking-widest mb-1"
-            style={{ color: RUST, opacity: 0.5 }}
+            style={{ color: RUST_MUTED }}
           >
             Restaurants Near the House
           </h3>
           <p
             className="text-sm mb-4 font-medium"
-            style={{ color: RUST, opacity: 0.55 }}
+            style={{ color: RUST_MUTED }}
           >
             For nights we eat out. Vote on places that look good — we&apos;ll try to
             hit the favorites.
@@ -592,7 +595,7 @@ export function BigSkyIntake({ tripId }: Props) {
           </h3>
           <p
             className="text-base mb-4 font-medium"
-            style={{ color: RUST, opacity: 0.6 }}
+            style={{ color: RUST_MUTED }}
           >
             A few more spots that came up in our research.
           </p>
@@ -615,13 +618,13 @@ export function BigSkyIntake({ tripId }: Props) {
         <section className="mb-12">
           <h3
             className="text-sm font-black uppercase tracking-widest mb-1"
-            style={{ color: RUST, opacity: 0.5 }}
+            style={{ color: RUST_MUTED }}
           >
             Private Chef at the House
           </h3>
           <p
             className="text-sm mb-4 font-medium"
-            style={{ color: RUST, opacity: 0.55 }}
+            style={{ color: RUST_MUTED }}
           >
             We&apos;re hiring a private chef to cook at the house for a couple nights.
             Vote on which style sounds good.
@@ -663,6 +666,7 @@ export function BigSkyIntake({ tripId }: Props) {
           >
             <textarea
               id="open-text"
+              aria-label="Your ideas and suggestions"
               value={openText}
               onChange={(e) => setOpenText(e.target.value)}
               rows={4}
@@ -698,7 +702,7 @@ export function BigSkyIntake({ tripId }: Props) {
           </button>
           <p
             className="text-center text-sm mt-3 font-medium"
-            style={{ color: RUST, opacity: 0.5 }}
+            style={{ color: RUST_MUTED }}
           >
             You can resubmit with the same name if you change your mind.
           </p>

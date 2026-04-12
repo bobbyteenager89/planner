@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import Link from "next/link";
+import { INK, RUST, CREAM, CARD_BG } from "@/lib/itinerary-shared";
 
-const INK = "#3B1A0F";
-const RUST = "#D14F36";
-const CREAM = "#F3EBE0";
-const CARD_BG = "#EBE1D3";
+const INK_MUTED = "#7A6254";
 
 interface Block {
   id: string;
@@ -64,9 +63,9 @@ export default function DayMapPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
+      <main id="main-content" className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
         <p className="text-xl font-semibold" style={{ color: INK }}>Loading map...</p>
-      </div>
+      </main>
     );
   }
 
@@ -76,22 +75,22 @@ export default function DayMapPage({
   const uniqueLocations = [...new Set(locations)];
 
   return (
-    <div style={{ minHeight: "100dvh", backgroundColor: CREAM }}>
+    <main id="main-content" style={{ minHeight: "100dvh", backgroundColor: CREAM }}>
       <div className="px-5 py-6 sm:px-10" style={{ backgroundColor: RUST }}>
-        <a
+        <Link
           href={`/trips/${tripId}/share`}
           className="text-lg font-bold"
-          style={{ color: CREAM, opacity: 0.7 }}
+          style={{ color: CREAM }}
         >
           ← Back to itinerary
-        </a>
+        </Link>
         <h1
           className="text-3xl sm:text-4xl font-black uppercase mt-3"
           style={{ color: CREAM, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif" }}
         >
           Day {dayNumber} Map
         </h1>
-        <p className="text-xl font-bold mt-1" style={{ color: CREAM, opacity: 0.8 }}>
+        <p className="text-xl font-bold mt-1" style={{ color: CREAM }}>
           {uniqueLocations.length} stops
         </p>
       </div>
@@ -119,11 +118,11 @@ export default function DayMapPage({
             🗺 Open in Google Maps →
           </a>
         ) : (
-          <p className="text-xl font-bold" style={{ color: INK, opacity: 0.5 }}>
+          <p className="text-xl font-bold" style={{ color: INK_MUTED }}>
             No locations for this day
           </p>
         )}
-        <p className="text-lg font-bold mt-3" style={{ color: INK, opacity: 0.5 }}>
+        <p className="text-lg font-bold mt-3" style={{ color: INK_MUTED }}>
           {uniqueLocations.length} stops · Day {dayNumber}
         </p>
       </div>
@@ -153,7 +152,7 @@ export default function DayMapPage({
                     {block.title.replace(/^(Morning|Afternoon|Evening|Mid-Morning|Full-Day Trip|Lunch|Dinner|Breakfast):?\s*/i, "")}
                   </p>
                   {block.startTime && (
-                    <p className="text-lg font-mono font-bold mt-0.5" style={{ color: INK, opacity: 0.6 }}>
+                    <p className="text-lg font-mono font-bold mt-0.5" style={{ color: INK_MUTED }}>
                       {formatTime(block.startTime)}{block.endTime && ` – ${formatTime(block.endTime)}`}
                     </p>
                   )}
@@ -171,6 +170,6 @@ export default function DayMapPage({
             ))}
         </div>
       </div>
-    </div>
+    </main>
   );
 }

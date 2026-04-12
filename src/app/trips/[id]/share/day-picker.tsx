@@ -1,11 +1,9 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import { RUST, CREAM, INK, CARD_BG } from "@/lib/itinerary-shared";
 
-const RUST = "#D14F36";
-const CREAM = "#F3EBE0";
-const INK = "#3B1A0F";
-const CARD_BG = "#EBE1D3";
+const INK_MUTED = "#7A6254";
 
 interface DayTab {
   dayNumber: number;
@@ -34,13 +32,19 @@ export function DayPicker({
       className="sticky top-0 z-20 overflow-x-auto"
       style={{ backgroundColor: CREAM, borderBottom: `2px solid ${RUST}` }}
     >
-      <div className="flex gap-2 px-4 py-3 pr-8 min-w-max">
+      <div
+        role="tablist"
+        aria-label="Trip days"
+        className="flex gap-2 px-4 py-3 pr-8 min-w-max"
+      >
         {days.map((d) => {
           const isActive = d.dayNumber === activeDay;
           return (
             <button
               key={d.dayNumber}
               ref={isActive ? activeRef : undefined}
+              role="tab"
+              aria-selected={isActive}
               onClick={() => onSelect(d.dayNumber)}
               className="flex flex-col items-center px-3 py-2.5 transition-all shrink-0"
               style={{
@@ -55,7 +59,10 @@ export function DayPicker({
                 className="text-xs font-black uppercase tracking-[0.15em]"
                 style={{
                   fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif",
-                  opacity: isActive ? 0.85 : 0.55,
+                  // Active: CREAM on RUST bg (light-on-dark) — leave opacity-based dimming
+                  // Inactive: use INK_MUTED for AA contrast on CARD_BG
+                  color: isActive ? undefined : INK_MUTED,
+                  opacity: isActive ? 0.85 : undefined,
                 }}
               >
                 {d.weekday}
@@ -70,7 +77,10 @@ export function DayPicker({
                 <span
                   className="text-[11px] italic text-center mt-1 leading-tight"
                   style={{
-                    opacity: isActive ? 0.9 : 0.55,
+                    // Active: CREAM on RUST bg — leave as-is
+                    // Inactive: INK_MUTED for AA contrast
+                    color: isActive ? undefined : INK_MUTED,
+                    opacity: isActive ? 0.9 : undefined,
                     fontFamily: "var(--font-fraunces), Georgia, serif",
                     wordBreak: "break-word",
                   }}

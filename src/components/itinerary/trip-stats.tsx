@@ -1,5 +1,7 @@
 import { INK, CREAM } from "@/lib/itinerary-shared";
 
+const INK_MUTED = "#7A6254";
+
 interface Stat {
   label: string;
   value: React.ReactNode;
@@ -13,11 +15,10 @@ interface TripStatsProps {
 export function TripStats({ stats }: TripStatsProps) {
   return (
     <div
-      className="grid gap-0 px-6 py-5"
+      className="grid grid-cols-1 sm:grid-cols-3 gap-0 px-6 py-5"
       style={{
         background: CREAM,
         borderBottom: "1px solid rgba(59,26,15,0.1)",
-        gridTemplateColumns: `repeat(${stats.length}, 1fr)`,
       }}
     >
       {stats.map((stat, i) => (
@@ -31,7 +32,7 @@ export function TripStats({ stats }: TripStatsProps) {
           <div
             className="text-[9px] font-black uppercase tracking-[0.2em] mb-1"
             style={{
-              color: "rgba(59,26,15,0.5)",
+              color: INK_MUTED,
               fontFamily: "'Arial Black', Impact, sans-serif",
             }}
           >
