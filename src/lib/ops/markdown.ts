@@ -87,16 +87,33 @@ export async function generateOpsMarkdown(tripId: string): Promise<string> {
   // Group composition
   lines.push("## Group");
   lines.push("");
-  lines.push("**7 adults + 2 kids = 9 total**");
-  lines.push("");
-  lines.push("- Jeff & Sharon (grandparents / planners)");
-  lines.push("- Clark & Alicia + Andie (kid) + Piper (kid)");
-  lines.push("- Andrew (solo)");
-  lines.push("- Maddie (solo)");
-  lines.push("- Corban (solo)");
+
+  const gc = trip.groupConfig as import("@/db/schema").GroupConfig | null;
+  if (gc && gc.households.length > 0) {
+    const tA = gc.totalAdults;
+    const tK = gc.totalKids;
+    lines.push(`**${tA} adult${tA !== 1 ? "s" : ""} + ${tK} kid${tK !== 1 ? "s" : ""} = ${tA + tK} total**`);
+    lines.push("");
+    for (const h of gc.households) {
+      const members = [...h.adults];
+      for (const kid of h.kids) {
+        members.push(`${kid} (kid)`);
+      }
+      lines.push(`- ${h.label}: ${members.join(", ")}`);
+    }
+  } else {
+    // Fallback for trips without group config
+    lines.push("**7 adults + 2 kids = 9 total**");
+    lines.push("");
+    lines.push("- Jeff & Sharon (grandparents / planners)");
+    lines.push("- Clark & Alicia + Andie (kid) + Piper (kid)");
+    lines.push("- Andrew (solo)");
+    lines.push("- Maddie (solo)");
+    lines.push("- Corban (solo)");
+  }
   lines.push("");
   lines.push(
-    "_Note: Andie & Piper are always with Clark & Alicia. Headcounts assume the full party unless overridden on a block._"
+    "_Note: Kids are always with their household. Headcounts assume the full party unless overridden on a block._"
   );
   lines.push("");
   lines.push("---");

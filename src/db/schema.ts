@@ -149,6 +149,20 @@ export const verificationTokens = pgTable(
   ]
 );
 
+// ── Group Config types ────────────────────────────────────
+
+export interface Household {
+  label: string;
+  adults: string[];
+  kids: string[];
+}
+
+export interface GroupConfig {
+  households: Household[];
+  totalAdults: number;
+  totalKids: number;
+}
+
 // ── Trips ──────────────────────────────────────────────────
 
 export const trips = pgTable(
@@ -167,6 +181,7 @@ export const trips = pgTable(
     onboardingConversation: jsonb("onboarding_conversation")
       .$type<{ role: string; content: string }[]>()
       .default([]),
+    groupConfig: jsonb("group_config").$type<GroupConfig>(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

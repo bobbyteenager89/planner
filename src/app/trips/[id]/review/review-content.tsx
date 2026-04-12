@@ -844,6 +844,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
             participants={(data.participants as Participant[]) || []}
             feedbackItems={feedbackItems}
             signOffs={signOffs}
+            groupConfig={data.trip?.groupConfig ?? null}
           />
         )}
 

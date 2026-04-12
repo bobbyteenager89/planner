@@ -23,6 +23,7 @@ export async function GET(
       startDate: trips.startDate,
       endDate: trips.endDate,
       status: trips.status,
+      groupConfig: trips.groupConfig,
     })
     .from(trips)
     .where(eq(trips.id, id))

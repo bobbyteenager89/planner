@@ -27,6 +27,11 @@ export interface ShareData {
     startDate: string | null;
     endDate: string | null;
     status: string;
+    groupConfig?: {
+      households: { label: string; adults: string[]; kids: string[] }[];
+      totalAdults: number;
+      totalKids: number;
+    } | null;
   };
   itinerary: {
     id: string;

@@ -43,6 +43,9 @@ export default async function DashboardPage() {
           .orderBy(desc(trips.createdAt))
       : [];
 
+  // Build a set of owned trip IDs for role indicator
+  const ownedTripIds = new Set(ownedTrips.map((t) => t.id));
+
   // Merge and deduplicate by trip ID (owned trips first)
   const seen = new Set<string>();
   const userTrips = [...ownedTrips, ...participantTrips].filter((t) => {
@@ -87,7 +90,12 @@ export default async function DashboardPage() {
                       </p>
                     )}
                   </div>
-                  <Badge variant="secondary">{trip.status}</Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={ownedTripIds.has(trip.id) ? "default" : "outline"}>
+                      {ownedTripIds.has(trip.id) ? "Owner" : "Invited"}
+                    </Badge>
+                    <Badge variant="secondary">{trip.status}</Badge>
+                  </div>
                 </CardHeader>
                 {(trip.startDate || trip.endDate) && (
                   <CardContent className="pt-0">
