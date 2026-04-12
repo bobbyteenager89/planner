@@ -36,6 +36,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { HeroSection } from "@/components/itinerary/hero-section";
 import { FeedbackInbox } from "@/components/itinerary/feedback-inbox";
 import { MapTab } from "@/components/itinerary/map-tab";
 import { OpsTab } from "@/components/itinerary/ops-tab";
@@ -321,73 +322,53 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
     width: "100%",
   };
 
-  const toolbarBtnStyle = (active?: boolean): React.CSSProperties => ({
-    backgroundColor: active ? MUSTARD : "transparent",
-    color: INK,
-    border: `2px solid ${RUST}`,
-    borderRadius: "2px",
-    padding: "0.25rem 0.75rem",
-    fontSize: "0.875rem",
-    fontWeight: 700,
-    opacity: active ? 1 : 0.6,
-    cursor: "pointer",
-  });
-
   return (
     <div style={{ minHeight: "100dvh", backgroundColor: CREAM }}>
       {/* ═══ HEADER ═══ */}
-      <div className="px-5 py-8 sm:px-10 sm:py-10" style={{ backgroundColor: RUST }}>
-        <p className="text-lg font-bold uppercase tracking-widest mb-3" style={{ color: MUSTARD }}>
-          Goble Family
-        </p>
-        <h1
-          className="text-6xl sm:text-8xl font-black uppercase leading-none"
-          style={{
-            color: CREAM,
-            fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif",
-            textShadow: `3px 3px 0 ${MUSTARD}`,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          BIG SKY
-        </h1>
-        <p className="text-xl sm:text-3xl font-bold mt-3" style={{ color: CREAM }}>
-          July 18 — 25, 2026
-        </p>
-        <a
-          href={mapsUrl("20 Moose Ridge Road, Big Sky, MT")}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block text-lg mt-2 font-medium underline underline-offset-4 decoration-1"
-          style={{ color: CREAM, opacity: 0.8 }}
-        >
-          📍 20 Moose Ridge Road, Big Sky, MT →
-        </a>
+      <HeroSection
+        title="BIG SKY"
+        subtitle="Goble Family · Est. 2026"
+        kicker="Editor — review and refine the plan"
+        dateLabel="July 18 — 25, 2026"
+        daysToGo={(() => {
+          const tripDate = trip.startDate ? new Date(trip.startDate) : new Date("2026-07-18");
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const diff = Math.ceil((tripDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          return diff > 0 ? diff : 0;
+        })()}
+      />
+
+      {/* Admin action bar */}
+      <div
+        className="flex gap-3 px-5 py-3 sm:px-8"
+        style={{ background: CREAM, borderBottom: `1px solid rgba(59,26,15,0.1)` }}
+      >
         <a
           href={`/trips/${tripId}/share`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block text-lg mt-3 px-5 py-2.5 font-bold uppercase tracking-wider"
+          className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.15em] transition-all hover:scale-105"
           style={{
-            backgroundColor: MUSTARD,
+            background: MUSTARD,
             color: INK,
-            border: `2px solid ${CREAM}`,
-            borderRadius: "2px",
+            border: `1.5px solid ${RUST}`,
+            fontFamily: "'Arial Black', Impact, sans-serif",
           }}
         >
-          👁 Preview as Guest →
+          👁 Preview as Guest
         </a>
         <a
           href={`/api/trips/${tripId}/ops/doc`}
-          className="inline-block text-lg mt-3 ml-2 px-5 py-2.5 font-bold uppercase tracking-wider"
+          className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.15em] transition-all hover:scale-105"
           style={{
-            backgroundColor: CREAM,
+            background: CREAM,
             color: INK,
-            border: `2px solid ${CREAM}`,
-            borderRadius: "2px",
+            border: `1.5px solid ${RUST}`,
+            fontFamily: "'Arial Black', Impact, sans-serif",
           }}
         >
-          📋 Download Ops Doc
+          📋 Ops Doc
         </a>
       </div>
 
@@ -576,17 +557,31 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                           Day {day}
                         </span>
                         {dayDate && (
-                          <span className="text-xl font-bold uppercase tracking-wider" style={{ color: INK, opacity: 0.55 }}>
+                          <span
+                            className="text-base italic"
+                            style={{
+                              color: INK,
+                              opacity: 0.55,
+                              fontFamily: "var(--font-fraunces), Georgia, serif",
+                            }}
+                          >
                             {formatDayDate(dayDate)}
                           </span>
                         )}
                       </div>
 
                       {/* Day drive total + map toggle + regen button */}
-                      <div className="flex items-center gap-4 mt-2 flex-wrap">
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
                         {dayDriveTotal > 0 && (
-                          <span className="text-xl font-bold" style={{ color: INK, opacity: 0.6 }}>
-                            🚗 ~{dayDriveTotal} min total driving
+                          <span
+                            className="text-sm italic"
+                            style={{
+                              color: INK,
+                              opacity: 0.5,
+                              fontFamily: "var(--font-fraunces), Georgia, serif",
+                            }}
+                          >
+                            ~{dayDriveTotal} min total driving
                           </span>
                         )}
                         {dayLocs.length >= 2 && (
@@ -595,34 +590,48 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                               href={mapsDirectionsUrl(dayLocs)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xl font-bold underline underline-offset-4"
-                              style={{ color: RUST }}
+                              className="px-3 py-1.5 rounded-full transition-all hover:scale-105"
+                              style={{
+                                background: CREAM,
+                                border: `1.5px solid ${RUST}`,
+                                color: INK,
+                                fontFamily: "'Arial Black', Impact, sans-serif",
+                                fontSize: "10px",
+                                letterSpacing: "0.1em",
+                                textTransform: "uppercase",
+                              }}
                             >
-                              Open full route →
+                              🗺 Route
                             </a>
                             <button
                               onClick={() => setDayMapOpen((prev) => ({ ...prev, [dayNum]: !prev[dayNum] }))}
-                              className="text-lg font-bold px-4 py-1.5"
+                              className="px-3 py-1.5 rounded-full transition-all hover:scale-105"
                               style={{
-                                backgroundColor: isMapOpen ? RUST : CARD_BG,
+                                background: isMapOpen ? RUST : CREAM,
                                 color: isMapOpen ? CREAM : INK,
-                                border: `2px solid ${RUST}`,
-                                borderRadius: "2px",
+                                border: `1.5px solid ${RUST}`,
+                                fontFamily: "'Arial Black', Impact, sans-serif",
+                                fontSize: "10px",
+                                letterSpacing: "0.1em",
+                                textTransform: "uppercase",
                               }}
                             >
-                              {isMapOpen ? "Hide Map" : "🗺 Show Map"}
+                              {isMapOpen ? "Hide Map" : "Map"}
                             </button>
                           </>
                         )}
                         <button
                           onClick={() => regenDay(dayNum)}
                           disabled={regeneratingDay !== null}
-                          className="text-lg font-bold px-4 py-1.5"
+                          className="px-3 py-1.5 rounded-full transition-all hover:scale-105"
                           style={{
-                            backgroundColor: isRegenerating ? MUSTARD : CARD_BG,
+                            background: isRegenerating ? MUSTARD : CREAM,
                             color: INK,
-                            border: `2px solid ${RUST}`,
-                            borderRadius: "2px",
+                            border: `1.5px solid ${RUST}`,
+                            fontFamily: "'Arial Black', Impact, sans-serif",
+                            fontSize: "10px",
+                            letterSpacing: "0.1em",
+                            textTransform: "uppercase",
                             opacity: regeneratingDay !== null && !isRegenerating ? 0.4 : 1,
                             cursor: regeneratingDay !== null ? "not-allowed" : "pointer",
                           }}
@@ -703,18 +712,38 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                                   }}
                                 >
                                   {/* ── Block toolbar ── */}
-                                  <div className="flex items-center gap-2 mb-2">
+                                  <div className="flex items-center gap-2 mb-3">
                                     <button
                                       onClick={(e) => { e.stopPropagation(); togglePin(block.id); }}
-                                      style={toolbarBtnStyle(!!block.pinned)}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:scale-105"
+                                      style={{
+                                        background: block.pinned ? MUSTARD : CREAM,
+                                        border: `1.5px solid ${RUST}`,
+                                        color: INK,
+                                        fontFamily: "'Arial Black', Impact, sans-serif",
+                                        fontSize: "10px",
+                                        letterSpacing: "0.1em",
+                                        textTransform: "uppercase" as const,
+                                      }}
                                     >
-                                      📌 {block.pinned ? "Pinned" : "Pin"}
+                                      <span style={{ fontSize: "12px" }}>📌</span>
+                                      <span>{block.pinned ? "Pinned" : "Pin"}</span>
                                     </button>
                                     <button
                                       onClick={(e) => { e.stopPropagation(); startEditing(block); }}
-                                      style={toolbarBtnStyle()}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:scale-105"
+                                      style={{
+                                        background: CREAM,
+                                        border: `1.5px solid ${RUST}`,
+                                        color: INK,
+                                        fontFamily: "'Arial Black', Impact, sans-serif",
+                                        fontSize: "10px",
+                                        letterSpacing: "0.1em",
+                                        textTransform: "uppercase" as const,
+                                      }}
                                     >
-                                      ✏️ Edit
+                                      <span style={{ fontSize: "12px" }}>✏️</span>
+                                      <span>Edit</span>
                                     </button>
                                   </div>
 
