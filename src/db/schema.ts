@@ -66,14 +66,6 @@ export const reactionTypeEnum = pgEnum("reaction_type", [
   "hard_no",
 ]);
 
-export const researchCategoryEnum = pgEnum("research_category", [
-  "restaurant",
-  "activity",
-  "lodging",
-  "transport",
-  "other",
-]);
-
 export const reservationStatusEnum = pgEnum("reservation_status", [
   "not_needed",
   "walk_in",
@@ -237,28 +229,6 @@ export const preferences = pgTable(
   ]
 );
 
-// ── Research Items ─────────────────────────────────────────
-
-export const researchItems = pgTable(
-  "research_items",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    tripId: uuid("trip_id")
-      .notNull()
-      .references(() => trips.id, { onDelete: "cascade" }),
-    addedBy: uuid("added_by").references(() => users.id),
-    title: varchar("title", { length: 500 }).notNull(),
-    url: text("url"),
-    category: researchCategoryEnum("category").notNull().default("other"),
-    description: text("description"),
-    metadata: jsonb("metadata"),
-    aiScore: numeric("ai_score", { precision: 3, scale: 2 }),
-    aiNotes: text("ai_notes"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => [index("research_items_trip_id_idx").on(table.tripId)]
-);
-
 // ── Itineraries ────────────────────────────────────────────
 
 export const itineraries = pgTable(
@@ -405,7 +375,6 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const tripsRelations = relations(trips, ({ one, many }) => ({
   owner: one(users, { fields: [trips.ownerId], references: [users.id] }),
   participants: many(participants),
-  researchItems: many(researchItems),
   itineraries: many(itineraries),
 }));
 
@@ -429,13 +398,6 @@ export const preferencesRelations = relations(preferences, ({ one }) => ({
   participant: one(participants, {
     fields: [preferences.participantId],
     references: [participants.id],
-  }),
-}));
-
-export const researchItemsRelations = relations(researchItems, ({ one }) => ({
-  trip: one(trips, {
-    fields: [researchItems.tripId],
-    references: [trips.id],
   }),
 }));
 

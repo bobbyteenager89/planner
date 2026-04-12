@@ -5,6 +5,7 @@ import {
   Block,
   ShareData,
   INK,
+  INK_MUTED,
   RUST,
   MUSTARD,
   CREAM,
@@ -19,23 +20,6 @@ import {
   getDayDriveTotal,
   TravelCard,
 } from "@/lib/itinerary-shared";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
-  arrayMove,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { HeroSection } from "@/components/itinerary/hero-section";
 import { FeedbackInbox } from "@/components/itinerary/feedback-inbox";
 import { MapTab } from "@/components/itinerary/map-tab";
@@ -52,27 +36,6 @@ function SectionDivider({ title }: { title: string }) {
       >
         {title}
       </h2>
-    </div>
-  );
-}
-
-function SortableBlock({ id, children }: { id: string; children: React.ReactNode }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
-  const style = { transform: CSS.Transform.toString(transform), transition };
-  return (
-    <div ref={setNodeRef} style={style}>
-      <div className="flex">
-        <button
-          {...attributes}
-          {...listeners}
-          className="flex items-center px-2 cursor-grab active:cursor-grabbing touch-none"
-          style={{ color: INK, opacity: 0.35 }}
-          title="Drag to reorder"
-        >
-          <span className="text-xl">&#x2807;</span>
-        </button>
-        <div className="flex-1">{children}</div>
-      </div>
     </div>
   );
 }
@@ -96,11 +59,6 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
   const [activeTab, setActiveTab] = useState<EditorTab>("agenda");
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
   const [signOffs, setSignOffs] = useState<SignOff[]>([]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
 
   const fetchData = useCallback(() => {
     fetch(`/api/trips/${tripId}/share`)
@@ -182,43 +140,6 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
     setSaving(false);
   }
 
-  // ── Drag-to-reorder ──
-  function handleDragEnd(dayNumber: number) {
-    return (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id || !data) return;
-
-      const dayBlocks = data.blocks
-        .filter((b) => b.dayNumber === dayNumber)
-        .sort((a, b) => a.sortOrder - b.sortOrder);
-
-      const oldIndex = dayBlocks.findIndex((b) => b.id === active.id);
-      const newIndex = dayBlocks.findIndex((b) => b.id === over.id);
-      if (oldIndex === -1 || newIndex === -1) return;
-
-      const reordered = arrayMove(dayBlocks, oldIndex, newIndex);
-      const newBlockIds = reordered.map((b) => b.id);
-
-      // Optimistic update
-      setData((prev) => {
-        if (!prev) return prev;
-        const updated = prev.blocks.map((b) => {
-          if (b.dayNumber !== dayNumber) return b;
-          const newOrder = newBlockIds.indexOf(b.id);
-          return newOrder >= 0 ? { ...b, sortOrder: newOrder + 1 } : b;
-        });
-        return { ...prev, blocks: updated };
-      });
-
-      // Persist
-      fetch(`/api/trips/${tripId}/blocks/reorder`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blockIds: newBlockIds }),
-      });
-    };
-  }
-
   // ── Regen Day ──
   async function regenDay(dayNumber: number) {
     setRegeneratingDay(dayNumber);
@@ -279,7 +200,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
         <div className="text-center">
           <p className="text-2xl font-bold" style={{ color: INK }}>Something went wrong</p>
-          <p className="text-lg mt-2 font-medium" style={{ color: INK, opacity: 0.6 }}>Try refreshing the page.</p>
+          <p className="text-lg mt-2 font-medium" style={{ color: INK_MUTED }}>Try refreshing the page.</p>
         </div>
       </div>
     );
@@ -290,7 +211,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: CREAM }}>
         <div className="text-center">
           <p className="text-2xl font-bold" style={{ color: INK }}>No itinerary yet</p>
-          <p className="text-lg mt-2 font-medium" style={{ color: INK, opacity: 0.6 }}>Check back soon!</p>
+          <p className="text-lg mt-2 font-medium" style={{ color: INK_MUTED }}>Check back soon!</p>
         </div>
       </div>
     );
@@ -385,7 +306,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
               We fed all {names.length} sets of preferences into an AI planner that
               optimized for one thing: <strong>make everybody happy</strong>.
             </p>
-            <p className="text-xl leading-relaxed font-semibold" style={{ color: INK, opacity: 0.7 }}>
+            <p className="text-xl leading-relaxed font-semibold" style={{ color: INK_MUTED }}>
               Here&apos;s the logic:
             </p>
             <ul className="space-y-4">
@@ -659,271 +580,252 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                       </div>
                     )}
 
-                    {/* Blocks with travel cards + drag-to-reorder */}
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEnd(dayNum)}
-                    >
-                      <SortableContext
-                        items={sortedBlocks.map((b) => b.id)}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        <div className="space-y-0">
-                          {sortedBlocks.map((block, idx) => {
-                            const config = TYPE_CONFIG[block.type] || TYPE_CONFIG.note;
-                            const isExpanded = expandedBlock === block.id;
-                            const isAlt = block.title.includes("(Alt)");
-                            const isEditing = editingBlock === block.id;
+                    {/* Blocks with travel cards */}
+                    <div className="space-y-0">
+                      {sortedBlocks.map((block, idx) => {
+                        const config = TYPE_CONFIG[block.type] || TYPE_CONFIG.note;
+                        const isExpanded = expandedBlock === block.id;
+                        const isAlt = block.title.includes("(Alt)");
+                        const isEditing = editingBlock === block.id;
 
-                            // Show travel card between non-alt blocks with different locations
-                            const prevBlock = idx > 0 ? sortedBlocks[idx - 1] : null;
-                            const showTravel =
-                              !isAlt &&
-                              prevBlock &&
-                              !prevBlock.title.includes("(Alt)") &&
-                              prevBlock.location &&
-                              block.location &&
-                              prevBlock.location !== block.location;
+                        // Show travel card between non-alt blocks with different locations
+                        const prevBlock = idx > 0 ? sortedBlocks[idx - 1] : null;
+                        const showTravel =
+                          !isAlt &&
+                          prevBlock &&
+                          !prevBlock.title.includes("(Alt)") &&
+                          prevBlock.location &&
+                          block.location &&
+                          prevBlock.location !== block.location;
 
-                            return (
-                              <SortableBlock key={block.id} id={block.id}>
-                                {showTravel && (
-                                  <TravelCard
-                                    fromLocation={prevBlock!.location!}
-                                    toLocation={block.location!}
-                                  />
-                                )}
-                                <div
-                                  onClick={() => {
-                                    if (!isEditing) setExpandedBlock(isExpanded ? null : block.id);
-                                  }}
-                                  className="cursor-pointer transition-opacity mb-4"
+                        return (
+                          <div key={block.id}>
+                            {showTravel && (
+                              <TravelCard
+                                fromLocation={prevBlock!.location!}
+                                toLocation={block.location!}
+                              />
+                            )}
+                            <div
+                              onClick={() => {
+                                if (!isEditing) setExpandedBlock(isExpanded ? null : block.id);
+                              }}
+                              className="cursor-pointer transition-opacity mb-4"
+                              style={{
+                                backgroundColor: CARD_BG,
+                                border: `2px solid ${isAlt ? MUSTARD : RUST}`,
+                                borderLeft: block.pinned ? `4px solid ${MUSTARD}` : (isAlt ? `2px dashed ${MUSTARD}` : `2px solid ${RUST}`),
+                                borderRadius: "2px",
+                                borderStyle: isAlt ? "dashed" : "solid",
+                                padding: "1.5rem 1.75rem",
+                                marginLeft: isAlt ? "1.5rem" : 0,
+                                opacity: isAlt && !isExpanded ? 0.8 : 1,
+                                overflow: "hidden",
+                              }}
+                            >
+                              {/* ── Block toolbar ── */}
+                              <div className="flex items-center gap-2 mb-3">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); togglePin(block.id); }}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:scale-105"
                                   style={{
-                                    backgroundColor: CARD_BG,
-                                    border: `2px solid ${isAlt ? MUSTARD : RUST}`,
-                                    borderLeft: block.pinned ? `4px solid ${MUSTARD}` : (isAlt ? `2px dashed ${MUSTARD}` : `2px solid ${RUST}`),
-                                    borderRadius: "2px",
-                                    borderStyle: isAlt ? "dashed" : "solid",
-                                    padding: "1.5rem 1.75rem",
-                                    marginLeft: isAlt ? "1.5rem" : 0,
-                                    opacity: isAlt && !isExpanded ? 0.8 : 1,
-                                    overflow: "hidden",
+                                    background: block.pinned ? MUSTARD : CREAM,
+                                    border: `1.5px solid ${RUST}`,
+                                    color: INK,
+                                    fontFamily: "'Arial Black', Impact, sans-serif",
+                                    fontSize: "10px",
+                                    letterSpacing: "0.1em",
+                                    textTransform: "uppercase" as const,
                                   }}
                                 >
-                                  {/* ── Block toolbar ── */}
-                                  <div className="flex items-center gap-2 mb-3">
+                                  <span style={{ fontSize: "12px" }}>📌</span>
+                                  <span>{block.pinned ? "Pinned" : "Pin"}</span>
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); startEditing(block); }}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:scale-105"
+                                  style={{
+                                    background: CREAM,
+                                    border: `1.5px solid ${RUST}`,
+                                    color: INK,
+                                    fontFamily: "'Arial Black', Impact, sans-serif",
+                                    fontSize: "10px",
+                                    letterSpacing: "0.1em",
+                                    textTransform: "uppercase" as const,
+                                  }}
+                                >
+                                  <span style={{ fontSize: "12px" }}>✏️</span>
+                                  <span>Edit</span>
+                                </button>
+                              </div>
+
+                              {/* ── Edit form (replaces read-only content) ── */}
+                              {isEditing ? (
+                                <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
+                                  <div>
+                                    <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>Title</label>
+                                    <input
+                                      type="text"
+                                      value={editForm.title || ""}
+                                      onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                                      style={{ ...inputStyle, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif", textTransform: "uppercase" }}
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>Description</label>
+                                    <textarea
+                                      value={editForm.description || ""}
+                                      onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+                                      rows={3}
+                                      style={inputStyle}
+                                    />
+                                  </div>
+                                  <div className="flex gap-3">
+                                    <div className="flex-1">
+                                      <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>Start Time</label>
+                                      <input
+                                        type="time"
+                                        value={editForm.startTime || ""}
+                                        onChange={(e) => setEditForm((f) => ({ ...f, startTime: e.target.value || null }))}
+                                        style={inputStyle}
+                                      />
+                                    </div>
+                                    <div className="flex-1">
+                                      <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>End Time</label>
+                                      <input
+                                        type="time"
+                                        value={editForm.endTime || ""}
+                                        onChange={(e) => setEditForm((f) => ({ ...f, endTime: e.target.value || null }))}
+                                        style={inputStyle}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>Location</label>
+                                    <input
+                                      type="text"
+                                      value={editForm.location || ""}
+                                      onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value || null }))}
+                                      style={inputStyle}
+                                    />
+                                  </div>
+                                  <div className="flex gap-2 pt-1">
                                     <button
-                                      onClick={(e) => { e.stopPropagation(); togglePin(block.id); }}
-                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:scale-105"
+                                      onClick={(e) => { e.stopPropagation(); saveEdit(block.id); }}
+                                      disabled={saving}
                                       style={{
-                                        background: block.pinned ? MUSTARD : CREAM,
-                                        border: `1.5px solid ${RUST}`,
-                                        color: INK,
-                                        fontFamily: "'Arial Black', Impact, sans-serif",
-                                        fontSize: "10px",
-                                        letterSpacing: "0.1em",
-                                        textTransform: "uppercase" as const,
+                                        backgroundColor: RUST,
+                                        color: CREAM,
+                                        border: `2px solid ${RUST}`,
+                                        borderRadius: "2px",
+                                        padding: "0.5rem 1.25rem",
+                                        fontWeight: 700,
+                                        fontSize: "0.875rem",
+                                        cursor: saving ? "not-allowed" : "pointer",
+                                        opacity: saving ? 0.6 : 1,
                                       }}
                                     >
-                                      <span style={{ fontSize: "12px" }}>📌</span>
-                                      <span>{block.pinned ? "Pinned" : "Pin"}</span>
+                                      {saving ? "Saving..." : "Save"}
                                     </button>
                                     <button
-                                      onClick={(e) => { e.stopPropagation(); startEditing(block); }}
-                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:scale-105"
+                                      onClick={(e) => { e.stopPropagation(); cancelEditing(); }}
                                       style={{
-                                        background: CREAM,
-                                        border: `1.5px solid ${RUST}`,
+                                        backgroundColor: "transparent",
                                         color: INK,
-                                        fontFamily: "'Arial Black', Impact, sans-serif",
-                                        fontSize: "10px",
-                                        letterSpacing: "0.1em",
-                                        textTransform: "uppercase" as const,
+                                        border: `2px solid ${RUST}`,
+                                        borderRadius: "2px",
+                                        padding: "0.5rem 1.25rem",
+                                        fontWeight: 700,
+                                        fontSize: "0.875rem",
+                                        cursor: "pointer",
                                       }}
                                     >
-                                      <span style={{ fontSize: "12px" }}>✏️</span>
-                                      <span>Edit</span>
+                                      Cancel
                                     </button>
                                   </div>
-
-                                  {/* ── Edit form (replaces read-only content) ── */}
-                                  {isEditing ? (
-                                    <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
-                                      <div>
-                                        <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>Title</label>
-                                        <input
-                                          type="text"
-                                          value={editForm.title || ""}
-                                          onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
-                                          style={{ ...inputStyle, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif", textTransform: "uppercase" }}
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>Description</label>
-                                        <textarea
-                                          value={editForm.description || ""}
-                                          onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
-                                          rows={3}
-                                          style={inputStyle}
-                                        />
-                                      </div>
-                                      <div className="flex gap-3">
-                                        <div className="flex-1">
-                                          <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>Start Time</label>
-                                          <input
-                                            type="time"
-                                            value={editForm.startTime || ""}
-                                            onChange={(e) => setEditForm((f) => ({ ...f, startTime: e.target.value || null }))}
-                                            style={inputStyle}
-                                          />
-                                        </div>
-                                        <div className="flex-1">
-                                          <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>End Time</label>
-                                          <input
-                                            type="time"
-                                            value={editForm.endTime || ""}
-                                            onChange={(e) => setEditForm((f) => ({ ...f, endTime: e.target.value || null }))}
-                                            style={inputStyle}
-                                          />
-                                        </div>
-                                      </div>
-                                      <div>
-                                        <label className="text-sm font-bold uppercase tracking-wider mb-1 block" style={{ color: INK, opacity: 0.55 }}>Location</label>
-                                        <input
-                                          type="text"
-                                          value={editForm.location || ""}
-                                          onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value || null }))}
-                                          style={inputStyle}
-                                        />
-                                      </div>
-                                      <div className="flex gap-2 pt-1">
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); saveEdit(block.id); }}
-                                          disabled={saving}
-                                          style={{
-                                            backgroundColor: RUST,
-                                            color: CREAM,
-                                            border: `2px solid ${RUST}`,
-                                            borderRadius: "2px",
-                                            padding: "0.5rem 1.25rem",
-                                            fontWeight: 700,
-                                            fontSize: "0.875rem",
-                                            cursor: saving ? "not-allowed" : "pointer",
-                                            opacity: saving ? 0.6 : 1,
-                                          }}
-                                        >
-                                          {saving ? "Saving..." : "Save"}
-                                        </button>
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); cancelEditing(); }}
-                                          style={{
-                                            backgroundColor: "transparent",
-                                            color: INK,
-                                            border: `2px solid ${RUST}`,
-                                            borderRadius: "2px",
-                                            padding: "0.5rem 1.25rem",
-                                            fontWeight: 700,
-                                            fontSize: "0.875rem",
-                                            cursor: "pointer",
-                                          }}
-                                        >
-                                          Cancel
-                                        </button>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <>
-                                      {/* Photo banner */}
-                                      {block.imageUrl && (
-                                        <div
-                                          className="w-full h-40 sm:h-48 bg-cover bg-center -mt-6 -mx-7 mb-4"
-                                          style={{
-                                            backgroundImage: `url(${block.imageUrl})`,
-                                            width: "calc(100% + 3.5rem)",
-                                            borderRadius: "2px 2px 0 0",
-                                          }}
-                                        />
-                                      )}
-                                      {/* Top row */}
-                                      <div className="flex items-center gap-2.5 flex-wrap mb-2">
-                                        {block.startTime && (
-                                          <span className="text-xl font-mono font-bold" style={{ color: INK, opacity: 0.65 }}>
-                                            {formatTime(block.startTime)}{block.endTime && `–${formatTime(block.endTime)}`}
-                                          </span>
-                                        )}
-                                        <span
-                                          className="text-lg px-3 py-1 font-bold uppercase tracking-wider"
-                                          style={{ backgroundColor: config.bg, color: INK, border: `1.5px solid ${RUST}`, borderRadius: "2px" }}
-                                        >
-                                          {config.icon} {config.label}
-                                        </span>
-                                        {isAlt && (
-                                          <span
-                                            className="text-lg px-3 py-1 font-bold uppercase tracking-wider"
-                                            style={{ backgroundColor: CREAM, color: INK, border: `1.5px solid ${MUSTARD}`, borderRadius: "2px" }}
-                                          >
-                                            ↔️ Alternative
-                                          </span>
-                                        )}
-                                        {block.estimatedCost && parseFloat(block.estimatedCost) > 0 && (
-                                          <span className="text-xl font-bold ml-auto" style={{ color: INK, opacity: 0.55 }}>
-                                            ~${block.estimatedCost}
-                                          </span>
-                                        )}
-                                      </div>
-
-                                      {/* Title */}
+                                </div>
+                              ) : (
+                                <>
+                                  {/* Photo banner */}
+                                  {block.imageUrl && (
+                                    <div
+                                      role="img"
+                                      aria-label={block.title || "Activity photo"}
+                                      className="w-full h-40 sm:h-48 bg-cover bg-center -mt-6 -mx-7 mb-4"
+                                      style={{
+                                        backgroundImage: `url(${block.imageUrl})`,
+                                        width: "calc(100% + 3.5rem)",
+                                        borderRadius: "2px 2px 0 0",
+                                      }}
+                                    />
+                                  )}
+                                  {/* Top row */}
+                                  <div className="flex items-start justify-between gap-4 mb-1">
+                                    <div className="flex items-start gap-2 flex-wrap min-w-0">
+                                      <span className="text-2xl shrink-0">{config.icon}</span>
                                       <p
-                                        className="font-black uppercase text-2xl leading-tight"
-                                        style={{ color: RUST, fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif", letterSpacing: "-0.01em" }}
+                                        className="font-black uppercase leading-tight"
+                                        style={{
+                                          color: isAlt ? MUSTARD : RUST,
+                                          fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif",
+                                          fontSize: "clamp(1rem, 3vw, 1.375rem)",
+                                        }}
                                       >
                                         {block.title}
                                       </p>
+                                    </div>
+                                    {(block.startTime || block.endTime) && (
+                                      <p className="text-lg font-semibold shrink-0" style={{ color: INK, opacity: 0.5 }}>
+                                        {block.startTime && formatTime(block.startTime)}
+                                        {block.endTime && ` – ${formatTime(block.endTime)}`}
+                                      </p>
+                                    )}
+                                  </div>
 
-                                      {/* Location */}
-                                      {block.location && (
-                                        <a
-                                          href={mapsUrl(block.location)}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          onClick={(e) => e.stopPropagation()}
-                                          className="inline-block text-xl mt-1.5 font-semibold underline underline-offset-4 decoration-1"
-                                          style={{ color: INK, opacity: 0.75 }}
-                                        >
-                                          📍 {block.location} →
-                                        </a>
+                                  {block.location && (
+                                    <a
+                                      href={mapsUrl(block.location)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="inline-block text-lg font-semibold underline underline-offset-2 mb-3"
+                                      style={{ color: INK, opacity: 0.55 }}
+                                    >
+                                      📍 {block.location}
+                                    </a>
+                                  )}
+
+                                  {isExpanded && (
+                                    <div className="mt-4 space-y-3 border-t pt-4" style={{ borderColor: `${RUST}33` }}>
+                                      {block.description && (
+                                        <p className="text-xl leading-relaxed font-medium" style={{ color: INK }}>
+                                          {block.description}
+                                        </p>
                                       )}
-
-                                      {/* Expanded */}
-                                      {isExpanded && (
-                                        <div className="mt-4 space-y-3">
-                                          {block.description && (
-                                            <p className="text-xl leading-relaxed font-medium" style={{ color: INK }}>
-                                              {block.description}
-                                            </p>
-                                          )}
-                                          {block.aiReasoning && (
-                                            <div className="px-5 py-4" style={{ backgroundColor: MUSTARD, borderRadius: "2px" }}>
-                                              <p className="text-lg font-black uppercase tracking-wider mb-1.5" style={{ color: INK, opacity: 0.55 }}>
-                                                Why this made the cut
-                                              </p>
-                                              <p className="text-xl leading-relaxed font-semibold" style={{ color: INK }}>
-                                                {block.aiReasoning}
-                                              </p>
-                                            </div>
-                                          )}
+                                      {block.estimatedCost && (
+                                        <p className="text-xl font-bold" style={{ color: RUST }}>
+                                          ~${parseFloat(block.estimatedCost).toLocaleString()} est.
+                                        </p>
+                                      )}
+                                      {block.aiReasoning && (
+                                        <div className="p-4 mt-2" style={{ backgroundColor: CREAM, borderRadius: "2px" }}>
+                                          <p className="text-sm font-black uppercase tracking-wider mb-1" style={{ color: MUSTARD }}>
+                                            Why this made the cut
+                                          </p>
+                                          <p className="text-xl leading-relaxed font-semibold" style={{ color: INK }}>
+                                            {block.aiReasoning}
+                                          </p>
                                         </div>
                                       )}
-                                    </>
+                                    </div>
                                   )}
-                                </div>
-                              </SortableBlock>
-                            );
-                          })}
-                        </div>
-                      </SortableContext>
-                    </DndContext>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}

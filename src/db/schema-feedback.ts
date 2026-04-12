@@ -3,8 +3,6 @@ import {
   text,
   timestamp,
   uuid,
-  varchar,
-  integer,
   pgEnum,
   index,
   uniqueIndex,
@@ -84,43 +82,6 @@ export const signOffs = pgTable(
   ]
 );
 
-// ── Households ────────────────────────────────────────────
-
-export const households = pgTable(
-  "households",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    tripId: uuid("trip_id")
-      .notNull()
-      .references(() => trips.id, { onDelete: "cascade" }),
-    name: varchar("name", { length: 255 }).notNull(),
-    sortOrder: integer("sort_order").notNull().default(0),
-  },
-  (table) => [index("households_trip_id_idx").on(table.tripId)]
-);
-
-// ── Household Members ─────────────────────────────────────
-
-export const householdMembers = pgTable(
-  "household_members",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    householdId: uuid("household_id")
-      .notNull()
-      .references(() => households.id, { onDelete: "cascade" }),
-    participantId: uuid("participant_id")
-      .notNull()
-      .references(() => participants.id, { onDelete: "cascade" }),
-  },
-  (table) => [
-    index("household_members_household_id_idx").on(table.householdId),
-    uniqueIndex("household_members_household_participant_idx").on(
-      table.householdId,
-      table.participantId
-    ),
-  ]
-);
-
 // ── Relations ─────────────────────────────────────────────
 
 export const feedbackItemsRelations = relations(feedbackItems, ({ one }) => ({
@@ -148,25 +109,3 @@ export const signOffsRelations = relations(signOffs, ({ one }) => ({
     references: [participants.id],
   }),
 }));
-
-export const householdsRelations = relations(households, ({ one, many }) => ({
-  trip: one(trips, {
-    fields: [households.tripId],
-    references: [trips.id],
-  }),
-  members: many(householdMembers),
-}));
-
-export const householdMembersRelations = relations(
-  householdMembers,
-  ({ one }) => ({
-    household: one(households, {
-      fields: [householdMembers.householdId],
-      references: [households.id],
-    }),
-    participant: one(participants, {
-      fields: [householdMembers.participantId],
-      references: [participants.id],
-    }),
-  })
-);
