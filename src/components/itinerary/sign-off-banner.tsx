@@ -56,7 +56,7 @@ export function SignOffBanner({
             How&apos;s this look, {participantName}?
           </h3>
           <p className="text-sm opacity-70 mb-4" style={{ fontFamily: "var(--font-fraunces), Georgia, serif", fontSize: "15px" }}>
-            Scroll through the week below. Hit <strong style={{ color: RUST }}>&#x2661; Love</strong> or <strong style={{ color: RUST }}>&#x270E; Suggest</strong> on any activity to share your thoughts &mdash; propose an alternative, request a different time, or leave a note.
+            Scroll through the week below. Hit <strong style={{ color: RUST }}>&#x2661; Love</strong> or <strong style={{ color: RUST }}>&#x270E; Suggest</strong>{" "}on any activity to share your thoughts &mdash; propose an alternative, request a different time, or leave a note.
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <button
@@ -78,9 +78,9 @@ export function SignOffBanner({
       ) : (
         <div className="rounded-xl px-4 py-3 text-center text-sm" style={{ background: CREAM, color: INK }}>
           {submitted === "approved" ? (
-            <span>&#x2705; You&apos;re all set, {participantName}! You can still hit <strong style={{ color: RUST }}>&#x2661; Love</strong> or <strong style={{ color: RUST }}>&#x270E; Suggest</strong> on any activity below to leave notes.</span>
+            <span>&#x2705; You&apos;re all set, {participantName}! You can still hit <strong style={{ color: RUST }}>&#x2661; Love</strong> or <strong style={{ color: RUST }}>&#x270E; Suggest</strong>{" "}on any activity below to leave notes.</span>
           ) : (
-            <span>&#x1F4DD; Thanks, {participantName}! Hit <strong style={{ color: RUST }}>&#x2661; Love</strong> or <strong style={{ color: RUST }}>&#x270E; Suggest</strong> on any activity below to share your thoughts.</span>
+            <span>&#x1F4DD; Thanks, {participantName}! Hit <strong style={{ color: RUST }}>&#x2661; Love</strong> or <strong style={{ color: RUST }}>&#x270E; Suggest</strong>{" "}on any activity below to share your thoughts.</span>
           )}
         </div>
       )}
