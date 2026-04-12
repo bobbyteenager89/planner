@@ -8,7 +8,7 @@ import {
   itineraryBlocks,
   reactions as reactionsTable,
 } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 import { ai } from "@/lib/ai/client";
 import { buildItineraryPrompt } from "@/lib/ai/itinerary-prompt";
 import { sendItineraryReadyEmail } from "@/lib/email/itinerary-ready";
@@ -66,17 +66,21 @@ export async function POST(
     .set({ status: "generating", updatedAt: new Date() })
     .where(eq(trips.id, id));
 
-  // Load participant preferences
-  const participantsWithPrefs = await Promise.all(
-    allParticipants.map(async (p) => {
-      const [pref] = await db()
+  // Load participant preferences — single batch query
+  const participantIds = allParticipants.map((p) => p.id);
+  const allPreferences = participantIds.length > 0
+    ? await database
         .select()
         .from(preferences)
-        .where(eq(preferences.participantId, p.id))
-        .limit(1);
-      return { name: p.name, email: p.email, preferences: pref ?? null };
-    })
-  );
+        .where(inArray(preferences.participantId, participantIds))
+    : [];
+  const prefByParticipantId = new Map(allPreferences.map((pref) => [pref.participantId, pref]));
+
+  const participantsWithPrefs = allParticipants.map((p) => ({
+    name: p.name,
+    email: p.email,
+    preferences: prefByParticipantId.get(p.id) ?? null,
+  }));
 
   // Load prior itinerary data for revisions
   let priorBlocks: (typeof itineraryBlocks.$inferSelect)[] = [];
@@ -101,7 +105,7 @@ export async function POST(
   let pinnedBlocksToMerge: (typeof itineraryBlocks.$inferSelect)[] = [];
 
   // Get latest itinerary version number
-  const [latestItinerary] = await db()
+  const [latestItinerary] = await database
     .select()
     .from(itineraries)
     .where(eq(itineraries.tripId, id))
@@ -110,7 +114,7 @@ export async function POST(
 
   if (latestItinerary) {
     // Load prior blocks
-    priorBlocks = await db()
+    priorBlocks = await database
       .select()
       .from(itineraryBlocks)
       .where(eq(itineraryBlocks.itineraryId, latestItinerary.id));
@@ -123,13 +127,17 @@ export async function POST(
       title: b.title,
     }));
 
-    // Load reactions with participant names
-    for (const block of priorBlocks) {
-      const blockReactions = await db()
-        .select()
-        .from(reactionsTable)
-        .where(eq(reactionsTable.blockId, block.id));
+    // Load reactions with participant names — single batch query
+    const priorBlockIds = priorBlocks.map((b) => b.id);
+    const allBlockReactions = priorBlockIds.length > 0
+      ? await database
+          .select()
+          .from(reactionsTable)
+          .where(inArray(reactionsTable.blockId, priorBlockIds))
+      : [];
 
+    for (const block of priorBlocks) {
+      const blockReactions = allBlockReactions.filter((r) => r.blockId === block.id);
       const summary = {
         blockId: block.id,
         love: 0,

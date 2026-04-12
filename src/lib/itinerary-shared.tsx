@@ -74,6 +74,7 @@ export const FEEDBACK_TYPE_CONFIG: Record<string, { icon: string; label: string 
 
 // ── Palette ──
 export const INK = "#3B1A0F";
+export const INK_MUTED = "rgba(59, 26, 15, 0.55)";
 export const RUST = "#D14F36";
 export const MUSTARD = "#EBB644";
 export const CREAM = "#F3EBE0";

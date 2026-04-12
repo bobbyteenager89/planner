@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { participants, itineraries } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 
 export async function POST(
   request: Request,
@@ -41,17 +41,13 @@ export async function POST(
     return new Response("No itinerary exists", { status: 400 });
   }
 
-  // Read-modify-write: append comment to JSONB array
-  const existingComments =
-    (latestItinerary.comments as Array<{ participantId: string; text: string; createdAt: string }>) ?? [];
-  const updatedComments = [
-    ...existingComments,
-    { participantId: viewer.id, text: text.trim(), createdAt: new Date().toISOString() },
-  ];
-
+  // Atomic JSONB append — avoids read-modify-write race condition
+  const newComment = [{ participantId: viewer.id, text: text.trim(), createdAt: new Date().toISOString() }];
   await database
     .update(itineraries)
-    .set({ comments: updatedComments })
+    .set({
+      comments: sql`COALESCE(${itineraries.comments}, '[]'::jsonb) || ${JSON.stringify(newComment)}::jsonb`,
+    })
     .where(eq(itineraries.id, latestItinerary.id));
 
   return Response.json({ success: true });

@@ -144,7 +144,7 @@ export async function POST(
         .update(trips)
         .set(dbUpdate)
         .where(eq(trips.id, id))
-        .then(() => {});
+        .catch((err) => console.error("Failed to save conversation:", err));
     },
   });
 

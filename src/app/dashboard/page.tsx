@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { trips } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { trips, participants } from "@/db/schema";
+import { eq, desc, inArray, or } from "drizzle-orm";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,11 +12,44 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  const userTrips = await db()
+  // Trips the user owns
+  const ownedTrips = await db()
     .select()
     .from(trips)
     .where(eq(trips.ownerId, session.user.id))
     .orderBy(desc(trips.createdAt));
+
+  // Trips the user is a participant on (by userId or email)
+  const participantRows = await db()
+    .select({ tripId: participants.tripId })
+    .from(participants)
+    .where(
+      or(
+        eq(participants.userId, session.user.id),
+        eq(participants.email, session.user.email!)
+      )
+    );
+
+  const participantTripIds = participantRows
+    .map((r) => r.tripId)
+    .filter((tid) => !ownedTrips.some((t) => t.id === tid));
+
+  const participantTrips =
+    participantTripIds.length > 0
+      ? await db()
+          .select()
+          .from(trips)
+          .where(inArray(trips.id, participantTripIds))
+          .orderBy(desc(trips.createdAt))
+      : [];
+
+  // Merge and deduplicate by trip ID (owned trips first)
+  const seen = new Set<string>();
+  const userTrips = [...ownedTrips, ...participantTrips].filter((t) => {
+    if (seen.has(t.id)) return false;
+    seen.add(t.id);
+    return true;
+  });
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
