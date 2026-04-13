@@ -46,21 +46,19 @@ export function DayPicker({
               role="tab"
               aria-selected={isActive}
               onClick={() => onSelect(d.dayNumber)}
-              className="flex flex-col items-center px-3 py-2.5 transition-all shrink-0"
+              className="flex flex-col items-center px-4 py-2.5 transition-all shrink-0"
               style={{
                 backgroundColor: isActive ? RUST : CARD_BG,
                 color: isActive ? CREAM : INK,
                 borderRadius: "2px",
                 border: `1.5px solid ${RUST}`,
-                width: "7.5rem",
+                minWidth: "4.5rem",
               }}
             >
               <span
                 className="text-xs font-black uppercase tracking-[0.15em]"
                 style={{
                   fontFamily: "'Arial Black', Impact, 'system-ui', sans-serif",
-                  // Active: CREAM on RUST bg (light-on-dark) — leave opacity-based dimming
-                  // Inactive: use INK_MUTED for AA contrast on CARD_BG
                   color: isActive ? undefined : INK_MUTED,
                   opacity: isActive ? 0.85 : undefined,
                 }}
@@ -73,21 +71,6 @@ export function DayPicker({
               >
                 {d.dayNumber}
               </span>
-              {d.vibe && (
-                <span
-                  className="text-[11px] italic text-center mt-1 leading-tight"
-                  style={{
-                    // Active: CREAM on RUST bg — leave as-is
-                    // Inactive: INK_MUTED for AA contrast
-                    color: isActive ? undefined : INK_MUTED,
-                    opacity: isActive ? 0.9 : undefined,
-                    fontFamily: "var(--font-fraunces), Georgia, serif",
-                    wordBreak: "break-word",
-                  }}
-                >
-                  {d.vibe}
-                </span>
-              )}
             </button>
           );
         })}
