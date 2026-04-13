@@ -35,7 +35,7 @@ export function DayPicker({
       <div
         role="tablist"
         aria-label="Trip days"
-        className="flex gap-2 px-4 py-3 min-w-max mx-auto"
+        className="flex gap-2 px-4 py-3 w-fit mx-auto"
       >
         {days.map((d) => {
           const isActive = d.dayNumber === activeDay;
