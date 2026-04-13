@@ -228,17 +228,6 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                 "20 Moose Ridge Road, Big Sky, MT",
               ]),
             },
-            {
-              label: "Groceries",
-              value: (
-                <>
-                  Hungry Moose
-                  <br />
-                  <span style={{ color: INK_MUTED, fontSize: "13px" }}>5 min drive</span>
-                </>
-              ),
-              href: mapsUrl("Hungry Moose Market & Deli, Big Sky, MT"),
-            },
           ]}
         />
       </div>

@@ -151,10 +151,17 @@ export function formatTime(time: string): string {
   return m === 0 ? `${hour12} ${period}` : `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
 }
 
+// Parse date string as local date (avoids UTC→local timezone shift that turns Saturday into Friday)
+function parseLocalDate(dateStr: string): Date {
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return new Date(dateStr);
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}
+
 // Returns a Date object — use formatDayDate() to get a display string
 export function getDayDate(startDate: string | null, dayNumber: number): Date | null {
   if (!startDate) return null;
-  const date = new Date(startDate);
+  const date = parseLocalDate(startDate);
   date.setDate(date.getDate() + dayNumber - 1);
   return date;
 }
@@ -165,7 +172,7 @@ export function formatDayDate(date: Date): string {
 
 export function getWeekdayShort(startDate: string | null, dayNumber: number): string {
   if (!startDate) return `D${dayNumber}`;
-  const date = new Date(startDate);
+  const date = parseLocalDate(startDate);
   date.setDate(date.getDate() + dayNumber - 1);
   return date.toLocaleDateString("en-US", { weekday: "short" });
 }

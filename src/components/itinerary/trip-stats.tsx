@@ -15,7 +15,9 @@ interface TripStatsProps {
 export function TripStats({ stats }: TripStatsProps) {
   return (
     <div
-      className="grid grid-cols-1 sm:grid-cols-3 gap-0 px-6 py-5"
+      className={`grid grid-cols-1 gap-0 px-6 py-5 ${
+        stats.length === 2 ? "sm:grid-cols-2 max-w-lg mx-auto" : "sm:grid-cols-3"
+      }`}
       style={{
         background: CREAM,
         borderBottom: "1px solid rgba(59,26,15,0.1)",
@@ -24,7 +26,7 @@ export function TripStats({ stats }: TripStatsProps) {
       {stats.map((stat, i) => (
         <div
           key={i}
-          className="px-4"
+          className="px-4 text-center"
           style={{
             borderLeft: i === 0 ? "none" : "1px solid rgba(59,26,15,0.12)",
           }}
