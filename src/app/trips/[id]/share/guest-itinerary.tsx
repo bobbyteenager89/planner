@@ -32,6 +32,27 @@ import { TripStats } from "@/components/itinerary/trip-stats";
 import { type FeedbackItem, type Participant } from "@/lib/itinerary-shared";
 import { getGuestParticipantId } from "@/lib/guest-identity";
 
+function BlockImage({ url, alt }: { url: string; alt: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+  return (
+    <img
+      src={url}
+      alt={alt}
+      onError={() => setFailed(true)}
+      className="w-full h-40 sm:h-48 object-cover -mt-6 -mx-7 mb-4"
+      style={{ width: "calc(100% + 3.5rem)", borderRadius: "2px 2px 0 0", display: "block" }}
+    />
+  );
+}
+
+function renderDescription(text: string) {
+  const parts = text.split(/\*\*(.*?)\*\*/g);
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+  );
+}
+
 export function GuestItinerary({ tripId }: { tripId: string }) {
   const [data, setData] = useState<ShareData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -403,16 +424,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                 >
                   {/* Photo banner */}
                   {block.imageUrl && (
-                    <div
-                      role="img"
-                      aria-label={block.title || "Activity photo"}
-                      className="w-full h-40 sm:h-48 bg-cover bg-center -mt-6 -mx-7 mb-4"
-                      style={{
-                        backgroundImage: `url(${block.imageUrl})`,
-                        width: "calc(100% + 3.5rem)",
-                        borderRadius: "2px 2px 0 0",
-                      }}
-                    />
+                    <BlockImage url={block.imageUrl} alt={block.title || "Activity photo"} />
                   )}
                   {/* Top row */}
                   <div className="flex items-center gap-2.5 flex-wrap mb-2">
@@ -481,7 +493,7 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
                         fontFamily: "var(--font-fraunces), Georgia, serif",
                       }}
                     >
-                      {block.description}
+                      {renderDescription(block.description)}
                     </p>
                   )}
                 </div>
