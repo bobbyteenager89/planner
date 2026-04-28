@@ -31,6 +31,8 @@ export const signOffStatusEnum = pgEnum("sign_off_status", [
   "has_feedback",
 ]);
 
+export const rsvpStatusEnum = pgEnum("rsvp_status", ["yes", "maybe", "no"]);
+
 // ── Feedback Items ────────────────────────────────────────
 
 export const feedbackItems = pgTable(
@@ -106,6 +108,52 @@ export const signOffsRelations = relations(signOffs, ({ one }) => ({
   }),
   participant: one(participants, {
     fields: [signOffs.participantId],
+    references: [participants.id],
+  }),
+}));
+
+// ── Block RSVPs ───────────────────────────────────────────
+// One RSVP per (block, participant). Used for activity blocks where
+// attendance varies — drives host-side headcount + booking decisions.
+
+export const blockRsvps = pgTable(
+  "block_rsvps",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    blockId: uuid("block_id")
+      .notNull()
+      .references(() => itineraryBlocks.id, { onDelete: "cascade" }),
+    participantId: uuid("participant_id")
+      .notNull()
+      .references(() => participants.id, { onDelete: "cascade" }),
+    status: rsvpStatusEnum("status").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("block_rsvps_trip_id_idx").on(table.tripId),
+    index("block_rsvps_block_id_idx").on(table.blockId),
+    uniqueIndex("block_rsvps_block_participant_idx").on(
+      table.blockId,
+      table.participantId
+    ),
+  ]
+);
+
+export const blockRsvpsRelations = relations(blockRsvps, ({ one }) => ({
+  trip: one(trips, {
+    fields: [blockRsvps.tripId],
+    references: [trips.id],
+  }),
+  block: one(itineraryBlocks, {
+    fields: [blockRsvps.blockId],
+    references: [itineraryBlocks.id],
+  }),
+  participant: one(participants, {
+    fields: [blockRsvps.participantId],
     references: [participants.id],
   }),
 }));
