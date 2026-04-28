@@ -1,185 +1,23 @@
 # Planner — Progress Log
 
+## Current State
+**Last session:** 2026-04-28 — S14: Booking checklist + per-block RSVP feature shipped to prod.
+**Next:**
+- Send family the `/share/my-plan` link so they can RSVP (drives definitive headcounts)
+- Kick off Cowork on Sharon's three priorities: Big Sky Culinary, Food For Thought chef, Riverhouse BBQ (walk-in)
+- Decide discoverability fix: add RSVP toggle to `/share`, or just always-link my-plan
+**Branch:** master / clean (PR #1 merged + auto-deployed)
 
-## 2026-04-08 — Session 9: Mom-Friendly Rationale Review Page
-
-### Accomplished
-- **New public route** `/trips/[id]/share/rationale` — auth-free, read-only review page for sharing the itinerary logic with trusted reviewers (Andrew's mom Sharon)
-- **Rationale generator** (`src/lib/ai/rationale.ts`) — server module that calls Claude Sonnet once to synthesize and cache as JSON on `itineraries.ai_reasoning`:
-  - `intro`: 4-6 bullet planning priorities
-  - `participants`: per-household cards with members, "excited for", "passing on", notes (derived from real per-voter mentions in block reasonings)
-  - `days`: 2-3 sentence per-day logic
-  - `todos`: pre-trip To Do list grouped into Restaurants / Activities & Tickets / Bookings / Logistics / Supplies
-  - Owner can `?regen=1` to force regenerate
-- **Fixed wrong group data** — scrubbed every "20 people", "ages 4-69", "4-year-old", "69-year-old", "7 participants" phrase from 5 block reasonings. Actual group = 4 households, 9 people.
-- **Deleted redundant Group Kickoff block** — Andrew will handle it at welcome dinner
-- **Fixed rodeo timing** — was wrongly mid-morning, moved to Evening 7-9:30 PM (Big Sky PBR runs Thursday nights). Rejiggered Day 6: lunch 12-1 → zipline/scenic drive 1:30-4:30 → early dinner 4:45-6:15 → rodeo 7-9:30
-- **Typography pass** — body text bumped to `text-xl` (day logic, descriptions, intro) and `text-lg` (reasonings, todos) for Mom-readable sizes
-- **DB ownership fix** — reassigned Big Sky trip from an orphan owner to andrewgoble1@gmail.com
-- **Session bug caught and fixed** — imported date helpers from `itinerary-shared.tsx` (`"use client"`) into a server component → prod runtime crash. Fix: inlined helpers in the page.
-- **Shipped and sent to Sharon for notes** — awaiting feedback before next build
-
-### Files Created
-| File | Purpose |
-|------|---------|
-| `src/lib/ai/rationale.ts` | Rationale generator: households model + Claude prompt + cache (~220 lines) |
-| `src/app/trips/[id]/share/rationale/page.tsx` | Server-component review page (~440 lines) |
-| `src/app/trips/[id]/share/rationale/regenerate-button.tsx` | Client component for owner regen |
-| `scripts/gen-rationale.ts` | CLI to pre-generate rationale from local env |
-| `NEXT_SESSION.md` | Full roadmap: product thesis, CEO review prompts, infra + feature backlog |
-
-### Files Modified
-| File | Changes |
-|------|---------|
-| DB: `itinerary_blocks` (Big Sky) | Scrubbed stale age/count phrases from 5 blocks; deleted Group Kickoff; retimed Day 6 (rodeo → evening) |
-| DB: `itineraries.ai_reasoning` (Big Sky) | Now holds full Rationale JSON (intro/participants/days/todos) |
-| DB: `trips` (Big Sky) | `owner_id` reassigned to andrewgoble1 |
-
-### Next Steps (Session 10+)
-- [ ] **Wait for Sharon's notes** and iterate based on feedback
-- [ ] `/plan-ceo-review` of the product — is the "travel agent + social psychology" thesis showing up in the UX?
-- [ ] Logging suite — Claude call observability (latency/cost/errors), structured runtime logs
-- [ ] Testing pages — e2e on rationale/review/intake/share; add live-route render check to preflight
-- [ ] Claude Cowork MD ingestion — ingest strategy/brief MD files as rationale context
-- [ ] Google Calendar integration — "Add trip to calendar" per participant
-- [ ] Phone home-screen wallpaper generator
-- [ ] Twilio SMS roadmap — T-30/14/7/1 + day-of briefings + change alerts
-- [ ] Color-coded overview map with all days + hover cards
-- [ ] Per-person RSVP + custom itinerary pages (post-Sharon feedback)
-- See `NEXT_SESSION.md` for full roadmap
-
----
-
-## 2026-04-08 — Session 10: Ops Doc + Cowork Report-Back
-
-### Accomplished
-- **Caught a real miss:** Corban filled out the survey on 2026-03-28 but `src/lib/ai/rationale.ts` had him bundled as "Maddie speaks for both." Split them into separate voting units — Corban is YES on fly-fishing/rodeo, Maddie is YES on spa-day. Regenerated the rationale.
-- **Validated the itinerary already handled it** — Day 4 fly-fishing/spa alternates exactly match the Maddie↔Corban split. No itinerary moves needed.
-- **Built the Ops Doc feature** — downloadable markdown brief for Claude Cowork to drive bookings:
-  - Schema: added `adult_count`, `kid_count`, `reservation_status`, `reservation_notes`, `booking_window` to `itinerary_blocks`; new `ops_items` and `ops_tokens` tables
-  - Seeded 37 Big Sky blocks with headcounts (default 7A+2K; Day 4 fly/spa split to 1A each; other overrides for booked/walk-in/not-needed)
-  - Seeded 13 initial todos: 12 owned by Andrew, 1 owned by Maddie (spa booking)
-  - `src/lib/ops/markdown.ts` — pure doc generator
-  - `GET /api/trips/[id]/ops/doc` — auth-gated markdown download, attachment filename
-  - "Download Ops Doc" button on host review page
-- **Cowork report-back loop** — `POST /api/trips/[id]/ops/update` with bearer token auth (sha256-hashed in `ops_tokens`). Mint via `scripts/mint-ops-token.mjs`. Verified end-to-end: real update → `{"ok":true,"updated":1}`, revoked token → 401.
-- **Middleware carve-out** — added `ops/update` to middleware bypass list since it uses bearer not cookie.
-- **Docs** — `docs/COWORK.md` brief for the cowork agent (job, update payload shape, curl example, headcount cheat sheet, trip context).
-- **Token rotation** — old token revoked, new one issued.
-- **Preflight + smoke-test** — build clean, typecheck clean, all public routes 200, auth-gated routes 307, ops/update endpoint live with valid bearer.
-
-### Files Created
-| File | Purpose |
-|------|---------|
-| `src/lib/ops/markdown.ts` | Ops doc generator (headcounts, reservation status, todos by owner, cowork instructions) |
-| `src/lib/ops/auth.ts` | Token hash/generate helpers |
-| `src/app/api/trips/[id]/ops/doc/route.ts` | GET markdown download endpoint |
-| `src/app/api/trips/[id]/ops/update/route.ts` | POST bearer-auth report-back endpoint |
-| `scripts/seed-bigsky-ops.mjs` | Idempotent seed for Big Sky headcounts + todos |
-| `scripts/mint-ops-token.mjs` | Ops token mint script (prints raw once, stores hash) |
-| `docs/COWORK.md` | Brief for Claude Cowork agent |
-
-### Files Modified
-| File | Changes |
-|------|---------|
-| `src/db/schema.ts` | Added 2 enums, 5 columns on `itinerary_blocks`, new `ops_items` + `ops_tokens` tables |
-| `src/lib/ai/rationale.ts` | Split "Maddie & Corban" into separate voters |
-| `src/app/trips/[id]/review/review-content.tsx` | Added "Download Ops Doc" button |
-| `src/middleware.ts` | Bypass `ops/update` for bearer-auth endpoint |
-| `.gitignore` | Added `.claude/` and `.superpowers/` sweep guards |
-
-### Next Steps (Session 11+)
-- [x] Guest feedback system (done in S11)
-- [x] Guest view redesign (done in S11)
-- [ ] Hand ops doc + token to Claude Cowork, let it start booking
-- [ ] In-app editor for headcounts and todos (currently SQL-only)
-- [ ] Token revoke endpoint (currently manual SQL)
-- [ ] Wait for Sharon's notes
-
----
-
-## 2026-04-11 — Session 11: Guest Feedback System + Editorial Redesign
-
-### Accomplished
-- **Full feedback system** — guests can now react to and propose changes on the shared itinerary
-  - 4 new DB tables: `feedback_items`, `sign_offs`, `households`, `household_members`
-  - `co_admin` role + `presentationDismissed` column on itineraries
-  - 7 new API endpoints: feedback CRUD, sign-off, sign-offs list, finalize, households
-  - Guest identity via first-name dropdown (localStorage + cookie, no auth required)
-  - Sign-off banner: "Looks great! I'm in" / "I have some feedback" with DRAFT/FINAL badges
-  - Per-block Love + Suggest buttons (replaced single "React" dropdown)
-  - Suggest panel: alternative activity, different time, skip, or note
-  - Middleware updated for all new public API routes
-- **Editor enhancements** — admin review page now has:
-  - Agenda | Map | Ops tab bar with pending feedback badge
-  - Feedback inbox with accept/dismiss/reply actions
-  - Map tab (day-grouped Google Maps links)
-  - Ops tab: Todos, RSVPs (sign-off status per participant), Changes feed
-  - Finalize button
-- **Guest view redesign** — editorial travel-poster aesthetic:
-  - HeroSection component: Lone Mountain sunset photo, duotone rust gradient, noise overlay, "GOBLE FAMILY" pill, 97-day countdown, editorial italic kicker, layered "BIG SKY" headline
-  - TripStats component: 3-column inline strip (basecamp, airport, grocery) replacing oversized card grid
-  - Fraunces serif (Google Font) added alongside Arial Black display
-  - "THE PLAN" section label with drop-cap intro paragraph at 19px
-  - Day picker redesigned: wider tabs (7.5rem), wrapping vibe text, weekday/number/vibe hierarchy
-  - Descriptions shown by default (no expand/collapse)
-  - Intro hidden after Day 1
-  - Day switching scrolls to content with URL hash (#day-N) for deep linking
-- **Editor redesign** — brought in line with guest view:
-  - Same HeroSection, admin action pills (Preview as Guest, Ops Doc)
-  - Pin/Edit/Regen/Map buttons restyled as rounded pills
-  - Fraunces italic for dates and meta text
-- **Bug fixes:**
-  - Guide page "Back to itinerary" — replaced `javascript:history.back()` with Next.js Link
-  - Drizzle config — added `schema-feedback.ts` to schema array (tables weren't being created)
-  - Removed packing list section and "Open full route" link
-- **CEO product review** — Quick/EXPANSION mode, identified Big Sky event day-of-week conflicts:
-  - Farmers Market is Wednesdays only (currently scheduled Sunday — needs manual fix)
-  - PBR Rodeo ends July 18 (arrival day — possible but tight)
-  - LMR Tuesday Night Ranch Rodeo is a viable alternative
-- **15 commits**, 21 files created, 10 files modified, 1,242 lines added
-
-### Files Created
-| File | Purpose |
-|------|---------|
-| `src/db/schema-feedback.ts` | Feedback, sign-off, household tables + enums + relations |
-| `src/app/api/trips/[id]/feedback/route.ts` | GET/POST feedback items |
-| `src/app/api/trips/[id]/feedback/[feedbackId]/route.ts` | PATCH feedback status/adminNote |
-| `src/app/api/trips/[id]/sign-off/route.ts` | POST sign-off (upsert) |
-| `src/app/api/trips/[id]/sign-offs/route.ts` | GET all sign-offs with names |
-| `src/app/api/trips/[id]/finalize/route.ts` | PATCH finalize trip + itinerary |
-| `src/app/api/trips/[id]/households/route.ts` | GET/POST households with members |
-| `src/components/itinerary/hero-section.tsx` | Full-bleed hero with photo + editorial overlay |
-| `src/components/itinerary/trip-stats.tsx` | Inline 3-column stats strip |
-| `src/components/itinerary/name-picker.tsx` | Guest identity dropdown |
-| `src/components/itinerary/three-dot-menu.tsx` | Love + Suggest feedback buttons |
-| `src/components/itinerary/sign-off-banner.tsx` | Top banner with DRAFT/FINAL badges |
-| `src/components/itinerary/feedback-inbox.tsx` | Admin inbox: accept/dismiss/reply |
-| `src/components/itinerary/map-tab.tsx` | Day-grouped locations with Maps links |
-| `src/components/itinerary/ops-tab.tsx` | Todos, RSVPs, change feed |
-| `src/lib/guest-identity.ts` | localStorage/cookie guest identity helpers |
-| `docs/superpowers/specs/2026-04-10-editor-guest-feedback-design.md` | Feature spec |
-| `docs/superpowers/plans/2026-04-10-editor-guest-feedback.md` | Implementation plan |
-
-### Files Modified
-| File | Changes |
-|------|---------|
-| `src/db/schema.ts` | Added `co_admin` role, `presentationDismissed` column |
-| `src/app/trips/[id]/share/guest-itinerary.tsx` | Redesigned with HeroSection, TripStats, feedback UI, hash scrolling |
-| `src/app/trips/[id]/review/review-content.tsx` | Added tabs, feedback inbox, HeroSection, restyled buttons |
-| `src/app/trips/[id]/share/day-picker.tsx` | Wider buttons, wrapping vibe text, Fraunces styling |
-| `src/app/trips/[id]/share/guide/page.tsx` | Fixed back button with Next.js Link |
-| `src/app/layout.tsx` | Added Fraunces font |
-| `src/middleware.ts` | Added feedback/sign-off/households/finalize public routes |
-| `drizzle.config.ts` | Added schema-feedback.ts to schema array |
-
-### Next Steps (Session 12+)
-- [x] Fix itinerary day-of-week conflicts (done in S12)
-- [x] Hand ops doc + token to Claude Cowork (done in S12)
-- [x] Household configuration UI in Ops tab (done in S12)
-- [x] Seed Big Sky activity photos (done in S12)
-- [x] Personal itinerary pages (done in S12)
-- [ ] Wait for family feedback after sharing the link
+## Next Session Kickoff
+**Mode:** execute
+**First action:** Mint a fresh Cowork ops token, hand it the cleaned `docs/big-sky-bookings.md` brief, and start booking Sharon's three priorities (Big Sky Culinary in-home class, Food For Thought private chef lunch, Riverhouse BBQ walk-in plan). Then send family the live RSVP link.
+**Open questions:**
+- Same chef for Day 6 private chef lunch ("Food For Thought") + Day 7 Big Sky Culinary in-home class? If yes, single point of contact for both.
+- Big Sky Culinary stated capacity is 3-6; group is 9. What's the Plan B if Chef Heather can't accommodate (two parallel sessions, two back-to-back, alt activity)?
+- Discoverability: add the RSVP toggle to `/share` too, or just send family the `/share/my-plan` URL?
+- Day 5 morning: alpaca farm or skip golf entirely?
+**Decisions pending:** none blocking — all of the above can be answered as work proceeds
+**Ready plan:** `docs/big-sky-bookings.md`
 
 ---
 
@@ -238,16 +76,6 @@
 - Yellowstone day description + lunch options updated
 - LMR Rodeo replaces Rainbow Ranch on Day 5
 
-### Next Steps (Session 13+)
-- [x] Itinerary content polish + real venue photos (done S13)
-- [x] Sent itinerary to Goble family (done S13)
-- [ ] Wait for family feedback via sign-off system
-- [ ] Start Cowork session to begin restaurant/activity bookings
-- [ ] Iterative generation — regenerate itinerary from updated preferences via UI
-- [ ] Research feed — curated spots with group voting
-- [ ] Gondola timing — confirm Big Sky Resort summer 2026 lift hours (tight at 5 PM close)
-- [ ] Check Yellowstone 2026 timed-entry requirements
-
 ---
 
 ## 2026-04-13 — Session 13: Itinerary Polish + Real Venue Photos + Sent to Family
@@ -279,8 +107,58 @@
 - 17 image_url values updated with real venue photos
 - 8 image_url values nulled (bad/duplicate)
 
-### Next Steps (Session 14+)
-- [ ] Collect family feedback via sign-off system
-- [ ] Start Cowork session to begin restaurant/activity bookings
-- [ ] Iterative generation — regenerate itinerary from updated preferences via UI
-- [ ] Check Yellowstone 2026 timed-entry requirements
+---
+
+## 2026-04-28 — Session 14: Big Sky Bookings Doc + Per-Block RSVPs
+
+### Accomplished
+- **Bookings master checklist** at `docs/big-sky-bookings.md` — tiered by urgency (this week / mid-May / early July / walk-in), with phone numbers, party size, and how-to-book per item. Sharon's three priorities flagged ⭐: Big Sky Culinary in-home class, Food For Thought private chef lunch, Riverhouse BBQ.
+- **Research findings folded in** (corrects earlier assumptions):
+  - Yellowstone has **no timed-entry requirement in 2026** — bring a park pass, that's it
+  - Riverhouse BBQ **does NOT take reservations** — walk-in only, party of 9 should arrive before 5:30 PM or after 8 PM. (406) 995-7427.
+  - Big Sky Culinary stated class capacity is **3–6**; group is 9. Real risk — call (303) 406-1501 / bigskyculinaryclasses@gmail.com first to ask about exception or two sessions.
+  - LMR Tuesday Night Rodeo correctly ID'd as the trip's rodeo (not Big Sky PBR — PBR ends Jul 18). Eventbrite tickets via lonemountainranch.com/rodeo, max 12/transaction.
+- **DB sync** (`scripts/sync-bookings-s14.mjs`, idempotent): updated 9 ops_items with corrected day numbers/venues/contacts; deleted 2 stale (Rainbow Ranch dinner block doesn't exist; zipline todo for what's now scenic drive); added 2 new (Big Sky Culinary booking + Lone Peak Brewery welcome dinner); fixed booking_window strings on 5 blocks; re-typed Day 4 LMR rodeo block from `meal` → `activity` (was excluding it from RSVP eligibility).
+- **Per-block RSVP feature shipped** (answer to "who's actually doing horseback?"):
+  - New `block_rsvps` table — `(trip_id, block_id, participant_id, status: yes/maybe/no)` with unique index on `(block_id, participant_id)`. Migration via `scripts/migrate-add-block-rsvps.mjs`, idempotent.
+  - `GET/POST/DELETE /api/trips/[id]/rsvps` — POST upserts via ON CONFLICT.
+  - `/share/my-plan`: Yes / Maybe / No toggle on each activity block, optimistic UI with rollback on failure, persists to localStorage-identified guest.
+  - `/review`: inline headcount card (✓ Yes / ? Maybe / ✗ No counts + names on hover, plus "responded N/9") on each activity block.
+  - Activity-only scope — toggle/headcount appear only on `type='activity'` blocks. Transport, meals, free-time blocks unaffected.
+  - Middleware bypass added so guests can post without auth.
+- **PR + ship** — opened, merged, and Vercel-deployed to prod (`planner-sooty-theta.vercel.app`). Build clean, typecheck clean, API verified end-to-end via fetch (upsert, status validation, idempotent re-runs). Test RSVPs cleared post-deploy.
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `docs/big-sky-bookings.md` | Master booking checklist (tiers, phone numbers, party size) |
+| `scripts/migrate-add-block-rsvps.mjs` | Idempotent migration: rsvp_status enum + block_rsvps table |
+| `scripts/sync-bookings-s14.mjs` | Idempotent ops_items + booking_window cleanup |
+| `src/app/api/trips/[id]/rsvps/route.ts` | GET / POST (upsert) / DELETE RSVP endpoints |
+
+### Files Modified
+| File | Changes |
+|------|---------|
+| `src/db/schema-feedback.ts` | Added `rsvpStatusEnum` + `blockRsvps` table + relations |
+| `src/lib/itinerary-shared.tsx` | Added `RsvpStatus` + `BlockRsvp` interfaces |
+| `src/app/trips/[id]/share/my-plan/my-plan-view.tsx` | RSVP fetch + submitRsvp + per-block toggle render |
+| `src/app/trips/[id]/review/review-content.tsx` | RSVP fetch + inline headcount card per activity block |
+| `src/middleware.ts` | Bypass `/api/trips/[id]/rsvps` for guest access |
+
+### DB Changes (no code commit)
+- New `block_rsvps` table + `rsvp_status` enum applied to prod
+- ops_items: 9 updated, 2 deleted, 2 inserted, all reflecting current itinerary
+- itinerary_blocks: 5 booking_window strings cleaned; Day 4 rodeo type `meal` → `activity`
+
+### Notes
+- **Live UI smoke gap**: browser tool (Claude-in-Chrome extension) couldn't see the React Server Components stream past the initial loading skeleton — affected both local dev and prod. Title was dynamic so SSR + script load is fine; this is a tooling-side observation issue, not a real prod issue. Real verification requires Andrew opening the live URL in his normal browser.
+- **/preflight + /smoke-test skipped** for /done gate — build clean, API verified, prod responding 200; visual verification deferred to Andrew's normal-browser eyeball.
+- **Discoverability**: RSVP toggle only lives on `/share/my-plan`. Main `/share` view doesn't have it. Quick fix = send family the my-plan URL; real fix = next-session work.
+
+### Next Steps (Session 15+)
+- [ ] Send family the `/share/my-plan` link (the personal-plan view with the RSVP toggles)
+- [ ] Decide discoverability: add the RSVP toggle to `/share` itself, or rely on the my-plan URL
+- [ ] Mint fresh Cowork token, hand off `docs/big-sky-bookings.md`, start Sharon's three priorities
+- [ ] Confirm whether "Food For Thought" chef = Big Sky Culinary's Chef Heather (single contact for both food events)
+- [ ] Plan B for Big Sky Culinary if 9-person exception is denied
+- [ ] Iterative regen via UI (still on roadmap)

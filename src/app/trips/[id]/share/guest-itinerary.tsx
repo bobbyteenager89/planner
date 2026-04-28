@@ -311,19 +311,34 @@ export function GuestItinerary({ tripId }: { tripId: string }) {
               onSignOff={submitSignOff}
               existingSignOff={signOffStatus}
             />
-            <a
-              href={`/trips/${tripId}/share/my-plan`}
-              className="inline-flex items-center gap-2 mt-4 text-sm font-black uppercase tracking-wider px-5 py-3 transition-colors"
-              style={{
-                backgroundColor: CARD_BG,
-                color: INK,
-                border: `2px solid ${RUST}`,
-                fontFamily: "'Arial Black', Impact, sans-serif",
-                letterSpacing: "0.1em",
-              }}
-            >
-              📋 View My Plan →
-            </a>
+            <div className="flex flex-wrap gap-3 mt-4">
+              <a
+                href={`/trips/${tripId}/share/my-plan`}
+                className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-wider px-5 py-3 transition-colors"
+                style={{
+                  backgroundColor: CARD_BG,
+                  color: INK,
+                  border: `2px solid ${RUST}`,
+                  fontFamily: "'Arial Black', Impact, sans-serif",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                📋 View My Plan →
+              </a>
+              <a
+                href={`/trips/${tripId}/share/bookings`}
+                className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-wider px-5 py-3 transition-colors"
+                style={{
+                  backgroundColor: CARD_BG,
+                  color: INK,
+                  border: `2px solid ${RUST}`,
+                  fontFamily: "'Arial Black', Impact, sans-serif",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                ☎ Bookings →
+              </a>
+            </div>
           </>
         )}
       </div>
