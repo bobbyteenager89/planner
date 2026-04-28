@@ -74,9 +74,32 @@ After a working session, generate a short report:
 - **Full group:** 7 adults + 2 kids = 9 total
 - **Adults:** Jeff, Sharon, Clark, Alicia, Andrew, Maddie, Corban
 - **Kids:** Andie, Piper (always with Clark & Alicia)
-- **Solo activities:** Day 4 fly-fishing = Corban (1A); Day 4 spa = Maddie (1A)
 
-If a block has different counts, the ops doc will show them — those override the default.
+**Per-activity headcounts (from intake survey — these are authoritative):**
+
+| Block | Going | Skipping |
+|---|---|---|
+| D1 Lone Peak Brewery dinner | 7A + 2K — all | — |
+| D2 LMR Horseback | 5A + 2K — Alicia, Andrew, Corban, Jeff, Maddie + kids | Clark, Sharon |
+| D2 Moonlight Basin Gondola | 6A + 2K — all but Jeff | Jeff |
+| D3 Yellowstone | 7A + 2K — all | — |
+| D4 Fly fishing | **5A** — Alicia, Andrew, Clark, Corban, Jeff (adults only) | Maddie |
+| D4 Solace Spa | **5A** — Andrew, Alicia, Clark, Maddie, Sharon (adults only) | Corban, Jeff |
+| D4 LMR Tuesday Rodeo | 5A + 2K — Alicia, Andrew, Clark, Corban, Maddie + kids | Jeff, Sharon |
+| D5 Olive B's lunch | 6A + 2K | — |
+| D5 Farmers Market | 6A + 2K — walk-in | — |
+| D6 Private Chef "Food For Thought" | 7A + 2K — group YES | — |
+| D6 Horn & Cantle dinner | 7A + 2K — group YES | — |
+| D7 Big Sky Culinary class | **4A + 2K = 6 — fits stated 3-6 capacity** | Corban, Jeff, Maddie |
+| D7 Riverhouse BBQ (walk-in) | 7A + 2K | — |
+| D8 Hungry Moose breakfast | 6A + 2K — walk-in | — |
+
+**Corrections from prior briefs:**
+- Fly fishing was previously listed as "Corban only (1A)" — it's actually 5 adults.
+- Spa was previously listed as "Maddie only (1A)" — it's actually 5 adults.
+- Big Sky Culinary capacity issue is **resolved** — only 6 want to attend, fits the stated ceiling. No exception needed.
+
+If a block on the ops doc shows different counts than this table, the ops doc wins. The bookings tracker page (`/share/bookings`) is the human-readable mirror of the same data.
 
 ## Trip context
 
