@@ -16,17 +16,17 @@ These fill fast for July weekends. Book first.
 
 | # | What | When (trip date) | Party | How to book | Status |
 |---|------|------------------|-------|-------------|--------|
-| 1 | ⭐ **Big Sky Culinary — in-home class** | Fri Jul 24, 10:30 AM | 7A + 2K | **Chef Heather** — (303) 406-1501 / bigskyculinaryclasses@gmail.com / [contact form](https://www.bigskyculinaryclasses.com/contact). ⚠️ **Stated class size 3–6; group is 9.** Ask about an exception or two parallel sessions. | ☐ |
-| 2 | ⭐ **Private Chef "Food For Thought" — lunch at the house** | Thu Jul 23, 12:30 PM | 7A + 2K | Direct booking with chef; confirm if same chef as #1 (likely yes — group YES pick) | ☐ |
-| 3 | **Horn & Cantle at Lone Mountain Ranch** — dinner | Thu Jul 23, 5:30 PM | 7A + 2K | LMR reservations: (406) 995-4644 / lonemountainranch.com — books 30+ days out, fills fast | ☐ |
-| 4 | **Solace Spa — treatments for Maddie** | Tue Jul 21, 9:30 AM | 1A | Solace Spa at Big Sky direct: book individual treatments 30+ days out | ☐ (Maddie books) |
+| 1 | ⭐ **Big Sky Culinary — in-home class** | Fri Jul 24, 10:30 AM | **4A + 2K** (Andrew, Sharon yes; Alicia, Clark fine; Corban/Jeff/Maddie pass — kids per Clark/Alicia) | **Chef Heather** — (303) 406-1501 / bigskyculinaryclasses@gmail.com / [contact form](https://www.bigskyculinaryclasses.com/contact). ✓ **6 attendees fits stated 3–6 capacity** — no exception needed. | ☐ |
+| 2 | ⭐ **Private Chef "Food For Thought" — lunch at the house** | Thu Jul 23, 12:30 PM | 7A + 2K (group YES — 4 yes, 3 fine, 0 pass on chef vote) | Direct booking with chef; confirm if same chef as #1 | ☐ |
+| 3 | **Horn & Cantle at Lone Mountain Ranch** — dinner | Thu Jul 23, 5:30 PM | 7A + 2K (group YES — all in) | LMR reservations: (406) 995-4644 / lonemountainranch.com — books 30+ days out, fills fast | ☐ |
+| 4 | **Solace Spa** | Tue Jul 21, 9:30 AM | **5A + 0K** (Andrew, Maddie yes; Alicia, Clark, Sharon fine; Corban/Jeff pass) | Solace Spa at Big Sky direct — each person books their own treatment, 30+ days out | ☐ |
 
 ### 🟠 Book by mid-May (T-8 to T-9 weeks)
 
 | # | What | When | Party | How to book | Status |
 |---|------|------|-------|-------------|--------|
-| 5 | **Gallatin River Guides — fly fishing (Corban)** | Tue Jul 21, 8:00 AM | 1A | (406) 995-2290 / montanaflyfishing.com — half-day guided trip; book 2–4 weeks ahead | ☐ |
-| 6 | **LMR Tuesday Night Rodeo** *(not Big Sky PBR — separate event)* | Tue Jul 21, 6–8 PM (block currently shows 5:15) | 7A + 2K | **Eventbrite** via [lonemountainranch.com/rodeo](https://lonemountainranch.com/rodeo/). Max 12 tickets per transaction. LMR phone: (406) 995-4644. Runs every Tue Jun 9–Sept 22. | ☐ |
+| 5 | **Gallatin River Guides — fly fishing** | Tue Jul 21, 8:00 AM | **5A + 0K** (Alicia, Andrew, Clark, Corban, Jeff yes; Maddie passes) | (406) 995-2290 / montanaflyfishing.com — half-day guided trip; book 2–4 weeks ahead | ☐ |
+| 6 | **LMR Tuesday Night Rodeo** *(not Big Sky PBR — separate event)* | Tue Jul 21, 6–8 PM (block currently shows 5:15) | **5A + 2K** (Alicia, Andrew, Clark, Corban yes; Maddie fine; Jeff/Sharon pass) | **Eventbrite** via [lonemountainranch.com/rodeo](https://lonemountainranch.com/rodeo/). Max 12 tickets per transaction. LMR phone: (406) 995-4644. Runs every Tue Jun 9–Sept 22. | ☐ |
 | 7 | **Lone Peak Brewery — welcome dinner** | Sat Jul 18, 5:30 PM | 7A + 2K | OpenTable or call (406) 995-3939 — large party, book 4+ weeks out | ☐ |
 
 > ⚠️ **Block timing fix:** Day 4 rodeo block currently starts at 5:15 PM but the actual show is 6–8 PM. Either move the block to 6:00 or treat 5:15 as "head-out time."
