@@ -1,6 +1,105 @@
 # Planner — Progress Archive
 
-> Sessions 1-4 archived on 2026-03-28, Sessions 5-8 archived on 2026-04-11
+> Sessions 1-4 archived on 2026-03-28, Sessions 5-8 archived on 2026-04-11, Sessions 9-11 archived on 2026-04-28.
+
+## 2026-04-08 — Session 9: Mom-Friendly Rationale Review Page
+
+### Accomplished
+- **New public route** `/trips/[id]/share/rationale` — auth-free, read-only review page for sharing the itinerary logic with trusted reviewers (Andrew's mom Sharon)
+- **Rationale generator** (`src/lib/ai/rationale.ts`) — server module that calls Claude Sonnet once to synthesize and cache as JSON on `itineraries.ai_reasoning`:
+  - `intro`: 4-6 bullet planning priorities
+  - `participants`: per-household cards with members, "excited for", "passing on", notes
+  - `days`: 2-3 sentence per-day logic
+  - `todos`: pre-trip To Do list grouped into Restaurants / Activities & Tickets / Bookings / Logistics / Supplies
+  - Owner can `?regen=1` to force regenerate
+- **Fixed wrong group data** — scrubbed every "20 people", "ages 4-69", "4-year-old", "69-year-old", "7 participants" phrase from 5 block reasonings. Actual group = 4 households, 9 people.
+- **Deleted redundant Group Kickoff block** — Andrew handles at welcome dinner
+- **Fixed rodeo timing** — was wrongly mid-morning, moved to Evening (later corrected to Tue 6-8 PM in S14)
+- **Typography pass** — body bumped to text-xl/text-lg for Mom-readable sizes
+- **DB ownership fix** — reassigned Big Sky trip to andrewgoble1@gmail.com
+- **Bug fix** — date helpers from `itinerary-shared.tsx` (`"use client"`) imported into a server component caused prod crash; inlined in the page.
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `src/lib/ai/rationale.ts` | Rationale generator (~220 lines) |
+| `src/app/trips/[id]/share/rationale/page.tsx` | Server-component review page (~440 lines) |
+| `src/app/trips/[id]/share/rationale/regenerate-button.tsx` | Owner regen control |
+| `scripts/gen-rationale.ts` | CLI to pre-generate rationale |
+| `NEXT_SESSION.md` | Roadmap: thesis, CEO prompts, infra + feature backlog |
+
+---
+
+## 2026-04-08 — Session 10: Ops Doc + Cowork Report-Back
+
+### Accomplished
+- **Caught a real miss:** Corban filled out survey 2026-03-28 but rationale had him bundled as "Maddie speaks for both." Split into separate voters — Corban = YES on fly-fishing/rodeo, Maddie = YES on spa-day.
+- **Built the Ops Doc feature** — downloadable markdown brief for Claude Cowork:
+  - Schema: added `adult_count`, `kid_count`, `reservation_status`, `reservation_notes`, `booking_window` to `itinerary_blocks`; new `ops_items` and `ops_tokens` tables
+  - Seeded 37 Big Sky blocks with headcounts (default 7A+2K)
+  - Seeded 13 initial todos: 12 Andrew, 1 Maddie (spa)
+  - `src/lib/ops/markdown.ts` — pure doc generator
+  - `GET /api/trips/[id]/ops/doc` — auth-gated download
+  - "Download Ops Doc" button on host review page
+- **Cowork report-back loop** — `POST /api/trips/[id]/ops/update` with bearer token (sha256-hashed in `ops_tokens`). Verified: real update → ok, revoked token → 401.
+- **Middleware carve-out** — `ops/update` bypasses cookie auth (uses bearer instead).
+- **Docs** — `docs/COWORK.md` brief for the cowork agent.
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `src/lib/ops/markdown.ts` | Ops doc generator |
+| `src/lib/ops/auth.ts` | Token hash/generate helpers |
+| `src/app/api/trips/[id]/ops/doc/route.ts` | GET markdown download |
+| `src/app/api/trips/[id]/ops/update/route.ts` | POST bearer-auth report-back |
+| `scripts/seed-bigsky-ops.mjs` | Idempotent seed for headcounts + todos |
+| `scripts/mint-ops-token.mjs` | Token mint (raw printed once, hash stored) |
+| `docs/COWORK.md` | Brief for Claude Cowork agent |
+
+### Files Modified
+| File | Changes |
+|------|---------|
+| `src/db/schema.ts` | 2 enums, 5 columns on `itinerary_blocks`, new `ops_items` + `ops_tokens` |
+| `src/lib/ai/rationale.ts` | Split "Maddie & Corban" into separate voters |
+| `src/middleware.ts` | Bypass `ops/update` for bearer-auth endpoint |
+
+---
+
+## 2026-04-11 — Session 11: Guest Feedback System + Editorial Redesign
+
+### Accomplished
+- **Full feedback system** — guests react to and propose changes on the shared itinerary:
+  - 4 new DB tables: `feedback_items`, `sign_offs`, `households`, `household_members`
+  - `co_admin` role + `presentationDismissed` column on itineraries
+  - 7 new API endpoints (feedback CRUD, sign-off, sign-offs list, finalize, households)
+  - Guest identity via first-name dropdown (localStorage + cookie, no auth)
+  - Sign-off banner: "Looks great! I'm in" / "I have some feedback" with DRAFT/FINAL badges
+  - Per-block Love + Suggest buttons; Suggest panel: alt activity / different time / skip / note
+- **Editor enhancements** on the admin review page — Agenda/Map/Ops tab bar with pending feedback badge; feedback inbox (accept/dismiss/reply); Map tab; Ops tab (Todos / RSVPs / Changes feed); Finalize button.
+- **Guest view redesign** — editorial travel-poster aesthetic: HeroSection (Lone Mountain sunset, duotone rust, noise overlay, "GOBLE FAMILY" pill, 97-day countdown, layered "BIG SKY" headline); TripStats inline strip; Fraunces serif added; "THE PLAN" section label with drop-cap; redesigned day picker (wider tabs, weekday/number/vibe hierarchy).
+- **Editor redesign** — same HeroSection, restyled action pills (Pin/Edit/Regen/Map), Fraunces italic for meta.
+- **Bug fixes:** Guide page back-button fixed; drizzle config — `schema-feedback.ts` added to schema array (tables weren't being created); removed packing list section.
+- **CEO product review** — Quick/EXPANSION mode flagged Big Sky day-of-week conflicts (Farmers Market is Wed only; PBR ends Jul 18; LMR Tuesday Rodeo viable).
+- **15 commits**, 21 files created, 10 modified, 1,242 lines added.
+
+### Files Created
+- `src/db/schema-feedback.ts` — feedback/sign-off/household tables + enums
+- `src/app/api/trips/[id]/{feedback,feedback/[feedbackId],sign-off,sign-offs,finalize,households}/route.ts`
+- `src/components/itinerary/{hero-section,trip-stats,name-picker,three-dot-menu,sign-off-banner,feedback-inbox,map-tab,ops-tab}.tsx`
+- `src/lib/guest-identity.ts`
+- `docs/superpowers/specs/2026-04-10-editor-guest-feedback-design.md`
+- `docs/superpowers/plans/2026-04-10-editor-guest-feedback.md`
+
+### Files Modified
+- `src/db/schema.ts` — `co_admin` role, `presentationDismissed` column
+- `src/app/trips/[id]/share/guest-itinerary.tsx` — full redesign
+- `src/app/trips/[id]/review/review-content.tsx` — tabs, inbox, hero, button restyle
+- `src/app/trips/[id]/share/day-picker.tsx` — wider tabs, Fraunces
+- `src/app/layout.tsx` — Fraunces font
+- `src/middleware.ts` — public routes for new APIs
+- `drizzle.config.ts` — `schema-feedback.ts` added
+
+---
 
 ## Session 1 — Phase 1 Foundation — 2026-03-11
 
