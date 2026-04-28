@@ -45,8 +45,21 @@ function kidsFor(slug, attending, opts = {}) {
   return aliciaIn || clarkIn ? 2 : 0;
 }
 
-function fmtNote(prefix, going, hardNos, extra = "") {
-  let s = `${prefix}\nGoing (${going.length}A): ${going.join(", ") || "TBD"}.`;
+// Andie + Piper are Clark/Alicia's kids and join family activities when at
+// least one parent is in.
+const KID_NAMES = ["Andie", "Piper"];
+function kidsAttending(adultsAttending, opts = {}) {
+  if (opts.adultOnly) return [];
+  const parentIn =
+    adultsAttending.includes("Alicia") || adultsAttending.includes("Clark");
+  return parentIn ? KID_NAMES : [];
+}
+
+function fmtNote(prefix, going, hardNos, extra = "", opts = {}) {
+  const kids = kidsAttending(going, opts);
+  const total = `${going.length}A${kids.length ? ` + ${kids.length}K` : ""}`;
+  const names = [...going, ...kids].join(", ") || "TBD";
+  let s = `${prefix}\nGoing (${total}): ${names}.`;
   if (hardNos.length) s += ` Skipping: ${hardNos.join(", ")}.`;
   if (extra) s += ` ${extra}`;
   return s;
@@ -134,7 +147,9 @@ const updates = [];
     notes: fmtNote(
       "Gallatin River Guides: (406) 995-2290 / montanaflyfishing.com. Half-day guided trip.",
       t.attending,
-      t.pass
+      t.pass,
+      "",
+      { adultOnly: true }
     ),
   });
 }
@@ -150,7 +165,9 @@ const updates = [];
     notes: fmtNote(
       "Solace Spa at Big Sky direct. Each person books their own treatment.",
       t.attending,
-      t.pass
+      t.pass,
+      "",
+      { adultOnly: true }
     ),
   });
 }
@@ -198,7 +215,9 @@ const updates = [];
     notes: fmtNote(
       "Tee times bookable 7-14 days out via Big Sky Golf Course pro shop.",
       t.attending,
-      t.pass
+      t.pass,
+      "",
+      { adultOnly: true }
     ),
   });
 }
