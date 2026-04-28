@@ -20,6 +20,7 @@ export default function middleware(request: NextRequest) {
     (pathname.startsWith("/api/trips/") && pathname.endsWith("/feedback")) ||
     (pathname.startsWith("/api/trips/") && pathname.endsWith("/sign-off")) ||
     (pathname.startsWith("/api/trips/") && pathname.endsWith("/sign-offs")) ||
+    (pathname.startsWith("/api/trips/") && pathname.endsWith("/rsvps")) ||
     // Admin APIs (/finalize, /feedback/[id], /households) require auth — NOT exempted
     (pathname.startsWith("/api/trips/") && pathname.endsWith("/ops/update")) ||
     pathname.startsWith("/_next") ||

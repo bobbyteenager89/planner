@@ -63,6 +63,17 @@ export interface SignOff {
   createdAt: string;
 }
 
+export type RsvpStatus = "yes" | "maybe" | "no";
+
+export interface BlockRsvp {
+  id: string;
+  blockId: string;
+  participantId: string;
+  participantName: string | null;
+  status: RsvpStatus;
+  updatedAt: string;
+}
+
 export interface Participant {
   id: string;
   name: string | null;

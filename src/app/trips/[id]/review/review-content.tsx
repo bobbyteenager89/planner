@@ -24,7 +24,7 @@ import { HeroSection } from "@/components/itinerary/hero-section";
 import { FeedbackInbox } from "@/components/itinerary/feedback-inbox";
 import { MapTab } from "@/components/itinerary/map-tab";
 import { OpsTab } from "@/components/itinerary/ops-tab";
-import { type FeedbackItem, type SignOff, type Participant } from "@/lib/itinerary-shared";
+import { type FeedbackItem, type SignOff, type Participant, type BlockRsvp } from "@/lib/itinerary-shared";
 
 function SectionDivider({ title }: { title: string }) {
   return (
@@ -59,6 +59,7 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
   const [activeTab, setActiveTab] = useState<EditorTab>("agenda");
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
   const [signOffs, setSignOffs] = useState<SignOff[]>([]);
+  const [rsvps, setRsvps] = useState<BlockRsvp[]>([]);
 
   const fetchData = useCallback(() => {
     fetch(`/api/trips/${tripId}/share`)
@@ -77,9 +78,11 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
     Promise.all([
       fetch(`/api/trips/${tripId}/feedback`).then((r) => r.json()),
       fetch(`/api/trips/${tripId}/sign-offs`).then((r) => r.json()),
-    ]).then(([fb, so]) => {
+      fetch(`/api/trips/${tripId}/rsvps`).then((r) => r.json()),
+    ]).then(([fb, so, rs]) => {
       setFeedbackItems(fb);
       setSignOffs(so);
+      setRsvps(rs);
     }).catch(() => {});
   }, [data, tripId]);
 
@@ -658,6 +661,51 @@ export function ReviewItinerary({ tripId }: { tripId: string }) {
                                   <span>Edit</span>
                                 </button>
                               </div>
+
+                              {/* ── RSVP headcount (activity blocks only) ── */}
+                              {block.type === "activity" && (() => {
+                                const blockRsvps = rsvps.filter((r) => r.blockId === block.id);
+                                const yes = blockRsvps.filter((r) => r.status === "yes");
+                                const maybe = blockRsvps.filter((r) => r.status === "maybe");
+                                const no = blockRsvps.filter((r) => r.status === "no");
+                                const total = data?.participants.length ?? 0;
+                                const responded = blockRsvps.length;
+                                if (responded === 0) {
+                                  return (
+                                    <div
+                                      className="mb-3 px-3 py-2 text-xs flex items-center gap-2"
+                                      style={{ background: CREAM, color: INK_MUTED, borderRadius: "2px" }}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <span className="font-bold uppercase tracking-wider">Headcount:</span>
+                                      <span className="opacity-70">No RSVPs yet ({total} invited)</span>
+                                    </div>
+                                  );
+                                }
+                                const namesOf = (arr: typeof blockRsvps) =>
+                                  arr.map((r) => r.participantName || "Guest").join(", ");
+                                return (
+                                  <div
+                                    className="mb-3 px-3 py-2 text-xs flex items-center gap-3 flex-wrap"
+                                    style={{ background: CREAM, color: INK, borderRadius: "2px" }}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <span className="font-bold uppercase tracking-wider">Headcount</span>
+                                    <span title={namesOf(yes)} style={{ color: "#2e7d32" }}>
+                                      ✓ Yes: <strong>{yes.length}</strong>
+                                    </span>
+                                    <span title={namesOf(maybe)} style={{ color: "#b8860b" }}>
+                                      ? Maybe: <strong>{maybe.length}</strong>
+                                    </span>
+                                    <span title={namesOf(no)} style={{ color: RUST }}>
+                                      ✗ No: <strong>{no.length}</strong>
+                                    </span>
+                                    <span style={{ color: INK_MUTED }}>
+                                      ({responded}/{total} responded)
+                                    </span>
+                                  </div>
+                                );
+                              })()}
 
                               {/* ── Edit form (replaces read-only content) ── */}
                               {isEditing ? (

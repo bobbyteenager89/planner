@@ -239,9 +239,48 @@
 - LMR Rodeo replaces Rainbow Ranch on Day 5
 
 ### Next Steps (Session 13+)
+- [x] Itinerary content polish + real venue photos (done S13)
+- [x] Sent itinerary to Goble family (done S13)
 - [ ] Wait for family feedback via sign-off system
 - [ ] Start Cowork session to begin restaurant/activity bookings
 - [ ] Iterative generation — regenerate itinerary from updated preferences via UI
 - [ ] Research feed — curated spots with group voting
 - [ ] Gondola timing — confirm Big Sky Resort summer 2026 lift hours (tight at 5 PM close)
+- [ ] Check Yellowstone 2026 timed-entry requirements
+
+---
+
+## 2026-04-13 — Session 13: Itinerary Polish + Real Venue Photos + Sent to Family
+
+### Accomplished
+- **Lunch blocks diversified** — replaced 3 repetitive "Hungry Moose" lunch blocks (Day 2, 4, 5) with varied local recs (Lone Peak Brewery, Black Bear Bar & Grill, Olive B's) in a non-prescriptive "here are a few options, or eat at home" tone
+- **Swan Lake Loop added** — new afternoon block Day 5 (2:30–4:00 PM): 1.5-mile flat LMR meadow trail, good for kids, wildlife spotting before Farmers Market
+- **Kayaking on Hebgen Lake added** — optional morning block Day 6 (8:30–11:30 AM): 30 min north, different vibe from rest of trip, wraps before private chef lunch
+- **Duplicate dinner fixed** — Horn & Cantle appeared on Day 1 and Day 6; Day 1 swapped to Lone Peak Brewery (casual welcome dinner)
+- **Group reflection removed** — deleted "Evening: Final Stargazing & Group Reflection" from Day 7
+- **Image blank space bug fixed** — switched from CSS background-image div to `<img>` with `onError` handler; images that fail to load now collapse cleanly
+- **Bold markdown rendering** — `**text**` in block descriptions now renders as `<strong>` via `renderDescription()` helper
+- **17 venue images replaced** — all generic/wrong Unsplash stock photos replaced with real photos sourced from official venue websites: LMR, Buck's Big Sky, Big Sky Resort (Sanity CDN), Wikimedia Commons, Gallatin River Guides, Big Sky Farmers Market, Riverhouse BBQ, Big Sky Culinary Classes, Alpacas of Montana
+- **8 bad images nulled** — Scotland road photo (used for Town Center + Scenic Drive), all Lunch Break blocks, duplicate cooking class, departure blocks
+- **Itinerary sent to Goble family** ✈️
+
+### Files Modified
+| File | Changes |
+|------|---------|
+| `src/app/trips/[id]/share/guest-itinerary.tsx` | BlockImage component, renderDescription(), replaced background-image pattern |
+| `scripts/update-lunch-blocks.mjs` | New script: updates 3 lunch blocks with varied recs |
+
+### DB Changes (no code commit)
+- 3 lunch blocks updated with varied restaurant suggestions
+- Swan Lake Loop block inserted (Day 5, sort 5)
+- Kayaking on Hebgen Lake block inserted (Day 6, sort 2, Alt)
+- Day 1 dinner: Horn & Cantle → Lone Peak Brewery
+- Day 7: Final Stargazing & Group Reflection deleted
+- 17 image_url values updated with real venue photos
+- 8 image_url values nulled (bad/duplicate)
+
+### Next Steps (Session 14+)
+- [ ] Collect family feedback via sign-off system
+- [ ] Start Cowork session to begin restaurant/activity bookings
+- [ ] Iterative generation — regenerate itinerary from updated preferences via UI
 - [ ] Check Yellowstone 2026 timed-entry requirements

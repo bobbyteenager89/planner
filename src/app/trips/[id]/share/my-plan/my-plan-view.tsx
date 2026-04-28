@@ -17,6 +17,8 @@ import {
   TravelCard,
   type FeedbackItem,
   type Participant,
+  type BlockRsvp,
+  type RsvpStatus,
 } from "@/lib/itinerary-shared";
 import { getGuestParticipantId } from "@/lib/guest-identity";
 
@@ -27,6 +29,7 @@ export function MyPlanView({ tripId }: { tripId: string }) {
   const [guestId, setGuestId] = useState<string | null>(null);
   const [guestName, setGuestName] = useState<string | null>(null);
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
+  const [rsvps, setRsvps] = useState<BlockRsvp[]>([]);
 
   // Fetch trip data
   useEffect(() => {
@@ -68,6 +71,48 @@ export function MyPlanView({ tripId }: { tripId: string }) {
       .then((items: FeedbackItem[]) => setFeedbackItems(items))
       .catch(() => {});
   }, [guestId, tripId]);
+
+  // Fetch RSVPs when guest is identified
+  useEffect(() => {
+    if (!guestId) return;
+    fetch(`/api/trips/${tripId}/rsvps`)
+      .then((r) => r.json())
+      .then((rows: BlockRsvp[]) => setRsvps(rows))
+      .catch(() => {});
+  }, [guestId, tripId]);
+
+  async function submitRsvp(blockId: string, status: RsvpStatus) {
+    if (!guestId) return;
+    const optimistic: BlockRsvp = {
+      id: `tmp-${blockId}`,
+      blockId,
+      participantId: guestId,
+      participantName: guestName,
+      status,
+      updatedAt: new Date().toISOString(),
+    };
+    setRsvps((prev) => [
+      ...prev.filter(
+        (r) => !(r.blockId === blockId && r.participantId === guestId)
+      ),
+      optimistic,
+    ]);
+    try {
+      const res = await fetch(`/api/trips/${tripId}/rsvps`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blockId, participantId: guestId, status }),
+      });
+      if (res.ok) {
+        const saved = (await res.json()) as BlockRsvp;
+        setRsvps((prev) =>
+          prev.map((r) => (r.id === optimistic.id ? { ...optimistic, id: saved.id } : r))
+        );
+      }
+    } catch {
+      // Leave optimistic state; user can retry
+    }
+  }
 
   if (loading) {
     return (
@@ -151,6 +196,12 @@ export function MyPlanView({ tripId }: { tripId: string }) {
   const lovedBlockIds = new Set(
     myFeedback.filter((f) => f.type === "love").map((f) => f.blockId)
   );
+
+  // RSVP lookup for this participant: blockId → status
+  const myRsvpByBlock = new Map<string, RsvpStatus>();
+  for (const r of rsvps) {
+    if (r.participantId === guestId) myRsvpByBlock.set(r.blockId, r.status);
+  }
 
   // Filter blocks for this participant's personal plan
   const myBlocks = blocks.filter((block: Block) => {
@@ -356,6 +407,39 @@ export function MyPlanView({ tripId }: { tripId: string }) {
                           >
                             {block.description}
                           </p>
+                        )}
+
+                        {/* RSVP toggle — activity blocks only */}
+                        {block.type === "activity" && (
+                          <div className="mt-4 pt-3" style={{ borderTop: `1px dashed ${RUST}` }}>
+                            <p
+                              className="text-[10px] font-black uppercase tracking-[0.2em] mb-2"
+                              style={{ color: INK_MUTED }}
+                            >
+                              Will you join?
+                            </p>
+                            <div className="flex gap-2 flex-wrap">
+                              {(["yes", "maybe", "no"] as const).map((s) => {
+                                const active = myRsvpByBlock.get(block.id) === s;
+                                const labels = { yes: "Yes, I’m in", maybe: "Maybe", no: "No, skip me" };
+                                return (
+                                  <button
+                                    key={s}
+                                    onClick={() => submitRsvp(block.id, s)}
+                                    className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all"
+                                    style={{
+                                      backgroundColor: active ? RUST : "transparent",
+                                      color: active ? CREAM : RUST,
+                                      border: `1.5px solid ${RUST}`,
+                                      borderRadius: "2px",
+                                    }}
+                                  >
+                                    {labels[s]}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>
