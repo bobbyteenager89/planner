@@ -1,23 +1,23 @@
 # Planner — Progress Log
 
 ## Current State
-**Last session:** 2026-04-28 — S14: Booking checklist + per-block RSVP feature shipped to prod.
+**Last session:** 2026-04-28 — S15: Public bookings tracker shipped (`/share/bookings`) with preference-driven headcounts, tappable phone/email/URL links, structured fields, and per-card MARK BOOKED checkbox. Cooking-class capacity issue dissolved (4A+2K = 6, fits 3-6).
 **Next:**
-- Send family the `/share/my-plan` link so they can RSVP (drives definitive headcounts)
-- Kick off Cowork on Sharon's three priorities: Big Sky Culinary, Food For Thought chef, Riverhouse BBQ (walk-in)
-- Decide discoverability fix: add RSVP toggle to `/share`, or just always-link my-plan
-**Branch:** master / clean (PR #1 merged + auto-deployed)
+- Andrew sends Sharon the `/share/bookings` link
+- Andrew dispatches Cowork via `docs/big-sky-cowork-handoff.md` + the fresh ops token
+- Confirm whether Food For Thought chef = Big Sky Culinary's Chef Heather (one-call booking if yes)
+- Day 5 morning: decide alpaca farm vs golf (most passed on golf)
+**Branch:** master / clean (7 PRs merged this session, all auto-deployed to prod)
 
 ## Next Session Kickoff
-**Mode:** execute
-**First action:** Mint a fresh Cowork ops token, hand it the cleaned `docs/big-sky-bookings.md` brief, and start booking Sharon's three priorities (Big Sky Culinary in-home class, Food For Thought private chef lunch, Riverhouse BBQ walk-in plan). Then send family the live RSVP link.
+**Mode:** shallow
+**First action:** Brief on bookings status. Andrew likely has Cowork results to triage, or wants to call vendors himself, or has Sharon's reactions to act on. Wait for direction.
 **Open questions:**
-- Same chef for Day 6 private chef lunch ("Food For Thought") + Day 7 Big Sky Culinary in-home class? If yes, single point of contact for both.
-- Big Sky Culinary stated capacity is 3-6; group is 9. What's the Plan B if Chef Heather can't accommodate (two parallel sessions, two back-to-back, alt activity)?
-- Discoverability: add the RSVP toggle to `/share` too, or just send family the `/share/my-plan` URL?
-- Day 5 morning: alpaca farm or skip golf entirely?
-**Decisions pending:** none blocking — all of the above can be answered as work proceeds
-**Ready plan:** `docs/big-sky-bookings.md`
+- Did Cowork run? If so, what's `done` / `blocked` on the tracker page?
+- Did Sharon (or anyone) flip checkboxes via the public toggle?
+- Are there alpaca farm / Day 5 morning decisions to lock?
+**Decisions pending:** Day 5 morning (alpaca vs golf), single-chef confirmation
+**Ready plan:** `docs/big-sky-cowork-handoff.md` (self-contained Cowork brief, 179 lines, has all 13 ops_item IDs + headcounts + vendor contacts)
 
 ---
 
@@ -157,8 +157,68 @@
 
 ### Next Steps (Session 15+)
 - [ ] Send family the `/share/my-plan` link (the personal-plan view with the RSVP toggles)
+- [x] ~~Mint fresh Cowork token, hand off `docs/big-sky-bookings.md`, start Sharon's three priorities~~ — token minted, handoff package shipped (S15)
+- [x] ~~Plan B for Big Sky Culinary if 9-person exception is denied~~ — dissolved: only 4A+2K = 6 actually want it, fits 3-6 capacity (S15)
 - [ ] Decide discoverability: add the RSVP toggle to `/share` itself, or rely on the my-plan URL
-- [ ] Mint fresh Cowork token, hand off `docs/big-sky-bookings.md`, start Sharon's three priorities
 - [ ] Confirm whether "Food For Thought" chef = Big Sky Culinary's Chef Heather (single contact for both food events)
-- [ ] Plan B for Big Sky Culinary if 9-person exception is denied
+- [ ] Iterative regen via UI (still on roadmap)
+
+---
+
+## 2026-04-28 — Session 15: Public Bookings Tracker (Live, Live-Editable)
+
+### Accomplished
+- **`/trips/[id]/share/bookings`** — new public server-rendered page. Day-by-day with status icons (✅🟡🟢⚪❓), labeled fields (GOING / WHEN TO BOOK / NOTES), auto-linked phones (`tel:`) + emails (`mailto:`) + URLs, group roster + status counts in header, big day headings with rust underlines.
+- **MARK BOOKED checkbox** — per-card client component flips `reservation_status` between `needed` and `booked` via new public POST endpoint. Optimistic update + rollback on error. Booked cards get a green border.
+- **Preference-driven headcounts** — switched from doc-based defaults to `preferences.raw_data.activityVotes/dinnerVotes/chefVotes`. Major corrections:
+  - Fly fishing: 1A → **5A** (Alicia, Andrew, Clark, Corban, Jeff)
+  - Spa: 1A → **5A** (Andrew, Maddie + Alicia, Clark, Sharon)
+  - Cooking class: 7A+2K → **4A+2K = 6** (fits stated 3-6 capacity, no exception needed)
+  - Rodeo: 7A+2K → 5A+2K (Jeff/Sharon passed)
+  - Horseback: 7A+2K → 5A+2K (Clark/Sharon passed)
+- **Cooking-class capacity issue dissolved** — Sharon's #1 priority no longer needs an exception. First call is now a normal booking.
+- **Cowork ops token minted** (`ops_de9e336492a4...`) — old one revoked
+- **`docs/big-sky-cowork-handoff.md`** — 179-line self-contained Cowork brief with mission, three priorities, headcount table with names, vendor contacts, write-back protocol, and all 13 ops_item UUIDs inline (Cowork doesn't need to fetch the auth-gated ops doc)
+- **Refreshed 6 ops_items.notes** in DB to match corrected headcounts
+- **7 PRs merged** to master, all auto-deployed:
+  - #2 Public bookings tracker + initial seed
+  - #3 Preference-driven headcounts + doc corrections
+  - #4 Kid names in "Going" line
+  - #5 Cowork handoff package + COWORK.md cheat sheet
+  - #6 Bookings redesign (bigger headings, structured fields, tappable links, checkbox)
+  - #7 Middleware fix to allow public POSTs to `/bookings/toggle`
+- **Smoke test passing** — all 4 guest routes return 200 (`/share`, `/share/bookings`, `/share/my-plan`, `/share/guide`)
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `src/app/trips/[id]/share/bookings/page.tsx` | Public bookings tracker (server component) |
+| `src/app/trips/[id]/share/bookings/booking-checkbox.tsx` | Client checkbox toggle |
+| `src/app/api/trips/[id]/bookings/toggle/route.ts` | Public POST endpoint, validates block belongs to trip |
+| `scripts/seed-bigsky-bookings.mjs` | Idempotent seed for reservation_status/window/notes |
+| `scripts/seed-bigsky-headcounts.mjs` | Idempotent preference-driven headcount seed |
+| `docs/big-sky-cowork-handoff.md` | Self-contained Cowork dispatch package |
+
+### Files Modified
+| File | Changes |
+|------|---------|
+| `src/app/trips/[id]/share/guest-itinerary.tsx` | Added Bookings CTA next to View My Plan |
+| `src/middleware.ts` | Added `/bookings/toggle` to public allowlist |
+| `docs/big-sky-bookings.md` | Corrected fly-fishing, spa, cooking-class headcounts + rationale |
+| `docs/COWORK.md` | Replaced solo-headcount defaults with full per-block survey-derived table; noted capacity-issue resolution |
+
+### DB Changes (no code commit needed)
+- 20 itinerary_blocks: `reservation_status`/`booking_window`/`reservation_notes` populated from doc
+- 16 itinerary_blocks: `adult_count`/`kid_count`/`reservation_notes` rewritten from intake survey prefs
+- 6 ops_items: `notes` refreshed to match corrected headcounts
+- New ops_token minted; prior token revoked
+
+### Outstanding for Andrew
+- [ ] Send Sharon the `/share/bookings` link
+- [ ] Dispatch Cowork (paste `docs/big-sky-cowork-handoff.md` + ops token into a fresh claude.ai conversation)
+
+### Next Steps
+- [ ] Triage Cowork report-back (whatever lands as `done`/`blocked`)
+- [ ] Decide Day 5 morning: alpaca farm vs golf
+- [ ] Confirm Food For Thought chef = Chef Heather (single-call booking if yes)
 - [ ] Iterative regen via UI (still on roadmap)

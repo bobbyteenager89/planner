@@ -129,6 +129,71 @@ function splitGoing(notes: string): {
   return { going, rest };
 }
 
+// Parse the bookingWindow text into a number of days of lead time.
+// Returns null when the window is "walk-in" / "no booking" / unparseable.
+function parseLeadDays(window: string | null): number | null {
+  if (!window) return null;
+  const w = window.toLowerCase();
+  if (
+    w.includes("walk-in") ||
+    w.includes("walk in") ||
+    w.includes("no booking") ||
+    w.includes("no reservation") ||
+    w.includes("public event")
+  ) {
+    return null;
+  }
+  // "Book ASAP" / "this week"
+  if (w.includes("asap") || w.includes("book this week")) return 7;
+
+  // Pull numbers; prefer the LARGER of any range (gives earlier book-by deadline).
+  // Patterns: "4+ weeks", "2-4 weeks", "30+ days", "7-14 days", "1-2 weeks", "few days"
+  const weekMatches = [...w.matchAll(/(\d+)(?:\s*[-–to]+\s*(\d+))?\s*\+?\s*weeks?/g)];
+  const dayMatches = [...w.matchAll(/(\d+)(?:\s*[-–to]+\s*(\d+))?\s*\+?\s*days?/g)];
+  let days: number | null = null;
+  for (const m of weekMatches) {
+    const n = parseInt(m[2] ?? m[1], 10);
+    if (!Number.isNaN(n)) days = Math.max(days ?? 0, n * 7);
+  }
+  for (const m of dayMatches) {
+    const n = parseInt(m[2] ?? m[1], 10);
+    if (!Number.isNaN(n)) days = Math.max(days ?? 0, n);
+  }
+  if (days !== null) return days;
+  // "few days" / "a few days" → call it 5
+  if (/\bfew days?\b/.test(w)) return 5;
+  // No lead time mentioned → assume soon (2 weeks default)
+  return 14;
+}
+
+function computeBookBy(
+  startDate: Date | string | null,
+  dayNumber: number,
+  leadDays: number
+): Date | null {
+  const event = getDayDate(startDate, dayNumber);
+  if (!event) return null;
+  return new Date(
+    event.getFullYear(),
+    event.getMonth(),
+    event.getDate() - leadDays
+  );
+}
+
+function bucketForBookBy(bookBy: Date, today: Date): string {
+  const ms = 24 * 60 * 60 * 1000;
+  const diff = Math.floor((bookBy.getTime() - today.getTime()) / ms);
+  if (diff <= 0) return "Book this week (overdue or due now)";
+  if (diff <= 7) return "Book this week";
+  if (diff <= 14) return "Book next week";
+  if (diff <= 30) return "Book in 2-4 weeks";
+  return "Later";
+}
+
+function shortDate(d: Date): string {
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -302,127 +367,128 @@ export default async function BookingsPage({
                 </header>
 
                 <div className="space-y-4">
-                  {showable.map((b) => {
-                    const status = (b.reservationStatus ??
-                      "unknown") as ResStatus;
-                    const meta = STATUS_META[status];
-                    const isQuiet = status === "not_needed";
-                    const showCheckbox =
-                      status === "needed" || status === "booked";
-                    const notes = b.reservationNotes ?? "";
-                    const { going, rest } = splitGoing(notes);
-                    // "Going (5A + 2K): names" — strip the prefix for the value column.
-                    const goingValue = going
-                      ? going.replace(/^Going \([^)]+\):\s*/, "")
-                      : null;
-
-                    return (
-                      <article
-                        key={b.id}
-                        className="rounded-xl p-5 sm:p-6"
-                        style={{
-                          backgroundColor: CARD_BG,
-                          opacity: isQuiet ? 0.65 : 1,
-                          border:
-                            status === "booked"
-                              ? `2px solid #1F8A4D`
-                              : "2px solid transparent",
-                        }}
-                      >
-                        {/* Title row */}
-                        <div className="flex items-start gap-3">
-                          <span
-                            className="text-2xl leading-none"
-                            style={{ marginTop: 2 }}
-                          >
-                            {meta.icon}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <h3
-                              className="font-extrabold text-xl sm:text-2xl leading-tight"
-                              style={{ fontFamily: "var(--font-outfit)" }}
-                            >
-                              {b.title}
-                            </h3>
-                            <div
-                              className="mt-1 text-sm uppercase tracking-wider font-bold"
-                              style={{ color: meta.color }}
-                            >
-                              {meta.label}
-                              {b.startTime && (
-                                <span style={{ color: INK_MUTED }}>
-                                  {"  ·  "}
-                                  {formatTime(b.startTime)}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Structured fields */}
-                        {!isQuiet && (
-                          <dl className="mt-5 space-y-4">
-                            {(b.adultCount || b.kidCount) && (
-                              <Field label="Going">
-                                <span className="font-bold text-lg">
-                                  {b.adultCount ?? 0}A
-                                  {b.kidCount ? ` + ${b.kidCount}K` : ""}
-                                </span>
-                                {goingValue && (
-                                  <span
-                                    className="block text-base mt-1"
-                                    style={{ color: INK }}
-                                  >
-                                    {goingValue}
-                                  </span>
-                                )}
-                              </Field>
-                            )}
-
-                            {b.bookingWindow && (
-                              <Field label="When to book">
-                                <span className="text-base">
-                                  {linkify(b.bookingWindow)}
-                                </span>
-                              </Field>
-                            )}
-
-                            {rest && (
-                              <Field label="Notes">
-                                <span
-                                  className="text-base whitespace-pre-line"
-                                  style={{ color: INK }}
-                                >
-                                  {linkify(rest)}
-                                </span>
-                              </Field>
-                            )}
-                          </dl>
-                        )}
-
-                        {/* Checkbox */}
-                        {showCheckbox && (
-                          <div
-                            className="mt-5 pt-4"
-                            style={{
-                              borderTop: `1px solid rgba(122, 98, 84, 0.25)`,
-                            }}
-                          >
-                            <BookingCheckbox
-                              tripId={id}
-                              blockId={b.id}
-                              initialStatus={status as "needed" | "booked"}
-                            />
-                          </div>
-                        )}
-                      </article>
-                    );
-                  })}
+                  {showable.map((b) => (
+                    <BookingCard
+                      key={b.id}
+                      block={b}
+                      tripId={id}
+                      eventDate={getDayDate(trip.startDate, b.dayNumber)}
+                    />
+                  ))}
                 </div>
               </section>
             );
           })}
         </div>
+
+        {/* ───────────── Second view: by booking date ───────────── */}
+        {(() => {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          // Only blocks that need booking; compute book-by date.
+          type Item = {
+            block: (typeof blocks)[number];
+            bookBy: Date | null;
+            eventDate: Date | null;
+          };
+          const items: Item[] = blocks
+            .filter(
+              (b) =>
+                b.reservationStatus === "needed" ||
+                b.reservationStatus === "booked"
+            )
+            .map((b) => {
+              const leadDays = parseLeadDays(b.bookingWindow);
+              const eventDate = getDayDate(trip.startDate, b.dayNumber);
+              const bookBy =
+                leadDays !== null
+                  ? computeBookBy(trip.startDate, b.dayNumber, leadDays)
+                  : null;
+              return { block: b, bookBy, eventDate };
+            })
+            .filter((i) => i.bookBy !== null)
+            .sort(
+              (a, b) =>
+                (a.bookBy?.getTime() ?? 0) - (b.bookBy?.getTime() ?? 0)
+            );
+
+          // Group by bucket
+          const buckets = new Map<string, Item[]>();
+          for (const i of items) {
+            const label = bucketForBookBy(i.bookBy!, today);
+            const list = buckets.get(label) ?? [];
+            list.push(i);
+            buckets.set(label, list);
+          }
+          const bucketOrder = [
+            "Book this week (overdue or due now)",
+            "Book this week",
+            "Book next week",
+            "Book in 2-4 weeks",
+            "Later",
+          ];
+
+          return (
+            <section className="mt-20">
+              <header
+                className="mb-6 pb-3"
+                style={{ borderBottom: `3px solid ${RUST}` }}
+              >
+                <div
+                  className="text-sm uppercase tracking-widest font-bold"
+                  style={{ color: RUST }}
+                >
+                  Sorted by call deadline
+                </div>
+                <h2
+                  className="font-extrabold text-4xl sm:text-5xl leading-tight mt-1"
+                  style={{ fontFamily: "var(--font-outfit)" }}
+                >
+                  By Booking Date
+                </h2>
+                <p
+                  className="mt-2 text-base"
+                  style={{ color: INK_MUTED }}
+                >
+                  Same items, ordered by when you should call. Walk-in and
+                  no-booking activities are not shown here.
+                </p>
+              </header>
+
+              <div className="space-y-10">
+                {bucketOrder
+                  .filter((b) => buckets.has(b))
+                  .map((bucketLabel) => (
+                    <div key={bucketLabel}>
+                      <h3
+                        className="font-extrabold text-2xl sm:text-3xl mb-4"
+                        style={{
+                          fontFamily: "var(--font-outfit)",
+                          color: bucketLabel.includes("overdue")
+                            ? "#A13D2A"
+                            : INK,
+                        }}
+                      >
+                        {bucketLabel}
+                      </h3>
+                      <div className="space-y-4">
+                        {buckets.get(bucketLabel)!.map((i) => (
+                          <BookingCard
+                            key={`bb-${i.block.id}`}
+                            block={i.block}
+                            tripId={id}
+                            eventDate={i.eventDate}
+                            bookBy={i.bookBy}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </section>
+          );
+        })()}
 
         <p className="mt-16 text-sm" style={{ color: INK_MUTED }}>
           Live tracker — anyone with the link can mark items booked. Refresh to
@@ -451,5 +517,151 @@ function Field({
       </dt>
       <dd className="mt-1">{children}</dd>
     </div>
+  );
+}
+
+// Reusable booking card. Used in both the day-by-day view and the
+// by-booking-date view. When `bookBy` is provided, a "BOOK BY" line appears
+// at the top so the deadline is unmistakable in the second view.
+function BookingCard({
+  block: b,
+  tripId,
+  eventDate,
+  bookBy,
+}: {
+  block: {
+    id: string;
+    title: string;
+    dayNumber: number;
+    startTime: string | null;
+    reservationStatus: ResStatus | null;
+    reservationNotes: string | null;
+    bookingWindow: string | null;
+    adultCount: number | null;
+    kidCount: number | null;
+  };
+  tripId: string;
+  eventDate: Date | null;
+  bookBy?: Date | null;
+}) {
+  const status = (b.reservationStatus ?? "unknown") as ResStatus;
+  const meta = STATUS_META[status];
+  const isQuiet = status === "not_needed";
+  const showCheckbox = status === "needed" || status === "booked";
+  const notes = b.reservationNotes ?? "";
+  const { going, rest } = splitGoing(notes);
+  const goingValue = going
+    ? going.replace(/^Going \([^)]+\):\s*/, "")
+    : null;
+
+  return (
+    <article
+      className="rounded-xl p-5 sm:p-6"
+      style={{
+        backgroundColor: CARD_BG,
+        opacity: isQuiet ? 0.65 : 1,
+        border:
+          status === "booked"
+            ? `2px solid #1F8A4D`
+            : "2px solid transparent",
+      }}
+    >
+      {bookBy && (
+        <div
+          className="mb-3 text-sm uppercase tracking-widest font-extrabold"
+          style={{ color: "#A13D2A" }}
+        >
+          Book by {shortDate(bookBy)}
+          {eventDate && (
+            <span
+              className="ml-2 font-normal normal-case tracking-normal"
+              style={{ color: INK_MUTED }}
+            >
+              · for {shortDate(eventDate)}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Title row */}
+      <div className="flex items-start gap-3">
+        <span className="text-2xl leading-none" style={{ marginTop: 2 }}>
+          {meta.icon}
+        </span>
+        <div className="flex-1 min-w-0">
+          <h3
+            className="font-extrabold text-xl sm:text-2xl leading-tight"
+            style={{ fontFamily: "var(--font-outfit)" }}
+          >
+            {b.title}
+          </h3>
+          <div
+            className="mt-1 text-sm uppercase tracking-wider font-bold"
+            style={{ color: meta.color }}
+          >
+            {meta.label}
+            {b.startTime && (
+              <span style={{ color: INK_MUTED }}>
+                {"  ·  "}
+                {formatTime(b.startTime)}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Structured fields */}
+      {!isQuiet && (
+        <dl className="mt-5 space-y-4">
+          {(b.adultCount || b.kidCount) && (
+            <Field label="Going">
+              <span className="font-bold text-lg">
+                {b.adultCount ?? 0}A
+                {b.kidCount ? ` + ${b.kidCount}K` : ""}
+              </span>
+              {goingValue && (
+                <span
+                  className="block text-base mt-1"
+                  style={{ color: INK }}
+                >
+                  {goingValue}
+                </span>
+              )}
+            </Field>
+          )}
+
+          {b.bookingWindow && (
+            <Field label="When to book">
+              <span className="text-base">{linkify(b.bookingWindow)}</span>
+            </Field>
+          )}
+
+          {rest && (
+            <Field label="Notes">
+              <span
+                className="text-base whitespace-pre-line"
+                style={{ color: INK }}
+              >
+                {linkify(rest)}
+              </span>
+            </Field>
+          )}
+        </dl>
+      )}
+
+      {/* Checkbox */}
+      {showCheckbox && (
+        <div
+          className="mt-5 pt-4"
+          style={{ borderTop: `1px solid rgba(122, 98, 84, 0.25)` }}
+        >
+          <BookingCheckbox
+            tripId={tripId}
+            blockId={b.id}
+            initialStatus={status as "needed" | "booked"}
+          />
+        </div>
+      )}
+    </article>
   );
 }
